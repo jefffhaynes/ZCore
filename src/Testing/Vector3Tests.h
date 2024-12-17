@@ -1,5 +1,5 @@
 #include "Vector3.h"
-#include "Core/Testing/TestSupport.h"
+#include "TestSupport.h"
 
 
 namespace Vector3Tests

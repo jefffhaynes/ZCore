@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Clock.h"
+#include "CoreMath.h"
 
 template<typename T = float>
 class Averager
@@ -16,7 +17,7 @@ public:
         auto scaledValue = value * scale;
         auto scaledState = _state * (1 - scale);
         _state = scaledValue + scaledState;
-        _lastValue = time;
+        _lastTime = time;
 
         return _state;
     }
@@ -30,7 +31,7 @@ private:
     float _smoothing;
     bool _initialized = false;
     T _state = T();
-    TimeSpan _lastValue;
+    TimeSpan _lastTime;
 
     constexpr float GetScale(TimeSpan time)
     {
@@ -40,7 +41,7 @@ private:
             return 1;
         }
 
-        auto delta = time - _lastValue;
-        return 2 / (delta.ToMilliseconds() * _smoothing + 1);
+        auto delta = time - _lastTime;
+        return 1 - CoreMath::Exp(-delta.ToSeconds() / _smoothing, 6);
     }
 };
