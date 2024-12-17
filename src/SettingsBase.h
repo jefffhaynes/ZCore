@@ -9,6 +9,9 @@ class SettingsBase
 public:
     static ReturnCode Load()
     {
+        auto rc = Initialize();
+        CHECK_RETURN_CODE(rc);
+
         auto err = settings_load();
         return ErrorConverter::Convert(err);
     }
@@ -55,4 +58,26 @@ protected:
 
         return 0;
     }
+
+private:
+    static bool _initialized;
+    
+    static ReturnCode Initialize()
+    {
+        if(_initialized)
+        {
+            return ReturnCode::Success;
+        }
+        
+        auto err = settings_subsys_init();
+        auto rc = ErrorConverter::Convert(err);
+        CHECK_RETURN_CODE(rc);
+
+        _initialized = true;
+
+        return ReturnCode::Success;
+    }
+
 };
+
+inline bool SettingsBase::_initialized = false;
