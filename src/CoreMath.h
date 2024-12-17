@@ -1,5 +1,8 @@
 #pragma once
 
+// here because we need constexpr for unit tests
+// switch to std when available
+
 class CoreMath
 {
 public:
