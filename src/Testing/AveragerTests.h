@@ -23,7 +23,7 @@ static_assert([]{
 }(), "Averager failed");
 
 static_assert([]{
-    Averager<float> averager(10);
+    Averager<float> averager(TimeSpan::FromSeconds(10));
     averager.Update(0, TimeSpan::FromMilliseconds(0));
     auto value = averager.Update(1, TimeSpan::FromMilliseconds(200));
     return abs(value - 0.019801327) < 0.001;

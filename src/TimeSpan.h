@@ -70,6 +70,11 @@ public:
         return TimeSpan(_milliseconds * scalar);
     }
 
+    constexpr TimeSpan operator-() const
+    {
+        return TimeSpan(-_milliseconds);
+    }
+
 
 private:
     static constexpr double MicrosecondsPerMillisecond = 1000;

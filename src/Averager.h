@@ -7,7 +7,7 @@ template<typename T = float>
 class Averager
 {
 public:
-    constexpr Averager(float smoothing = 0.25) : _smoothing(smoothing)
+    constexpr Averager(TimeSpan tau = TimeSpan::FromSeconds(1)) : _tau(tau)
     {
     }
 
@@ -28,10 +28,10 @@ public:
     }
 
 private:
-    float _smoothing;
     bool _initialized = false;
-    T _state = T();
+    TimeSpan _tau;
     TimeSpan _lastTime;
+    T _state = T();
 
     constexpr float GetScale(TimeSpan time)
     {
@@ -42,6 +42,6 @@ private:
         }
 
         auto delta = time - _lastTime;
-        return 1 - CoreMath::Exp(-delta.ToSeconds() / _smoothing, 6);
+        return 1 - CoreMath::Exp(-delta / _tau, 6);
     }
 };
