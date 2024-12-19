@@ -44,6 +44,13 @@ namespace StringFormatterTests
         return formatted == String("Hello, 1.0 2.00 3.000!");
     }(), "Format method failed");
 
+    // multiple arguments
+    static_assert([]{
+        Array<char, 24> buffer;
+        auto formatted = StringFormatter::Format(buffer, "Hello, %.1f %.2f %d!", 1.0f, 2.0f, 3u);
+        return formatted == String("Hello, 1.0 2.00 3!");
+    }(), "Format method failed");
+
     // not enough arguments
     static_assert([]{
         Array<char, 16> buffer;

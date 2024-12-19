@@ -263,6 +263,13 @@ private:
         return format_helper(buffer, size, format);
     }
 
+    // Overload for unsigned integer arguments
+    template<typename... Args>
+    static constexpr int format_helper(char*& buffer, size_t& size, const char*& format, unsigned int value, Args... args) {
+        // just use int format
+        return format_helper(buffer, size, format, static_cast<int>(value), args...);
+    }
+
     // Overload for float arguments with precision handling
     template<typename... Args>
     static constexpr int format_helper(char*& buffer, size_t& size, const char*& format, float value, Args... args) {
