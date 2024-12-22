@@ -438,20 +438,17 @@ public:
             return ReturnCode::InvalidLength;
         }
         
-        auto span = MemoryMarshal::AsBytes(nameData.AsSpan());
+        auto span = nameData.AsBytes();
         auto rc = data.CopyTo(span);
         CHECK_RETURN_CODE(rc);
 
-        rc = nameData.Set(data.GetLength(), '\0');
-        CHECK_RETURN_CODE(rc);
-
-        return SetName(StringLiteral(nameData));
+        return SetName(nameData);
     }
 
     ReturnCode Read(Span<uint8_t> data, uint32_t& read) override
     {
         auto name = String::FromNullTerminated(bt_get_name());
-	    auto nameSpan = MemoryMarshal::AsBytes(name);
+	    auto nameSpan = name.AsConstBytes();
 	    auto rc = nameSpan.CopyTo(data);
         CHECK_RETURN_CODE(rc);
 

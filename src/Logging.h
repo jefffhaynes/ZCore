@@ -18,7 +18,8 @@ public:
         auto rc = _stream.Write(lengthData);
         CHECK_RETURN_CODE(rc);
 
-        rc = _stream.Write(MemoryMarshal::AsBytes(message));
+        auto messageData = message.AsConstBytes();
+        rc = _stream.Write(messageData);
         CHECK_RETURN_CODE(rc);
 
         auto terminator = (uint16_t) 0;

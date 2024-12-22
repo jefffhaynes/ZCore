@@ -2,6 +2,8 @@
 
 #include "SettingBase.h"
 #include "CoreString.h"
+#include "TimeSpan.h"
+#include "Units/SignalStrength.h"
 
 template <typename T>
 class Setting : public SettingBase
@@ -19,7 +21,7 @@ public:
 
     constexpr ReturnCode Set(T value)
     {
-        auto data = MemoryMarshal::AsConstBytes(value);
+        auto data = MemoryMarshal::AsConstBytesUnsafe(value);
         auto rc = SettingBase::Save(data);
         CHECK_RETURN_CODE(rc);
 
