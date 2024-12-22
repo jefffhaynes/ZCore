@@ -18,6 +18,9 @@ concept IsSpecialized = is_specialization<T, SafeTuple>::value;
 template<typename T>
 concept Safe = std::is_arithmetic_v<T> || std::is_enum_v<T> || IsSpecialized<T>;
 
+template<typename T>
+concept Unsafe = !Safe<T>;
+
 class MemoryMarshal
 {
 public:
@@ -27,7 +30,7 @@ public:
         return Span<uint8_t>(reinterpret_cast<uint8_t*>(&value), sizeof(value));
     }
 
-    template<typename T>
+    template<Unsafe T>
     static constexpr Span<uint8_t> AsBytesUnsafe(T& value)
     {
         return Span<uint8_t>(reinterpret_cast<uint8_t*>(&value), sizeof(value));
@@ -39,7 +42,7 @@ public:
         return Span<const uint8_t>(reinterpret_cast<const uint8_t*>(&value), sizeof(value));
     }
     
-    template<typename T>
+    template<Unsafe T>
     static constexpr Span<const uint8_t> AsConstBytesUnsafe(T& value)
     {
         return Span<const uint8_t>(reinterpret_cast<const uint8_t*>(&value), sizeof(value));
