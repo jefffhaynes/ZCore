@@ -32,9 +32,12 @@ public:
     }
 
     template<typename T, ReturnCode (T::*F)(Args...)>
-    constexpr ReturnCode Subscribe(void* context)
+    constexpr ReturnCode Subscribe(void* subscriber)
     {
-        return Subscribe([](Args... args, void* ctx){ return (static_cast<T*>(ctx)->*F)(args...); }, context);
+        return Subscribe([](Args... args, void* context)
+            { 
+                return (static_cast<T*>(context)->*F)(args...); 
+            }, subscriber);
     }
 
     constexpr ReturnCode Invoke(Args... args)
