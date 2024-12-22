@@ -25,11 +25,21 @@ public:
 
         return ReturnCode::Success;
     }
-
-    template<Safe TValue>
-    constexpr ReturnCode Write(TValue& value)
+    
+    constexpr ReturnCode Write(Span<T> span)
     {
-        auto span = MemoryMarshal::AsConstBytes(value);
+        auto rc = span.CopyTo(_span.Skip(_offset));
+        CHECK_RETURN_CODE(rc);
+
+        _offset += span.GetLength();
+
+        return ReturnCode::Success;
+    }
+
+    template<uint32_t N>
+    constexpr ReturnCode Write(T(&array)[N])
+    {
+        auto span = Span<T>(array);
         return Write(span);
     }
 

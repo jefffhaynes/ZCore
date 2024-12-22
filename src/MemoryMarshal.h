@@ -5,18 +5,26 @@
 #include "CoreString.h"
 #include "SafeTuple.h"
 
+#include "pfr/pfr.hpp"
 
-template <class T, template <class...> class Template>
-struct is_specialization : std::false_type {};
+template <typename T>
+constexpr bool all_fields_are_safe()
+{
+    bool result = true;
 
-template <template <class...> class Template, class... Args>
-struct is_specialization<Template<Args...>, Template> : std::true_type {};
+    pfr::for_each_field(T{}, [&](const auto& field)
+    {
+        using FieldType = std::decay_t<decltype(field)>;
+        result = result && (std::is_arithmetic_v<FieldType> 
+            || std::is_enum_v<FieldType> 
+            || all_fields_are_safe<FieldType>());
+    });
+
+    return result;
+}
 
 template<typename T>
-concept IsSpecialized = is_specialization<T, SafeTuple>::value;
-
-template<typename T>
-concept Safe = std::is_arithmetic_v<T> || std::is_enum_v<T> || IsSpecialized<T>;
+concept Safe = std::is_arithmetic_v<T> || std::is_enum_v<T> || all_fields_are_safe<T>();
 
 template<typename T>
 concept Unsafe = !Safe<T>;
@@ -25,54 +33,28 @@ class MemoryMarshal
 {
 public:
     template<Safe T>
-    static constexpr Span<uint8_t> AsBytes(T& value)
+    static Span<uint8_t> AsBytes(T& value)
     {
-        return Span<uint8_t>(reinterpret_cast<uint8_t*>(&value), sizeof(value));
-    }
-
-    template<Unsafe T>
-    static constexpr Span<uint8_t> AsBytesUnsafe(T& value)
-    {
-        return Span<uint8_t>(reinterpret_cast<uint8_t*>(&value), sizeof(value));
+        return AsBytesUnsafe(value);
     }
 
     template<Safe T>
-    static constexpr Span<const uint8_t> AsConstBytes(T& value)
+    static Span<const uint8_t> AsConstBytes(T& value)
     {
-        return Span<const uint8_t>(reinterpret_cast<const uint8_t*>(&value), sizeof(value));
+        return AsConstBytesUnsafe(value);
     }
     
-    template<Unsafe T>
-    static constexpr Span<const uint8_t> AsConstBytesUnsafe(T& value)
-    {
-        return Span<const uint8_t>(reinterpret_cast<const uint8_t*>(&value), sizeof(value));
-    }
-
-    template<Safe T>
-    static constexpr Span<const uint8_t> AsConstBytes(Span<T> value)
-    {
-        return Cast<T, const uint8_t>(value);
-    }
-
-
     template<typename T>
-    using TBytes = typename std::conditional<std::is_const_v<T>, const uint8_t, uint8_t>::type; 
-
-    template<typename T>
-    static constexpr Span<TBytes<T>> AsBytes(Span<T> span)
+    static Span<uint8_t> AsBytesUnsafe(T& value)
     {
-        auto length = span.GetLength() * sizeof(T);
-        return Span<TBytes<T>>(reinterpret_cast<TBytes<T>*>(span.GetData()), length);
+        auto* p = reinterpret_cast<uint8_t*>(&value);
+        return Span<uint8_t>(p, sizeof(value));
     }
-
-private:
-    // not safe for general use due to alignment issues    
-    template<typename TFrom, typename TTo>
-    static constexpr Span<TTo> Cast(Span<TFrom> span)
+    
+    template<typename T>
+    static Span<const uint8_t> AsConstBytesUnsafe(T& value)
     {
-        // TODO deal with alignment
-        auto* to = reinterpret_cast<TTo*>(span.GetData());
-        auto length = span.GetLength() * sizeof(TFrom) / sizeof(TTo);
-        return { to, length };
+        auto* p = reinterpret_cast<const uint8_t*>(&value);
+        return Span<const uint8_t>(p, sizeof(value));
     }
 };

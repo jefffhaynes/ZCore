@@ -173,6 +173,16 @@ public:
         return AsSpan().SequenceEquals(other);
     }
 
+    Span<uint8_t> AsBytes()
+    {
+        return AsSpan().AsBytes();
+    }
+
+    Span<const uint8_t> AsConstBytes() const
+    {
+        return AsSpan().AsConstBytes();
+    }
+
 private:
     T _data[Length];
 };

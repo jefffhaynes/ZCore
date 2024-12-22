@@ -47,3 +47,20 @@ static_assert([]() constexpr
     auto expected = Span<int>(data2);
     return rc == ReturnCode::Success && writer.GetWritten() == 3 && data.SequenceEquals(expected);
 }());
+
+static_assert([]() constexpr
+{
+    Array<int, 3> data;
+    SpanWriter<int> writer(data);
+    int data2[3] = { 1, 2, 3 };
+    auto rc = writer.Write(data2);
+    
+    if(rc != ReturnCode::Success)
+    {
+        return false;
+    }
+
+    auto written = writer.GetWrittenSpan();
+    auto expected = Span<int>(data);
+    return written.SequenceEquals(expected);
+}());

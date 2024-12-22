@@ -17,21 +17,9 @@ public:
         return _value;
     }
 
-    constexpr ReturnCode Set(T value) requires Safe<T>
+    constexpr ReturnCode Set(T value)
     {
         auto data = MemoryMarshal::AsConstBytes(value);
-        auto rc = SettingBase::Save(data);
-        CHECK_RETURN_CODE(rc);
-
-        _value = value;
-
-        return ReturnCode::Success;
-    }
-
-    constexpr ReturnCode Set(T value) requires Unsafe<T>
-    {
-        // TODO fix so we don't need unsafe
-        auto data = MemoryMarshal::AsConstBytesUnsafe(value);
         auto rc = SettingBase::Save(data);
         CHECK_RETURN_CODE(rc);
 

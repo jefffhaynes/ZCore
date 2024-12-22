@@ -334,6 +334,16 @@ public:
         return -1;
     }
 
+    Span<uint8_t> AsBytes()
+    {
+        return Span<uint8_t>(reinterpret_cast<uint8_t*>(_data), _length * sizeof(T));
+    }
+
+    Span<const uint8_t> AsConstBytes() const
+    {
+        return Span<const uint8_t>(reinterpret_cast<const uint8_t*>(_data), _length * sizeof(T));
+    }
+
 private:
     T* _data;
     uint32_t _length;
