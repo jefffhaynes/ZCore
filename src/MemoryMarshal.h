@@ -1,9 +1,7 @@
 #pragma once
 
-#include <zephyr/kernel.h>
 #include "Span.h"
 #include "CoreString.h"
-#include "SafeTuple.h"
 
 #include "pfr/pfr.hpp"
 
