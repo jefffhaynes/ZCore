@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Array.h"
+#include "MemoryMarshal.h"
 
 template<typename T>
 class SpanWriter
@@ -23,6 +24,13 @@ public:
         _offset += span.GetLength();
 
         return ReturnCode::Success;
+    }
+
+    template<Safe TValue>
+    constexpr ReturnCode Write(TValue& value)
+    {
+        auto span = MemoryMarshal::AsConstBytes(value);
+        return Write(span);
     }
 
     constexpr Span<T> GetWrittenSpan()

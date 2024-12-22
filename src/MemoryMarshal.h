@@ -6,21 +6,20 @@
 #include "SafeTuple.h"
 
 
-template <class T, template <class...> class Template>
-struct is_specialization : std::false_type {};
+// template <class T, template <class...> class Template>
+// struct is_specialization : std::false_type {};
 
-template <template <class...> class Template, class... Args>
-struct is_specialization<Template<Args...>, Template> : std::true_type {};
+// template <template <class...> class Template, class... Args>
+// struct is_specialization<Template<Args...>, Template> : std::true_type {};
 
+
+template<typename T>
+concept Safe = std::is_arithmetic_v<T> || std::is_enum_v<T>;
 
 class MemoryMarshal
 {
 public:
-    template<typename T>
-    using EnableIfSafe = typename std::enable_if_t<std::is_arithmetic_v<T> || std::is_enum_v<T> || is_specialization<T, SafeTuple>{}>; 
-
-
-    template<typename T, typename = EnableIfSafe<T>>
+    template<Safe T>
     static constexpr Span<uint8_t> AsBytes(T& value)
     {
         return Span<uint8_t>(reinterpret_cast<uint8_t*>(&value), sizeof(value));
@@ -32,7 +31,7 @@ public:
         return Span<uint8_t>(reinterpret_cast<uint8_t*>(&value), sizeof(value));
     }
 
-    template<typename T, typename = EnableIfSafe<T>>
+    template<Safe T>
     static constexpr Span<const uint8_t> AsConstBytes(T& value)
     {
         return Span<const uint8_t>(reinterpret_cast<const uint8_t*>(&value), sizeof(value));
@@ -44,7 +43,7 @@ public:
         return Span<const uint8_t>(reinterpret_cast<const uint8_t*>(&value), sizeof(value));
     }
 
-    template<typename T, typename = EnableIfSafe<T>>
+    template<Safe T>
     static constexpr Span<const uint8_t> AsConstBytes(Span<T> value)
     {
         return Cast<T, const uint8_t>(value);
