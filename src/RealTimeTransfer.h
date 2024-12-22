@@ -73,7 +73,7 @@ private:
         }
 
         auto readBlock = buffer.Take(read);
-        auto data = MemoryMarshal::AsBytes(readBlock);
+        auto data = readBlock.AsConstBytes();
         return Received.Invoke(data);
     }
 };
