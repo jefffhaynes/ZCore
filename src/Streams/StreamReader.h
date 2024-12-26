@@ -2,6 +2,7 @@
 
 #include "InputStream.h"
 #include "MemoryMarshal.h"
+#include "NullOutputStream.h"
 
 class StreamReader
 {
@@ -10,14 +11,14 @@ public:
     {
     }
 
-    template <typename T>
+    template <Safe T>
     ReturnCode Read(T& value, TimeSpan timeout)
     {
         auto data = MemoryMarshal::AsBytes(value);
         return Read(data, timeout);
     }
     
-    template <typename T>
+    template <Safe T>
     ReturnCode Read(T& value)
     {
         auto data = MemoryMarshal::AsBytes(value);
@@ -32,6 +33,18 @@ public:
     ReturnCode Read(Span<uint8_t> data)
     {
         return _stream.Read(data);
+    }
+
+    ReturnCode Advance(uint32_t length, TimeSpan timeout)
+    {
+        NullOutputStream nullSink;
+        return _stream.CopyTo(nullSink, length, timeout);
+    }
+
+    ReturnCode AdvanceToEnd()
+    {
+        NullOutputStream nullSink;
+        return _stream.CopyTo(nullSink);
     }
 
 private:
