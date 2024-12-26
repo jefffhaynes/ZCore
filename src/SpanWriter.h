@@ -34,10 +34,10 @@ public:
             return ReturnCode::InvalidLength;
         }
 
+        // do it this way instead of using MemoryMarshal so it can be constexpr
         for (uint32_t i = 0; i < sizeof(TValue); i++)
         {
-            auto b = static_cast<uint8_t>(value >> (i * 8));
-            _span.Set(_offset++, b);
+            _span.Set(_offset++, static_cast<uint8_t>(value >> (i * 8)));
         }
 
         return ReturnCode::Success;
