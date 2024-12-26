@@ -22,7 +22,13 @@ constexpr bool all_fields_are_safe()
 }
 
 template<typename T>
-concept Safe = std::is_arithmetic_v<T> || std::is_enum_v<T> || all_fields_are_safe<T>();
+concept Arithmetic = std::is_arithmetic_v<T>;
+
+template<typename T>
+concept Enum = std::is_enum_v<T>;
+
+template<typename T>
+concept Safe = Arithmetic<T> || Enum<T> || all_fields_are_safe<T>();
 
 template<typename T>
 concept Unsafe = !Safe<T>;

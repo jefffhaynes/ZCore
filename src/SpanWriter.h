@@ -25,15 +25,41 @@ public:
 
         return ReturnCode::Success;
     }
-    
-    constexpr ReturnCode Write(Span<T> span)
-    {
-        auto rc = span.CopyTo(_span.Skip(_offset));
-        CHECK_RETURN_CODE(rc);
 
-        _offset += span.GetLength();
+    template <typename U = T, Arithmetic TValue>
+    constexpr std::enable_if_t<std::is_same_v<U, uint8_t>, ReturnCode> Write(TValue value)
+    {
+        if (_offset + sizeof(TValue) > _span.GetLength())
+        {
+            return ReturnCode::InvalidLength;
+        }
+
+        for (uint32_t i = 0; i < sizeof(TValue); i++)
+        {
+            auto b = static_cast<uint8_t>(value >> (i * 8));
+            _span.Set(_offset++, b);
+        }
 
         return ReturnCode::Success;
+    }
+
+    template <typename U = T, Enum TValue>
+    constexpr std::enable_if_t<std::is_same_v<U, uint8_t>, ReturnCode> Write(TValue value)
+    {
+        auto underlying = static_cast<std::underlying_type_t<TValue>>(value);
+        return Write(underlying);
+    }
+
+    template <typename U = T>
+    std::enable_if_t<std::is_same_v<U, uint8_t>, ReturnCode> Write(String s)
+    {
+        auto span = s.AsConstBytes();
+        return Write(span);
+    }
+
+    constexpr ReturnCode Write(uint8_t value)
+    {
+        return _span.Set(_offset++, value);
     }
 
     template<uint32_t N>

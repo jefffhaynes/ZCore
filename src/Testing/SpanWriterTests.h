@@ -64,3 +64,21 @@ static_assert([]() constexpr
     auto expected = Span<int>(data);
     return written.SequenceEquals(expected);
 }());
+
+static_assert([]() constexpr
+{
+    Array<uint8_t, 4> data;
+    SpanWriter<uint8_t> writer(data);
+    
+    int value = 0x12345678;
+    auto rc = writer.Write(value);
+    
+    if(rc != ReturnCode::Success)
+    {
+        return false;
+    }
+
+    auto written = writer.GetWrittenSpan();
+    uint8_t expected[] = { 0x78, 0x56, 0x34, 0x12 };
+    return written.SequenceEquals(Span<uint8_t>(expected));
+}());
