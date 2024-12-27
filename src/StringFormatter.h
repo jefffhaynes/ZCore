@@ -314,6 +314,64 @@ private:
         return format_helper(buffer, size, format);
     }
 
+    // overload for char arguments
+    template<typename... Args>
+    static constexpr int format_helper(char*& buffer, size_t& size, const char*& format, char value, Args... args) {
+        while (*format && size > 1) {
+            if (*format == '%') {
+                ++format;
+                if (*format == '%') {
+                    *buffer++ = '%';
+                    --size;
+                    ++format;
+                } else {
+                    if (*format == 'c') {
+                        *buffer++ = value;
+                        --size;
+                        ++format;
+                        return format_helper(buffer, size, format, args...);
+                    } else {
+                        return -1; // Error: unsupported format specifier
+                    }
+                }
+            } else {
+                *buffer++ = *format++;
+                --size;
+            }
+        }
+        return format_helper(buffer, size, format);
+    }
+
+    // Overload for string arguments
+    template<typename... Args>
+    static constexpr int format_helper(char*& buffer, size_t& size, const char*& format, const char* value, Args... args) {
+        while (*format && size > 1) {
+            if (*format == '%') {
+                ++format;
+                if (*format == '%') {
+                    *buffer++ = '%';
+                    --size;
+                    ++format;
+                } else {
+                    if (*format == 's') {
+                        while (*value && size > 1) {
+                            *buffer++ = *value++;
+                            --size;
+                        }
+                        ++format;
+                        return format_helper(buffer, size, format, args...);
+                    } else {
+                        return -1; // Error: unsupported format specifier
+                    }
+                }
+            } else {
+                *buffer++ = *format++;
+                --size;
+            }
+        }
+        return format_helper(buffer, size, format);
+    }
+
     // Catch-all overload for unsupported types
     template<typename T, typename... Args>
     static constexpr int format_helper(char*& buffer, size_t& size, const char*& format, T, Args...) {

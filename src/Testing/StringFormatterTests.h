@@ -47,9 +47,9 @@ namespace StringFormatterTests
     // lots of arguments
     static_assert([]{
         Array<char, 100> buffer;
-        auto debug = StringFormatter::Format(buffer, "%6d %d %d \t%.2f\t%.2f\t%.2f\t%.2f\t%.2f\t%.3f\t%.3f\t%.3f\r\n", 
-            123456, 1, 2, 1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f);
-        return debug == String("123456 1 2 \t1.00\t2.00\t3.00\t4.00\t5.00\t6.000\t7.000\t8.000\r\n");
+        auto debug = StringFormatter::Format(buffer, "%6d %c %c \t%.2f\t%.2f\t%.2f\t%.2f\t%.2f\t%.3f\t%.3f\t%.3f\r\n", 
+            123456, 'A', 'B', 1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f);
+        return debug == String("123456 A B \t1.00\t2.00\t3.00\t4.00\t5.00\t6.000\t7.000\t8.000\r\n");
     }(), "Format method failed");
 
     // multiple arguments
@@ -157,12 +157,12 @@ namespace StringFormatterTests
     //     return formatted == String("String: test");
     // }(), "Format method failed");
 
-    // // Character formatting
-    // static_assert([]{
-    //     Array<char, 24> buffer;
-    //     auto formatted = StringFormatter::Format(buffer, "Char: %c", 'A');
-    //     return formatted == String("Char: A");
-    // }(), "Format method failed");
+    // Character formatting
+    static_assert([]{
+        Array<char, 24> buffer;
+        auto formatted = StringFormatter::Format(buffer, "Char: %c", 'A');
+        return formatted == String("Char: A");
+    }(), "Format method failed");
 
     // // Octal formatting
     // static_assert([]{
@@ -250,19 +250,18 @@ namespace StringFormatterTests
         return formatted == String("Tab\\ttest");
     }(), "Format method failed");
 
-    // // Empty string argument
-    // static_assert([]{
-    //     Array<char, 16> buffer;
-    //     auto formatted = StringFormatter::Format(buffer, "Empty: '%s'", "");
-    //     return formatted == String("Empty: ''");
-    // }(), "Format method failed");
-
-    // Null string argument
+    // Empty string argument
     static_assert([]{
         Array<char, 16> buffer;
-        const char* str = nullptr;
-        auto formatted = StringFormatter::Format(buffer, "Null: %s", str);
-        return formatted.IsEmpty();
+        auto formatted = StringFormatter::Format(buffer, "Empty: '%s'", "");
+        return formatted == String("Empty: ''");
+    }(), "Format method failed");
+
+    // String argument
+    static_assert([]{
+        Array<char, 16> buffer;
+        auto formatted = StringFormatter::Format(buffer, "String: %s", "test");
+        return formatted == String("String: test");
     }(), "Format method failed");
 
     // // Width and precision specified dynamically
