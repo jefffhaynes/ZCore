@@ -47,9 +47,9 @@ namespace StringFormatterTests
     // lots of arguments
     static_assert([]{
         Array<char, 100> buffer;
-        auto debug = StringFormatter::Format(buffer, "%6d %c %c \t%.2f\t%.2f\t%.2f\t%.2f\t%.2f\t%.3f\t%.3f\t%.3f\r\n", 
-            123456, 'A', 'B', 1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f);
-        return debug == String("123456 A B \t1.00\t2.00\t3.00\t4.00\t5.00\t6.000\t7.000\t8.000\r\n");
+        auto debug = StringFormatter::Format(buffer, "%6d %c %s \t%.2f\t%.2f\t%.2f\t%.2f\t%.2f\t%.3f\t%.3f\t%.3f\r\n", 
+            123456, 'A', "BC", 1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f);
+        return debug == String("123456 A BC \t1.00\t2.00\t3.00\t4.00\t5.00\t6.000\t7.000\t8.000\r\n");
     }(), "Format method failed");
 
     // multiple arguments
