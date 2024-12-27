@@ -35,6 +35,26 @@ public:
         return _stream.Read(data);
     }
 
+    ReturnCode ReadString(Span<char> data, TimeSpan timeout)
+    {
+        for (uint32_t i = 0; i < data.GetLength(); i++)
+        {
+            uint8_t c;
+            auto rc = Read(c, timeout);
+            CHECK_RETURN_CODE(rc);
+
+            rc = data.Set(i, (char) c);
+            CHECK_RETURN_CODE(rc);
+
+            if (c == 0)
+            {
+                break;
+            }
+        }
+
+        return ReturnCode::Success;
+    }
+
     ReturnCode Advance(uint32_t length, TimeSpan timeout)
     {
         NullOutputStream nullSink;
