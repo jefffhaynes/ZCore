@@ -3,6 +3,9 @@
 #include "Span.h"
 #include "SettingBase.h"
 
+// disable optimizations
+#pragma GCC push_options
+#pragma GCC optimize ("O0")
 
 class SettingsBase
 {
@@ -81,3 +84,6 @@ private:
 };
 
 inline bool SettingsBase::_initialized = false;
+
+
+#pragma GCC pop_options

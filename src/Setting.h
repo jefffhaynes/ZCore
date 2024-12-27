@@ -21,7 +21,7 @@ public:
 
     constexpr ReturnCode Set(T value)
     {
-        auto data = MemoryMarshal::AsConstBytesUnsafe(value);
+        auto data = MemoryMarshal::AsConstBytes(value);
         auto rc = SettingBase::Save(data);
         CHECK_RETURN_CODE(rc);
 
