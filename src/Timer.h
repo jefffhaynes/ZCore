@@ -39,12 +39,10 @@ public:
 
     constexpr ReturnCode Start(TimeSpan period, TimerMode mode = TimerMode::Single)
     {
-        if(_running)
-        {
-            return ReturnCode::Success;
-        }
+        auto rc = Stop();
+        CHECK_RETURN_CODE(rc);
 
-        auto rc = Initialize();
+        rc = Initialize();
         CHECK_RETURN_CODE(rc);
 
         auto microseconds = static_cast<uint32_t>(period.ToMicroseconds());

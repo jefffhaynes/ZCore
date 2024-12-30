@@ -42,6 +42,12 @@ private:
         }
 
         auto delta = time - _lastTime;
+
+        if(delta > _tau * 10)
+        {
+            return 1;
+        }
+
         return 1 - CoreMath::Exp(-delta / _tau, 6);
     }
 };

@@ -15,8 +15,20 @@ constexpr bool constexpr_for(F&& f)
     return true;  // Success if loop completes fully
 }
 
-// Helper constexpr function to compare floating point values
-constexpr bool AreAlmostEqual(float a, float b, float epsilon = 0.0001)
+template <typename T>
+constexpr T constexpr_abs(T value)
 {
-    return std::abs(a - b) < epsilon;
+    T zero = value * 0;
+    return value < zero ? -value : value;
+}
+
+template <typename T>
+constexpr bool AreAlmostEqual(T a, T b, T epsilon)
+{
+    return constexpr_abs(a - b) < epsilon;
+}
+
+constexpr bool AreAlmostEqual(float a, float b)
+{
+    return constexpr_abs(a - b) < 0.0001f;
 }
