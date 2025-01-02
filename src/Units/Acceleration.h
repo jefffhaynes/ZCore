@@ -13,7 +13,13 @@ public:
         return Acceleration(metersPerSecondSquared);
     }
 
+    static constexpr Acceleration FromGees(float gees) 
+    { 
+        return FromMetersPerSecondSquared(gees * 9.81f);
+    }
+
     constexpr float ToMetersPerSecondSquared() const { return ToUnits(); }
+    constexpr float ToGees() const { return ToMetersPerSecondSquared() / 9.81f; }
 
     constexpr Acceleration operator+(const Acceleration& other) const
     {
@@ -23,6 +29,11 @@ public:
     constexpr Acceleration operator-(const Acceleration& other) const 
     {
         return Acceleration(ToUnits() - other.ToUnits());
+    }
+
+    constexpr Acceleration operator-() const
+    {
+        return Acceleration(-ToUnits());
     }
 
     constexpr Acceleration operator*(float value) const
@@ -100,6 +111,7 @@ public:
     friend constexpr Acceleration operator*(float a, Acceleration const& b);
 
     static const Acceleration Zero;
+    static const Acceleration EarthGravity;
 
 private:
     constexpr Acceleration(float units) : Unit(units)
@@ -119,3 +131,4 @@ inline constexpr Acceleration operator*(float a, Acceleration const& b)
 
 
 constexpr Acceleration Acceleration::Zero = Acceleration::FromMetersPerSecondSquared(0);
+constexpr Acceleration Acceleration::EarthGravity = Acceleration::FromGees(1);
