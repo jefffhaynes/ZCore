@@ -108,6 +108,15 @@ static_assert([]() constexpr
     return mean == 2;
 }());
 
+
+static_assert([]() constexpr
+{
+    int16_t data[] = { 2, 1, 3 };
+    auto span = Span<int16_t>(data);
+    auto mean = SpanExtensions::Mean(span);
+    return mean == 2;
+}());
+
 static_assert([]() constexpr
 {
     int data[] = { 1, 2, 3 };

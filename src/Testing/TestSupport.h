@@ -1,5 +1,6 @@
 #pragma once
 
+#include "CoreMath.h"
 #include <cmath>
 #include <limits>
 
@@ -16,19 +17,12 @@ constexpr bool constexpr_for(F&& f)
 }
 
 template <typename T>
-constexpr T constexpr_abs(T value)
-{
-    T zero = value * 0;
-    return value < zero ? -value : value;
-}
-
-template <typename T>
 constexpr bool AreAlmostEqual(T a, T b, T epsilon)
 {
-    return constexpr_abs(a - b) < epsilon;
+    return CoreMath::Abs(a - b) < epsilon;
 }
 
 constexpr bool AreAlmostEqual(float a, float b)
 {
-    return constexpr_abs(a - b) < 0.0001f;
+    return CoreMath::Abs(a - b) < 0.0001f;
 }

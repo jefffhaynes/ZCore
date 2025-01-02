@@ -6,6 +6,13 @@
 class CoreMath
 {
 public:
+    template <typename T>
+    static constexpr T Abs(T value)
+    {
+        T zero = value * 0;
+        return value < zero ? -value : value;
+    }
+
     static constexpr float Factorial(int n) 
     {
         return (n <= 1) ? 1 : (n * Factorial(n - 1));

@@ -35,7 +35,7 @@ public:
     template<typename T>
     static constexpr T Sum(Span<T> span)
     {
-        return span.Aggregate([](T a, T b) constexpr { return a + b; });
+        return span.Aggregate([](T a, T b) constexpr { return static_cast<T>(a + b); });
     }
     
     template<typename T>
@@ -133,7 +133,7 @@ public:
     template<typename T>
     static constexpr float Mean(Span<T> span)
     {
-        return Sum(span) / span.GetLength();
+        return Sum(span) / (float) span.GetLength();
     }
 
     template<typename T>

@@ -39,7 +39,7 @@ public:
         return _value != value;
     }
 
-    constexpr bool HasValue()
+    constexpr bool HasValue() const
     {
         return _hasValue;
     }

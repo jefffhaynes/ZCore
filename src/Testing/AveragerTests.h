@@ -34,7 +34,7 @@ static_assert([]{
     Averager<TimeSpan> averager(TimeSpan::FromSeconds(10));
     averager.Update(TimeSpan::Zero, TimeSpan::FromMilliseconds(0));
     auto value = averager.Update(TimeSpan::FromSeconds(1), TimeSpan::FromMilliseconds(200));
-    return constexpr_abs(value - TimeSpan::FromSeconds(0.019801327)) < TimeSpan::FromSeconds(0.001);
+    return CoreMath::Abs(value - TimeSpan::FromSeconds(0.019801327)) < TimeSpan::FromSeconds(0.001);
 }(), "Averager failed");
 
 // TODO large time lapse compared to tau
@@ -46,5 +46,5 @@ static_assert([]{
     averager = Averager<TimeSpan>(TimeSpan::FromSeconds(10));
     averager.Update(TimeSpan::Zero, TimeSpan::FromMilliseconds(0));
     auto value = averager.Update(TimeSpan::FromSeconds(1), TimeSpan::FromMilliseconds(200));
-    return constexpr_abs(value - TimeSpan::FromSeconds(0.019801327)) < TimeSpan::FromSeconds(0.001);
+    return CoreMath::Abs(value - TimeSpan::FromSeconds(0.019801327)) < TimeSpan::FromSeconds(0.001);
 }(), "Averager failed");
