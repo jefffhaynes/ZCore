@@ -1,6 +1,7 @@
 #pragma once
 
 #include "StringFormatter.h"
+#include "CoreString.h"
 
 namespace StringFormatterTests
 {
@@ -323,4 +324,12 @@ namespace StringFormatterTests
     //     auto formatted = StringFormatter::Format(buffer, "Inf: %f", inf_value);
     //     return formatted == String("Inf: inf");
     // }(), "Format method failed");
+
+    // string literal
+    static_assert([]{
+        Array<char, 64> buffer;
+        StringLiteral literal("World");
+        auto formatted = StringFormatter::Format(buffer, "Hello, %s, here's a float: %.3f!", literal.GetData(), 1.234f);
+        return formatted == String("Hello, World, here's a float: 1.234!");
+    }(), "Format method failed");
 }

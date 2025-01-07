@@ -32,5 +32,17 @@ public:
         }
         return sum;
     }
+
+    template<typename T>
+    static constexpr T Clamp(T value, T min, T max)
+    {
+        return value < min ? min : (value > max ? max : value);
+    }
+
+    template<typename T>
+    static constexpr T EuclideanModulo(T value, T mod)
+    {
+        return (value % mod + mod) % mod;
+    }
 };
 

@@ -6,6 +6,7 @@
 #include "Work.h"
 #include "GpioDirection.h"
 #include "CallbackContainer.h"
+#include "GpioInterruptMode.h"
 
 #include <zephyr/kernel.h>
 #include <zephyr/drivers/gpio.h>
@@ -14,8 +15,12 @@
 class Gpio : public IGpio
 {
 public:
-    Gpio(const gpio_dt_spec spec, bool scheduled = false) : _spec(spec),
+    Gpio(const gpio_dt_spec spec, bool scheduled) : _spec(spec),
         _scheduled(scheduled), _container(this), _configured(false)
+    {
+    }
+
+    Gpio(const gpio_dt_spec spec) : Gpio(spec, false)
     {
     }
 
@@ -45,14 +50,14 @@ public:
         return ReturnCode::Success;
     }
 
-    ReturnCode ConfigureInterrupt()
+    ReturnCode ConfigureInterrupt(GpioInterruptMode mode = GpioInterruptMode::OnActive)
     {
         if(!_configured)
         {
             return ReturnCode::InvalidState;
         }
 
-        int err = gpio_pin_interrupt_configure_dt(&_spec, GPIO_INT_EDGE_TO_ACTIVE);
+        int err = gpio_pin_interrupt_configure_dt(&_spec, (int) mode);
         auto rc = ErrorConverter::Convert(err);
         CHECK_RETURN_CODE(rc);
         
@@ -73,6 +78,19 @@ public:
         return ErrorConverter::Convert(err);
     }
 
+    ReturnCode IsSet(bool& set)
+    {
+        if(!_configured)
+        {
+            auto rc = Configure(GpioDirection::In);
+            CHECK_RETURN_CODE(rc);
+        }
+
+        set = gpio_pin_get_dt(&_spec);
+
+        return ReturnCode::Success;
+    }
+
     EventHandler<> Interrupt;
 
 private:
@@ -81,7 +99,7 @@ private:
     CallbackContainer<gpio_callback> _container;
     Work _work;
     bool _configured;
-
+    
     ReturnCode OnWork()
     {
         return Interrupt.Invoke();

@@ -46,6 +46,11 @@ public:
         return Angle(ToUnits() / value);
     }
 
+    constexpr Angle operator%(const Angle& other) const
+    {
+        return Angle(std::fmod(ToUnits(), other.ToUnits()));
+    }
+
     constexpr bool operator==(const Angle& other) const
     {
         return ToUnits() == other.ToUnits();
@@ -98,6 +103,8 @@ public:
     constexpr float Tan() const { return std::tan(ToRadians()); }
 
     static const Angle Zero;
+    static const Angle Pi;
+    static const Angle TwoPi;
 
 private:
     constexpr Angle(float units) : Unit(units)
@@ -117,3 +124,5 @@ inline constexpr Angle operator*(float a, Angle const& b)
 
 
 constexpr Angle Angle::Zero = Angle::FromRadians(0);
+constexpr Angle Angle::Pi = Angle::FromRadians(std::numbers::pi);
+constexpr Angle Angle::TwoPi = Angle::FromRadians(2 * std::numbers::pi);

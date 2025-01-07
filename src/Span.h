@@ -307,7 +307,7 @@ public:
 
         return result;
     }
-    
+
     constexpr int IndexOf(T value) const
     {
         for (uint32_t i = 0; i < GetLength(); i++)
