@@ -31,17 +31,17 @@ public:
 
     constexpr T* GetData() { return _data; }
     constexpr const T* GetData() const { return _data; }
-    constexpr uint32_t GetLength() const { return _length; }
+    constexpr auto GetLength() const { return _length; }
 
     constexpr bool IsEmpty() const
     {
         return _length == 0;
     }
 
-    constexpr Iterator<T> begin() { return Iterator(_data, _length); }
-    constexpr Iterator<T> end() { return Iterator(_data + _length); }
-    constexpr ConstIterator<const T> begin() const { return ConstIterator<const T>(_data, _length); }
-    constexpr ConstIterator<const T> end() const { return ConstIterator<const T>(_data + _length); }
+    constexpr auto begin() { return Iterator(_data, _length); }
+    constexpr auto end() { return Iterator(_data + _length); }
+    constexpr auto begin() const { return ConstIterator<const T>(_data, _length); }
+    constexpr auto end() const { return ConstIterator<const T>(_data + _length); }
 
     constexpr ReturnCode Set(uint32_t index, T value)
     {
@@ -75,7 +75,7 @@ public:
         return index < _length && _data[index] == value;
     }
 
-    constexpr Span& operator=(const Span& other)
+    constexpr auto& operator=(const Span& other)
     {
         _data = other._data;
         _length = other._length;
@@ -83,34 +83,34 @@ public:
         return *this;
     }
 
-    constexpr const Span<const T> Take(uint32_t length) const
+    constexpr auto Take(uint32_t length) const
     {
-        return { _data, length < _length ? length : _length };
+        return Span(_data, length < _length ? length : _length);
     }
     
-    constexpr Span<T> Take(uint32_t length)
+    constexpr auto Take(uint32_t length)
     {
-        return { _data, length < _length ? length : _length };
+        return Span(_data, length < _length ? length : _length);
     }
 
-    constexpr const Span<const T> Skip(uint32_t length) const
+    constexpr auto Skip(uint32_t length) const
     {
         if(length < _length)
         {
-            return { _data + length, _length - length };
+            return Span(_data + length, _length - length);
         }
 
-        return { _data + _length, 0 };
+        return Span(_data + _length, 0);
     }
     
-    constexpr Span<T> Skip(uint32_t length)
+    constexpr auto Skip(uint32_t length)
     {
         if(length < _length)
         {
-            return { _data + length, _length - length };
+            return Span(_data + length, _length - length);
         }
 
-        return { _data + _length, 0 };
+        return Span(_data + _length, 0);
     }
 
     constexpr ReturnCode CopyTo(Span<std::remove_const_t<T>> other) const
@@ -166,7 +166,7 @@ public:
         return true;
     }
 
-    constexpr T Aggregate(T(*func)(T, T)) const
+    constexpr auto Aggregate(T(*func)(T, T)) const
     {
         if (func == nullptr)
         {
@@ -189,7 +189,7 @@ public:
         return result;
     }
     
-    constexpr T Aggregate(T(*func)(T, T, uint32_t)) const
+    constexpr auto Aggregate(T(*func)(T, T, uint32_t)) const
     {
         if (func == nullptr)
         {
@@ -213,7 +213,7 @@ public:
     }
 
     template<typename TAggregate>
-    constexpr TAggregate Aggregate(TAggregate(*func)(TAggregate, T), TAggregate seed) const
+    constexpr auto Aggregate(TAggregate(*func)(TAggregate, T), TAggregate seed) const
     {
         if (func == nullptr)
         {
@@ -237,7 +237,7 @@ public:
     }
 
     template<typename TAggregate>
-    constexpr TAggregate Aggregate(TAggregate(*func)(TAggregate, T, uint32_t), TAggregate seed) const
+    constexpr auto Aggregate(TAggregate(*func)(TAggregate, T, uint32_t), TAggregate seed) const
     {
         if (func == nullptr)
         {
@@ -261,7 +261,7 @@ public:
     }
     
     template<typename TAggregate, typename TState>
-    constexpr TAggregate Aggregate(TAggregate(*func)(TAggregate, T, TState), TAggregate seed, TState state) const
+    constexpr auto Aggregate(TAggregate(*func)(TAggregate, T, TState), TAggregate seed, TState state) const
     {
         if (func == nullptr)
         {
@@ -285,7 +285,7 @@ public:
     }
 
     template<typename TAggregate, typename TState>
-    constexpr TAggregate Aggregate(TAggregate(*func)(TAggregate, T, uint32_t, TState), TAggregate seed, TState state) const
+    constexpr auto Aggregate(TAggregate(*func)(TAggregate, T, uint32_t, TState), TAggregate seed, TState state) const
     {
         if (func == nullptr)
         {
@@ -334,12 +334,12 @@ public:
         return -1;
     }
 
-    Span<uint8_t> AsBytes()
+    auto AsBytes()
     {
         return Span<uint8_t>(reinterpret_cast<uint8_t*>(_data), _length * sizeof(T));
     }
 
-    Span<const uint8_t> AsConstBytes() const
+    auto AsConstBytes() const
     {
         return Span<const uint8_t>(reinterpret_cast<const uint8_t*>(_data), _length * sizeof(T));
     }
