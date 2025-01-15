@@ -40,8 +40,8 @@ public:
 
     constexpr auto begin() { return Iterator(_data, _length); }
     constexpr auto end() { return Iterator(_data + _length); }
-    constexpr auto begin() const { return ConstIterator<const T>(_data, _length); }
-    constexpr auto end() const { return ConstIterator<const T>(_data + _length); }
+    constexpr auto begin() const { return ConstIterator<T>(_data, _length); }
+    constexpr auto end() const { return ConstIterator<T>(_data + _length); }
 
     constexpr ReturnCode Set(uint32_t index, T value)
     {
