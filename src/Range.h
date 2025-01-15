@@ -7,11 +7,11 @@ template<typename T = float>
 class Range
 {
 public:
-    constexpr Range()
+    constexpr Range(T min, T max) : _min(min), _max(max)
     {
     }
 
-    constexpr Range(T min, T max) : _min(min), _max(max)
+    constexpr Range() : Range(T(), T())
     {
     }
 
