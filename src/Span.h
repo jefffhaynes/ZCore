@@ -165,6 +165,14 @@ public:
 
         return true;
     }
+    
+    constexpr void Fill(T value)
+    {
+        for(uint32_t i = 0; i < _length; i++)
+        {
+            _data[i] = value;
+        }
+    }
 
     constexpr auto Aggregate(T(*func)(T, T)) const
     {

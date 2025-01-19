@@ -106,6 +106,11 @@ public:
         return AsSpan().Skip(length);
     }
 
+    constexpr void Fill(T value)
+    {
+        AsSpan().Fill(value);
+    }
+
     template<typename U = T, EnableIfPointer<U> = 0>
     constexpr void Remove(T item)
     {
