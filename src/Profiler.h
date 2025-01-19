@@ -3,9 +3,6 @@
 #include "Clock.h"
 #include "Debug.h"
 
-// #pragma GCC push_options
-// #pragma GCC optimize ("O0")
-
 class Profiler
 {
 public:
@@ -16,14 +13,25 @@ public:
 
     ~Profiler()
     {
+        Complete();
+    }
+
+    void Complete()
+    {
+        if (_completed)
+        {
+            return;
+        }
+
         auto end = Clock::GetUptime();
         auto duration = end - _start;
         Debug::WriteLine("%s: %.3f ms", _name.GetData(), (float) duration.ToMilliseconds());
+
+        _completed = true;
     }
 
 private:
+    bool _completed = false;
     StringLiteral _name;
     TimeSpan _start;
 };
-
-// #pragma GCC pop_options
