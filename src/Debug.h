@@ -77,8 +77,6 @@ public:
     template<typename T>
     static constexpr ReturnCode WriteData(Span<T> data)
     {
-        auto length = std::min(data.GetLength(), 16u);
-
         for(auto& value : data)
         {
             if constexpr (std::is_same_v<T, uint8_t> || std::is_same_v<T, int8_t>)
@@ -100,12 +98,6 @@ public:
             {
                 return ReturnCode::NotSupported;
             }
-        }
-
-        if(length != data.GetLength())
-        {
-            auto rc = Write("...");
-            CHECK_RETURN_CODE(rc);
         }
 
         return WriteLine();

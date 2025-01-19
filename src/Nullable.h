@@ -46,6 +46,7 @@ public:
 
     constexpr T& GetValue()
     {
+        assert(_hasValue);
         return _value;
     }
 
