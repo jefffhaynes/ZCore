@@ -83,7 +83,8 @@ public:
         return static_cast<TRange>(ceil);
     }
 
-    static constexpr Range<T> UnitRange = { 0, 1 };
+    static constexpr Range<T> ZeroToOne = { 0, 1 };
+    static constexpr Range<T> NegativeOneToOne = { -1, 1 };
 
 private:
     T _min;

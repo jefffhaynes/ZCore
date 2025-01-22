@@ -43,11 +43,23 @@ private:
 
         auto delta = time - _lastTime;
 
-        if(delta > _tau * 10)
+        if (_tau == TimeSpan::Zero)
         {
             return 1;
         }
 
-        return 1 - CoreMath::Exp(-delta / _tau, 6);
+        auto exponent = -delta / _tau;
+
+        if (exponent < -5)
+        {
+            return 0;
+        }
+
+        if (exponent > 5)
+        {
+            return 1;
+        }
+
+        return 1 - CoreMath::Exp(exponent);
     }
 };

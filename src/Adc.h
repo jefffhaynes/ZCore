@@ -2,6 +2,7 @@
 
 #include "IAdc.h"
 #include "ErrorConverter.h"
+#include "Range.h"
 
 #include <zephyr/device.h>
 #include <zephyr/devicetree.h>
@@ -81,7 +82,7 @@ public:
         auto rc = Sample(voltage);
         CHECK_RETURN_CODE(rc);
 
-        value = voltage / _max;
+        value = Range<float>::ZeroToOne.Clamp(voltage / _max);
 
         return ReturnCode::Success;
     }

@@ -39,6 +39,26 @@ static_assert([]{
 
 // TODO large time lapse compared to tau
 
+constexpr auto delta = []{
+    Averager<float> averager;
+    averager.Update(0, TimeSpan::FromMilliseconds(0));
+    averager.Update(1, TimeSpan::FromMilliseconds(100));
+    auto value = averager.Update(2, TimeSpan::FromMilliseconds(200));
+    return value - 0.276431829;
+}();
+
+static_assert(delta < 0.00001f, "Averager failed");
+
+// constexpr auto delta2 = []{
+//     Averager<float> averager(TimeSpan::FromMilliseconds(10));
+//     averager.Update(0.2, TimeSpan::FromMilliseconds(339.96));
+//     averager.Update(0.12, TimeSpan::FromMilliseconds(390.08));
+//     averager.Update(-0.04, TimeSpan::FromMilliseconds(440.12));
+//     return averager.Update(0.29, TimeSpan::FromMilliseconds(490.20));
+// }();
+
+// static_assert(delta2 == 0.287801336, "Averager failed");
+
 
 // assignment test
 static_assert([]{
