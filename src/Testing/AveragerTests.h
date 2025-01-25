@@ -55,6 +55,24 @@ constexpr auto delta2 = []{
 
 static_assert(delta2 == 1.0f, "Averager failed");
 
+// no time lapsed
+constexpr auto delta3 = []{
+    Averager<float> averager(TimeSpan::FromMilliseconds(10));
+    averager.Update(0, TimeSpan::Zero);
+    return averager.Update(1, TimeSpan::Zero);
+}();
+
+static_assert(delta3 == 0.0f, "Averager failed");
+
+
+// tau zero
+constexpr auto delta4 = []{
+    Averager<float> averager(TimeSpan::Zero);
+    averager.Update(0, TimeSpan::Zero);
+    return averager.Update(1, TimeSpan::FromMilliseconds(100));
+}();
+
+static_assert(delta4 == 1.0f, "Averager failed");
 
 // assignment test
 static_assert([]{

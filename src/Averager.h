@@ -28,6 +28,9 @@ public:
     }
 
 private:
+    static constexpr float MaxExponent = 5;
+    static constexpr float MinExponent = -5;
+
     bool _initialized = false;
     TimeSpan _tau;
     TimeSpan _lastTime;
@@ -45,18 +48,21 @@ private:
 
         if (_tau == TimeSpan::Zero)
         {
+            // zero time constant means instant change
             return 1;
         }
 
         auto exponent = -delta / _tau;
 
-        if (exponent < -5)
+        if (exponent < MinExponent)
         {
+            // large time has lapsed, instant change
             return 1;
         }
 
-        if (exponent > 5)
+        if (exponent > MaxExponent)
         {
+            // small time has lapsed, no change
             return 0;
         }
 
