@@ -37,8 +37,6 @@ static_assert([]{
     return CoreMath::Abs(value - TimeSpan::FromSeconds(0.019801327)) < TimeSpan::FromSeconds(0.001);
 }(), "Averager failed");
 
-// TODO large time lapse compared to tau
-
 constexpr auto delta = []{
     Averager<float> averager;
     averager.Update(0, TimeSpan::FromMilliseconds(0));
@@ -49,15 +47,13 @@ constexpr auto delta = []{
 
 static_assert(delta < 0.00001f, "Averager failed");
 
-// constexpr auto delta2 = []{
-//     Averager<float> averager(TimeSpan::FromMilliseconds(10));
-//     averager.Update(0.2, TimeSpan::FromMilliseconds(339.96));
-//     averager.Update(0.12, TimeSpan::FromMilliseconds(390.08));
-//     averager.Update(-0.04, TimeSpan::FromMilliseconds(440.12));
-//     return averager.Update(0.29, TimeSpan::FromMilliseconds(490.20));
-// }();
+constexpr auto delta2 = []{
+    Averager<float> averager(TimeSpan::FromMilliseconds(10));
+    averager.Update(0, TimeSpan::Zero);
+    return averager.Update(1, TimeSpan::FromMilliseconds(400));
+}();
 
-// static_assert(delta2 == 0.287801336, "Averager failed");
+static_assert(delta2 == 1.0f, "Averager failed");
 
 
 // assignment test

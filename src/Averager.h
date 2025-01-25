@@ -52,12 +52,12 @@ private:
 
         if (exponent < -5)
         {
-            return 0;
+            return 1;
         }
 
         if (exponent > 5)
         {
-            return 1;
+            return 0;
         }
 
         return 1 - CoreMath::Exp(exponent);

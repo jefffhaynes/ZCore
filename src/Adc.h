@@ -50,6 +50,7 @@ public:
             .buffer = &sample,
             /* buffer size in bytes, not number of samples */
             .buffer_size = sizeof(sample),
+            .oversampling = 5
         };
 
         auto err = adc_sequence_init_dt(&_adc, &sequence);
