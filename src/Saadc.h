@@ -49,6 +49,8 @@ public:
         
 
         nrfx_saadc_adv_config_t config = NRFX_SAADC_DEFAULT_ADV_CONFIG;
+        config.internal_timer_cc = 0;
+        config.start_on_end = false;
         // config.oversampling = NRF_SAADC_OVERSAMPLE_32X;
 
         auto channel_mask = nrfx_saadc_channels_configured_get();
@@ -80,16 +82,23 @@ public:
         return ReturnCode::Success;
     }
 
-    TaskAddress GetSampleTaskAddress()
-    {
-        auto addressValue = nrf_saadc_task_address_get(NRF_SAADC, NRF_SAADC_TASK_SAMPLE);
-        return TaskAddress(addressValue);
-    }
 
     EventAddress GetEndEventAddress()
     {
         auto addressValue = nrf_saadc_event_address_get(NRF_SAADC, NRF_SAADC_EVENT_END);
         return EventAddress(addressValue);
+    }
+
+    EventAddress GetResultDoneEventAddress()
+    {
+        auto addressValue = nrf_saadc_event_address_get(NRF_SAADC, NRF_SAADC_EVENT_RESULTDONE);
+        return EventAddress(addressValue);
+    }
+
+    TaskAddress GetSampleTaskAddress()
+    {
+        auto addressValue = nrf_saadc_task_address_get(NRF_SAADC, NRF_SAADC_TASK_SAMPLE);
+        return TaskAddress(addressValue);
     }
 
     TaskAddress GetStartTaskAddress()
