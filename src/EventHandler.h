@@ -54,6 +54,12 @@ public:
         return ReturnCode::Success;
     }
 
+    constexpr bool HasSubscribers() const
+    {
+        // NOTE if we ever add Unsuscribe, this won't work!
+        return _callbacks[0].callback != nullptr;
+    }
+
 private:
     struct CallbackEntry
     {

@@ -7,6 +7,7 @@
 #include "GpioDirection.h"
 #include "CallbackContainer.h"
 #include "GpioInterruptMode.h"
+#include "TaskAddress.h"
 
 #include <zephyr/kernel.h>
 #include <zephyr/drivers/gpio.h>

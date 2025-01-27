@@ -4,15 +4,54 @@
 #include "ErrorConverter.h"
 #include "Debug.h"
 #include "Work.h"
+#include "EventAddress.h"
+#include "TimeSpan.h"
 #include <nrfx_timer.h>
+
 
 class Oscillator
 {
 public:
     Oscillator(nrfx_timer_t timer) : _timer(timer)
     {
-        _work.Worker.Subscribe<Oscillator, &Oscillator::OnWork>(this);
     }
+
+    ReturnCode Start(TimeSpan period)
+    {
+        auto rc = Initialize();
+        CHECK_RETURN_CODE(rc);
+
+        if (nrfx_timer_is_enabled(&_timer))
+        {
+            nrfx_timer_disable(&_timer);
+        }
+
+        auto ticks = nrfx_timer_us_to_ticks(&_timer, period.ToMicroseconds());
+
+        nrfx_timer_extended_compare(&_timer, NRF_TIMER_CC_CHANNEL0, ticks,
+                                NRF_TIMER_SHORT_COMPARE0_CLEAR_MASK, false);
+
+        nrfx_timer_enable(&_timer);
+
+        return ReturnCode::Success;
+    }
+
+    ReturnCode Stop()
+    {
+        nrfx_timer_disable(&_timer);
+
+        return ReturnCode::Success;
+    }
+
+    EventAddress GetEventAddress()
+    {
+        auto addressValue = nrfx_timer_compare_event_address_get(&_timer, NRF_TIMER_CC_CHANNEL0);
+        return EventAddress(addressValue);
+    }
+
+private:
+    nrfx_timer_t _timer;
+    bool _initialized = false;
 
     ReturnCode Initialize()
     {
@@ -30,73 +69,18 @@ public:
             .frequency = NRF_TIMER_BASE_FREQUENCY_GET(_timer->p_reg),
             .mode = NRF_TIMER_MODE_TIMER,
             .bit_width = NRF_TIMER_BIT_WIDTH_32,
+            .interrupt_priority = NRFX_TIMER_DEFAULT_CONFIG_IRQ_PRIORITY,
             .p_context = this
         };
 
-        auto err = nrfx_timer_init(&_timer, &config, OnInterrupt);
+        auto err = nrfx_timer_init(&_timer, &config, nullptr);
         auto rc = ErrorConverter::Convert(err);
         CHECK_RETURN_CODE(rc);
 
         nrfx_timer_clear(&_timer);
 
-        rc = _work.Initialize();
-        CHECK_RETURN_CODE(rc);
-
         _initialized = true;
 
         return ReturnCode::Success;
-    }
-
-    ReturnCode Start(TimeSpan period)
-    {
-        auto rc = Initialize();
-        CHECK_RETURN_CODE(rc);
-
-        if (nrfx_timer_is_enabled(&_timer))
-        {
-            nrfx_timer_disable(&_timer);
-        }
-
-        auto ticks = nrfx_timer_us_to_ticks(&_timer, period.ToMicroseconds());
-
-        nrfx_timer_extended_compare(&_timer, NRF_TIMER_CC_CHANNEL0, ticks,
-                                NRF_TIMER_SHORT_COMPARE0_CLEAR_MASK, true);
-
-        nrfx_timer_enable(&_timer);
-
-        return ReturnCode::Success;
-    }
-
-    ReturnCode Stop()
-    {
-        nrfx_timer_disable(&_timer);
-
-        return ReturnCode::Success;
-    }
-
-    EventHandler<> Tick;
-
-private:
-    nrfx_timer_t _timer;
-    bool _initialized = false;
-    Work _work;
-
-    ReturnCode OnWork()
-    {
-        return Tick.Invoke();
-    }
-
-    void OnInterrupt(nrf_timer_event_t event_type)
-    {
-        if (event_type == NRF_TIMER_EVENT_COMPARE0)
-        {
-            _work.Run();
-        }
-    }
-
-    static void OnInterrupt(nrf_timer_event_t event_type, void* p_context)
-    {
-        auto* oscillator = static_cast<Oscillator*>(p_context);
-        oscillator->OnInterrupt(event_type);
     }
 };
