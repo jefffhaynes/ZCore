@@ -18,19 +18,6 @@ public:
             return ReturnCode::Success;
         }
 
-        if (!nrfx_gpiote_init_check(&_gpiote))
-        {
-            // IRQ_CONNECT(NRFX_IRQ_NUMBER_GET(NRF_GPIOTE_INST_GET(0)), IRQ_PRIO_LOWEST,
-            //     NRFX_GPIOTE_INST_HANDLER_GET(0), 0, 0);
-
-            // IRQ_CONNECT(NRFX_IRQ_NUMBER_GET(NRF_GPIOTE_INST_GET(1)), IRQ_PRIO_LOWEST,
-            //     NRFX_GPIOTE_INST_HANDLER_GET(1), 0, 0);
-
-            auto err = nrfx_gpiote_init(&_gpiote, DT_IRQ(DT_NODELABEL(gpiote1), priority));
-            auto rc = ErrorConverter::Convert(err);
-            CHECK_RETURN_CODE(rc);
-        }
-
         uint8_t channel;
         auto err = nrfx_gpiote_channel_alloc(&_gpiote, &channel);
         auto rc = ErrorConverter::Convert(err);

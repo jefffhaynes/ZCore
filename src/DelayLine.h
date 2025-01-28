@@ -39,14 +39,14 @@ public:
             .p_context = this
         };
 
-        auto err = nrfx_timer_init(&_timer, &config, timer_handler);
+        auto err = nrfx_timer_init(&_timer, &config, nullptr);
         auto rc = ErrorConverter::Convert(err);
         CHECK_RETURN_CODE(rc);
 
         auto ticks = nrfx_timer_us_to_ticks(&_timer, period.ToMicroseconds());
         auto flags = Flags::Combine(NRF_TIMER_SHORT_COMPARE0_STOP_MASK, NRF_TIMER_SHORT_COMPARE0_CLEAR_MASK);
         nrfx_timer_extended_compare(&_timer, NRF_TIMER_CC_CHANNEL0, ticks, 
-            flags, true);
+            flags, false);
 
         return ReturnCode::Success;
     }
