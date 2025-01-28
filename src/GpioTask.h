@@ -7,8 +7,7 @@
 class GpioTask
 {
 public:
-    GpioTask(nrfx_gpiote_t gpiote, uint32_t pin, nrf_gpiote_polarity_t polarity) : 
-        _gpiote(gpiote), _pin(pin), _polarity(polarity)
+    GpioTask(nrfx_gpiote_t gpiote, uint32_t pin) : _gpiote(gpiote), _pin(pin)
     {
     }
 
@@ -27,7 +26,7 @@ public:
             // IRQ_CONNECT(NRFX_IRQ_NUMBER_GET(NRF_GPIOTE_INST_GET(1)), IRQ_PRIO_LOWEST,
             //     NRFX_GPIOTE_INST_HANDLER_GET(1), 0, 0);
 
-            auto err = nrfx_gpiote_init(&_gpiote, DT_IRQ(DT_NODELABEL(gpiote0), priority));
+            auto err = nrfx_gpiote_init(&_gpiote, DT_IRQ(DT_NODELABEL(gpiote1), priority));
             auto rc = ErrorConverter::Convert(err);
             CHECK_RETURN_CODE(rc);
         }
@@ -37,19 +36,14 @@ public:
         auto rc = ErrorConverter::Convert(err);
         CHECK_RETURN_CODE(rc);
 
-        const nrfx_gpiote_output_config_t output_config =
-        {
-            .drive = NRF_GPIO_PIN_S0S1,
-            .input_connect = NRF_GPIO_PIN_INPUT_DISCONNECT,
-            .pull = NRF_GPIO_PIN_NOPULL,
-        };
+        const nrfx_gpiote_output_config_t output_config = NRFX_GPIOTE_DEFAULT_OUTPUT_CONFIG;
 
-        const nrfx_gpiote_task_config_t task_config =
+        const nrfx_gpiote_task_config_t task_config = 
         {
             .task_ch = channel,
-            .polarity = _polarity,
+            .polarity = NRF_GPIOTE_POLARITY_TOGGLE,
             .init_val = NRF_GPIOTE_INITIAL_VALUE_LOW,
-        };
+	    };
 
         err = nrfx_gpiote_output_configure(&_gpiote, _pin, &output_config, &task_config);
         rc = ErrorConverter::Convert(err);
@@ -62,16 +56,21 @@ public:
         return ReturnCode::Success;
     }
 
-    TaskAddress GetTaskAddress()
+    TaskAddress GetSetTaskAddress()
     {
-        auto addressValue = nrfx_gpiote_out_task_address_get(&_gpiote, _pin);
+        auto addressValue = nrfx_gpiote_set_task_address_get(&_gpiote, _pin);
+        return TaskAddress(addressValue);
+    }
+
+    TaskAddress GetClearTaskAddress()
+    {
+        auto addressValue = nrfx_gpiote_clr_task_address_get(&_gpiote, _pin);
         return TaskAddress(addressValue);
     }
 
 private:
     nrfx_gpiote_t _gpiote;
     uint32_t _pin;
-    nrf_gpiote_polarity_t _polarity;
     bool _initialized = false;
 };
 

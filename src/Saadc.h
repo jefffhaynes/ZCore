@@ -69,7 +69,10 @@ public:
         rc = ErrorConverter::Convert(err);
         CHECK_RETURN_CODE(rc);
 
-        InterconnectChannel resetChannel(GetEndEventAddress());
+        InterconnectChannel resetChannel;
+        rc = resetChannel.Connect(GetEndEventAddress());
+        CHECK_RETURN_CODE(rc);
+        
         rc = resetChannel.Connect(GetStartTaskAddress());
         CHECK_RETURN_CODE(rc);
         
