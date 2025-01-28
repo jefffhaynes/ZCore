@@ -9,12 +9,16 @@
 class InterconnectChannel
 {
 public:
-    ReturnCode Connect(EventAddress event, TaskAddress task)
+    InterconnectChannel(EventAddress event) : _event(event)
+    {
+    }
+
+    ReturnCode Connect(TaskAddress task)
     {
         auto rc = Initialize();
         CHECK_RETURN_CODE(rc);
 
-        nrfx_gppi_channel_endpoints_setup(_channel, event.GetAddress(), task.GetAddress());
+        nrfx_gppi_channel_endpoints_setup(_channel, _event.GetAddress(), task.GetAddress());
         
         return ReturnCode::Success;
     }
@@ -40,8 +44,9 @@ public:
     }
 
 private:
-    bool _initialized = false;
+    EventAddress _event;
     uint8_t _channel;
+    bool _initialized = false;
 
     ReturnCode Initialize()
     {

@@ -8,13 +8,7 @@
 #include "TimeSpan.h"
 #include <nrfx_timer.h>
 
-static void timer_handler(nrf_timer_event_t event_type, void * p_context)
-{
-    (void)event_type;
-    (void)p_context;
 
-    Debug::WriteLine("Timer event: %d", (int) event_type);
-}
 
 class Oscillator
 {
@@ -38,8 +32,8 @@ public:
         nrfx_timer_extended_compare(&_timer, NRF_TIMER_CC_CHANNEL0, ticks, 
             NRF_TIMER_SHORT_COMPARE0_CLEAR_MASK, false);
 
-        auto delayTicks = nrfx_timer_ms_to_ticks(&_timer, 1);
-        nrfx_timer_compare(&_timer, NRF_TIMER_CC_CHANNEL1, delayTicks, false);
+        // auto delayTicks = nrfx_timer_ms_to_ticks(&_timer, 1);
+        // nrfx_timer_compare(&_timer, NRF_TIMER_CC_CHANNEL1, delayTicks, false);
         // nrfx_timer_extended_compare(&_timer, NRF_TIMER_CC_CHANNEL1, delayTicks,
         //                         NRF_TIMER_SHORT_COMPARE1_CLEAR_MASK, false);
         // nrf_timer_one_shot_enable(_timer.p_reg, NRF_TIMER_CC_CHANNEL1);
@@ -63,11 +57,11 @@ public:
     }
 
     
-    EventAddress GetDelayEventAddress()
-    {
-        auto addressValue = nrfx_timer_compare_event_address_get(&_timer, NRF_TIMER_CC_CHANNEL1);
-        return EventAddress(addressValue);
-    }
+    // EventAddress GetDelayEventAddress()
+    // {
+    //     auto addressValue = nrfx_timer_compare_event_address_get(&_timer, NRF_TIMER_CC_CHANNEL1);
+    //     return EventAddress(addressValue);
+    // }
 
 private:
     nrfx_timer_t _timer;
@@ -93,7 +87,7 @@ private:
             .p_context = this
         };
 
-        auto err = nrfx_timer_init(&_timer, &config, timer_handler);
+        auto err = nrfx_timer_init(&_timer, &config, nullptr);
         auto rc = ErrorConverter::Convert(err);
         CHECK_RETURN_CODE(rc);
 

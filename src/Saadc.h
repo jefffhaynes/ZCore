@@ -69,12 +69,11 @@ public:
         rc = ErrorConverter::Convert(err);
         CHECK_RETURN_CODE(rc);
 
-        auto endEvent = GetEndEventAddress();
-        auto startTask = GetStartTaskAddress();
-        rc = _resetChannel.Connect(endEvent, startTask);
+        InterconnectChannel resetChannel(GetEndEventAddress());
+        rc = resetChannel.Connect(GetStartTaskAddress());
         CHECK_RETURN_CODE(rc);
         
-        rc = _resetChannel.Enable();
+        rc = resetChannel.Enable();
         CHECK_RETURN_CODE(rc);
 
         _initialized = true;
@@ -121,7 +120,6 @@ private:
     static int16_t _samples[ChannelCount];
 
     bool _initialized = false;
-    InterconnectChannel _resetChannel;
 
     static void OnEvent(nrfx_saadc_evt_t const * p_event)
     {
