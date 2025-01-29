@@ -9,13 +9,6 @@
 #include "TimeSpan.h"
 #include <nrfx_timer.h>
 
-static void timer_handler(nrf_timer_event_t event_type, void * p_context)
-{
-    (void)event_type;
-    (void)p_context;
-
-    Debug::WriteLine("Timer event: %d", (int) event_type);
-}
 
 class DelayLine
 {

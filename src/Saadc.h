@@ -13,8 +13,8 @@
 
 
 
-#pragma GCC push_options
-#pragma GCC optimize ("O0")
+// #pragma GCC push_options
+// #pragma GCC optimize ("O0")
 
 // TODO MAKE A TEMPLATE EXCEPT THIS COMPLETELY BREAKS THE CALLBACK FOR SOME REASON
 class Saadc
@@ -141,7 +141,6 @@ private:
                 for (uint32_t i = 0; i < ChannelCount; i++)
                 {
                     samples[i] = NRFX_SAADC_SAMPLE_GET(NRF_SAADC_RESOLUTION_12BIT, p_event->data.done.p_buffer, i);
-                    samples[i] *= 6; // compensate for gain
                 }
 
                 Sample.Invoke(samples.AsFixedSpan());
@@ -157,4 +156,4 @@ inline int16_t Saadc::_samples[Saadc::ChannelCount];
 inline EventHandler<FixedSpan<int16_t, Saadc::ChannelCount>> Saadc::Sample;
 
 
-#pragma GCC pop_options
+// #pragma GCC pop_options

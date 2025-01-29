@@ -55,6 +55,16 @@ public:
         return TaskAddress(addressValue);
     }
 
+    ReturnCode Set(bool value)
+    {
+        auto rc = Initialize();
+        CHECK_RETURN_CODE(rc);
+
+        nrfx_gpiote_out_task_force(&_gpiote, _pin, value);
+
+        return ReturnCode::Success;
+    }
+
 private:
     nrfx_gpiote_t _gpiote;
     uint32_t _pin;
