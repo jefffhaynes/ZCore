@@ -5,7 +5,6 @@
 #include "EventHandler.h"
 #include "Array.h"
 #include "Interconnect.h"
-
 #include <nrfx_saadc.h>
 
 // REMOVE
