@@ -12,14 +12,16 @@
 
 
 
-// #pragma GCC push_options
-// #pragma GCC optimize ("O0")
+#pragma GCC push_options
+#pragma GCC optimize ("O0")
 
 // TODO MAKE A TEMPLATE EXCEPT THIS COMPLETELY BREAKS THE CALLBACK FOR SOME REASON
 class Saadc
 {
 public:
     static const uint32_t ChannelCount = 4;
+    static const uint32_t OversampleCount = 8;
+    static const uint32_t SampleCount = ChannelCount * OversampleCount;
 
     ReturnCode Initialize()
     {
@@ -60,7 +62,7 @@ public:
         rc = ErrorConverter::Convert(err);
         CHECK_RETURN_CODE(rc);
                                                 
-        err = nrfx_saadc_buffer_set(_samples, ChannelCount);
+        err = nrfx_saadc_buffer_set(_samples, SampleCount);
         rc = ErrorConverter::Convert(err);
         CHECK_RETURN_CODE(rc);
 
@@ -110,9 +112,10 @@ private:
         NRFX_SAADC_DEFAULT_CHANNEL_SE(NRF_SAADC_INPUT_AIN3, 3)
     };
 
-    static int16_t _samples[ChannelCount];
+    static int16_t _samples[SampleCount][2];
 
     bool _initialized = false;
+    static uint32_t _bufferIndex;
 
     static void OnEvent(nrfx_saadc_evt_t const * p_event)
     {
@@ -122,20 +125,35 @@ private:
                 break;                        
                 
             case NRFX_SAADC_EVT_BUF_REQ:
-                nrfx_saadc_buffer_set(_samples, ChannelCount);
-                break;
+                {
+                    _bufferIndex = (_bufferIndex + 1) % 2;
+                    auto* buffer = _samples[_bufferIndex];
+                    nrfx_saadc_buffer_set(buffer, SampleCount);
+                    break;
+                }
 
             case NRFX_SAADC_EVT_DONE:
             {
-                Array<float, ChannelCount> samples;
+                const float max = nrf_saadc_value_max_get(NRF_SAADC_RESOLUTION_12BIT);
+
+                Array<float, ChannelCount> channels;
                 for (uint32_t i = 0; i < ChannelCount; i++)
                 {
-                    auto value = NRFX_SAADC_SAMPLE_GET(NRF_SAADC_RESOLUTION_12BIT, p_event->data.done.p_buffer, i);
-                    const float max = nrf_saadc_value_max_get(NRF_SAADC_RESOLUTION_12BIT);
-                    samples[i] = value / max;
+                    // auto value = NRFX_SAADC_SAMPLE_GET(NRF_SAADC_RESOLUTION_12BIT, p_event->data.done.p_buffer, i);
+                    // const float max = nrf_saadc_value_max_get(NRF_SAADC_RESOLUTION_12BIT);
+                    // samples[i] = value / max;
+
+                    Array<float, OversampleCount> samples;
+                    for (uint32_t j = 0; j < OversampleCount; j++)
+                    {
+                        auto value = NRFX_SAADC_SAMPLE_GET(NRF_SAADC_RESOLUTION_12BIT, p_event->data.done.p_buffer, j * ChannelCount + i);
+                        samples[j] = value;
+                    }
+
+                    channels[i] = SpanExtensions::Mean(samples.AsSpan()) / max;
                 }
 
-                Sample.Invoke(samples.AsFixedSpan());
+                Sample.Invoke(channels.AsFixedSpan());
             }
             default:
                 break;
@@ -144,8 +162,9 @@ private:
 
 };
 
-inline int16_t Saadc::_samples[Saadc::ChannelCount];
+inline uint32_t Saadc::_bufferIndex = 0;
+inline int16_t Saadc::_samples[Saadc::SampleCount][2];
 inline EventHandler<FixedSpan<float, Saadc::ChannelCount>> Saadc::Sample;
 
 
-// #pragma GCC pop_options
+#pragma GCC pop_options
