@@ -68,15 +68,6 @@ public:
         rc = ErrorConverter::Convert(err);
         CHECK_RETURN_CODE(rc);
 
-        InterconnectChannel resetChannel;
-        rc = resetChannel.Connect(GetEndEventAddress());
-        CHECK_RETURN_CODE(rc);
-        
-        rc = resetChannel.Connect(GetStartTaskAddress());
-        CHECK_RETURN_CODE(rc);
-        
-        rc = resetChannel.Enable();
-        CHECK_RETURN_CODE(rc);
 
         _initialized = true;
 
@@ -108,7 +99,7 @@ public:
         return TaskAddress(addressValue);
     }
 
-    static EventHandler<FixedSpan<int16_t, ChannelCount>> Sample;
+    static EventHandler<FixedSpan<float, ChannelCount>> Sample;
 
 private:
     nrfx_saadc_channel_t _channels[ChannelCount] =
@@ -136,10 +127,12 @@ private:
 
             case NRFX_SAADC_EVT_DONE:
             {
-                Array<int16_t, ChannelCount> samples;
+                Array<float, ChannelCount> samples;
                 for (uint32_t i = 0; i < ChannelCount; i++)
                 {
-                    samples[i] = NRFX_SAADC_SAMPLE_GET(NRF_SAADC_RESOLUTION_12BIT, p_event->data.done.p_buffer, i);
+                    auto value = NRFX_SAADC_SAMPLE_GET(NRF_SAADC_RESOLUTION_12BIT, p_event->data.done.p_buffer, i);
+                    const float max = nrf_saadc_value_max_get(NRF_SAADC_RESOLUTION_12BIT);
+                    samples[i] = value / max;
                 }
 
                 Sample.Invoke(samples.AsFixedSpan());
@@ -152,7 +145,7 @@ private:
 };
 
 inline int16_t Saadc::_samples[Saadc::ChannelCount];
-inline EventHandler<FixedSpan<int16_t, Saadc::ChannelCount>> Saadc::Sample;
+inline EventHandler<FixedSpan<float, Saadc::ChannelCount>> Saadc::Sample;
 
 
 // #pragma GCC pop_options
