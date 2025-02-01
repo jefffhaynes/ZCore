@@ -8,6 +8,7 @@ class Profiler
 public:
     Profiler(StringLiteral name) : _name(name)
     {
+        Debug::WriteLine(">> %s", _name.GetData());
         _start = Clock::GetUptime();
     }
 
@@ -25,7 +26,7 @@ public:
 
         auto end = Clock::GetUptime();
         auto duration = end - _start;
-        Debug::WriteLine("%s: %.3f ms", _name.GetData(), (float) duration.ToMilliseconds());
+        Debug::WriteLine("<< %s: %.3f ms", _name.GetData(), (float) duration.ToMilliseconds());
 
         _completed = true;
     }
