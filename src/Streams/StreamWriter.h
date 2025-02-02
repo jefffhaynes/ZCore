@@ -6,18 +6,38 @@
 class StreamWriter
 {
 public:
-    StreamWriter(OutputStream& stream) : _stream(stream)
+    constexpr StreamWriter(OutputStream& stream) : _stream(stream)
     {
     }
 
-    template <Safe T>
-    ReturnCode Write(const T& value)
+    template <Arithmetic T>
+    constexpr ReturnCode Write(T value)
     {
-        auto data = MemoryMarshal::AsConstBytes(value);
-        return Write(data);
+        for (uint32_t i = 0; i < sizeof(T); i++)
+        {
+            auto byte = static_cast<uint8_t>(value >> (i * 8));
+            auto rc = _stream.Write(Span(&byte, 1));
+            CHECK_RETURN_CODE(rc);
+        }
+
+        return ReturnCode::Success;
     }
 
-    ReturnCode Write(Span<const uint8_t> data)
+    template <Enum T>
+    constexpr ReturnCode Write(T value)
+    {
+        auto underlying = static_cast<std::underlying_type_t<T>>(value);
+        return Write(underlying);
+    }
+
+    template <ComplexSafe T>
+    constexpr ReturnCode Write(T& value)
+    {
+        auto span = MemoryMarshal::AsConstBytes(value);
+        return _stream.Write(span);
+    }
+
+    constexpr ReturnCode Write(Span<const uint8_t> data)
     {
         return _stream.Write(data);
     }

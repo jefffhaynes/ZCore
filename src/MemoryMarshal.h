@@ -28,7 +28,10 @@ template<typename T>
 concept Enum = std::is_enum_v<T>;
 
 template<typename T>
-concept Safe = Arithmetic<T> || Enum<T> || all_fields_are_safe<T>();
+concept ComplexSafe = all_fields_are_safe<T>() && !Arithmetic<T> && !Enum<T>;
+
+template<typename T>
+concept Safe = Arithmetic<T> || Enum<T> || ComplexSafe<T>;
 
 template<typename T>
 concept Unsafe = !Safe<T>;

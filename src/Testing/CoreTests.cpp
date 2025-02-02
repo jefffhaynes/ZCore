@@ -14,3 +14,4 @@
 #include "QueueTests.h"
 #include "UnitsTests.h"
 #include "Vector3Tests.h"
+#include "BufferedOutputStreamTests.h"

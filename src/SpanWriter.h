@@ -79,6 +79,16 @@ public:
         return _offset;
     }
 
+    constexpr bool IsFull()
+    {
+        return _offset == _span.GetLength();
+    }
+
+    constexpr void Reset()
+    {
+        _offset = 0;
+    }
+
 private:
     Span<T> _span;
     uint32_t _offset;
