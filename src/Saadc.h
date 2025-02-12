@@ -12,8 +12,8 @@
 
 
 
-#pragma GCC push_options
-#pragma GCC optimize ("O0")
+// #pragma GCC push_options
+// #pragma GCC optimize ("O0")
 
 // TODO MAKE A TEMPLATE EXCEPT THIS COMPLETELY BREAKS THE CALLBACK FOR SOME REASON
 class Saadc
@@ -167,4 +167,4 @@ inline int16_t Saadc::_samples[Saadc::SampleCount][2];
 inline EventHandler<FixedSpan<float, Saadc::ChannelCount>> Saadc::Sample;
 
 
-#pragma GCC pop_options
+// #pragma GCC pop_options
