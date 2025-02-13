@@ -27,6 +27,11 @@ public:
         return _state;
     }
 
+    constexpr void Reset()
+    {
+        _initialized = false;
+    }
+
 private:
     static constexpr float MaxExponent = 5;
     static constexpr float MinExponent = -5;
