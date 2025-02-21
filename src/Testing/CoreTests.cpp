@@ -15,3 +15,4 @@
 #include "UnitsTests.h"
 #include "Vector3Tests.h"
 #include "BufferedOutputStreamTests.h"
+#include "CoreMathTests.h"

@@ -13,23 +13,24 @@ public:
         return value < zero ? -value : value;
     }
 
-    static constexpr float Factorial(int n) 
+    static constexpr float Exp(float x)
     {
-        return (n <= 1) ? 1 : (n * Factorial(n - 1));
-    }
+        const int terms = 12;
 
-    static constexpr float Power(float base, int exp) 
-    {
-        return (exp == 0) ? 1 : (base * Power(base, exp - 1));
-    }
-
-    static constexpr float Exp(float x, int terms = 10) 
-    {
-        float sum = 0;
-        for (int n = 0; n < terms; ++n) 
+        // this threshold is based on the number of terms in the series
+        // and the epsilon value used to calculate the series
+        if (x < -3.0f)
         {
-            sum += Power(x, n) / Factorial(n);
+            return 0;
         }
+
+        auto sum = 1.0f;
+
+        for (int k = terms; k > 0; --k) 
+        {
+            sum = 1.0 + (x / k) * sum;
+        }
+
         return sum;
     }
 

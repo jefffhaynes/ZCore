@@ -58,19 +58,6 @@ private:
         }
 
         auto exponent = -delta / _tau;
-
-        if (exponent < MinExponent)
-        {
-            // large time has lapsed, instant change
-            return 1;
-        }
-
-        if (exponent > MaxExponent)
-        {
-            // small time has lapsed, no change
-            return 0;
-        }
-
         return 1 - CoreMath::Exp(exponent);
     }
 };
