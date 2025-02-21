@@ -7,6 +7,7 @@
 
 #if defined(CONFIG_USE_SEGGER_RTT)
 #include <SEGGER_RTT.h>
+#include "DebugColors.h"
 #endif
 
 #include <stdio.h>
@@ -174,28 +175,29 @@ private:
 #if defined(CONFIG_USE_SEGGER_RTT)
         switch(color)
         {
-            case DebugColor::Black: return RTT_CTRL_TEXT_BLACK;
-            case DebugColor::Red: return RTT_CTRL_TEXT_RED;
-            case DebugColor::Green: return RTT_CTRL_TEXT_GREEN;
-            case DebugColor::Yellow: return RTT_CTRL_TEXT_YELLOW;
-            case DebugColor::Blue: return RTT_CTRL_TEXT_BLUE;
-            case DebugColor::Magenta: return RTT_CTRL_TEXT_MAGENTA;
-            case DebugColor::Cyan: return RTT_CTRL_TEXT_CYAN;
-            case DebugColor::White: return RTT_CTRL_TEXT_WHITE;
-            case DebugColor::BrightBlack: return RTT_CTRL_TEXT_BRIGHT_BLACK;
-            case DebugColor::BrightRed: return RTT_CTRL_TEXT_BRIGHT_RED;
-            case DebugColor::BrightGreen: return RTT_CTRL_TEXT_BRIGHT_GREEN;
-            case DebugColor::BrightYellow: return RTT_CTRL_TEXT_BRIGHT_YELLOW;
-            case DebugColor::BrightBlue: return RTT_CTRL_TEXT_BRIGHT_BLUE;
-            case DebugColor::BrightMagenta: return RTT_CTRL_TEXT_BRIGHT_MAGENTA;
-            case DebugColor::BrightCyan: return RTT_CTRL_TEXT_BRIGHT_CYAN;
-            case DebugColor::BrightWhite: return RTT_CTRL_TEXT_BRIGHT_WHITE;
+            case DebugColor::Black: return DebugColors::Black;
+            case DebugColor::Red: return DebugColors::Red;
+            case DebugColor::Green: return DebugColors::Green;
+            case DebugColor::Yellow: return DebugColors::Yellow;
+            case DebugColor::Blue: return DebugColors::Blue;
+            case DebugColor::Magenta: return DebugColors::Magenta;
+            case DebugColor::Cyan: return DebugColors::Cyan;
+            case DebugColor::White: return DebugColors::White;
+            case DebugColor::BrightBlack: return DebugColors::BrightBlack;
+            case DebugColor::BrightRed: return DebugColors::BrightRed;
+            case DebugColor::BrightGreen: return DebugColors::BrightGreen;
+            case DebugColor::BrightYellow: return DebugColors::BrightYellow;
+            case DebugColor::BrightBlue: return DebugColors::BrightBlue;
+            case DebugColor::BrightMagenta: return DebugColors::BrightMagenta;
+            case DebugColor::BrightCyan: return DebugColors::BrightCyan;
+            case DebugColor::BrightWhite: return DebugColors::BrightWhite;
+            default: return StringLiteral();
         }
 #endif
 
         return StringLiteral();
     }
-
+    
     template <typename Tuple, std::size_t... I>
     static auto forward_except_last(std::index_sequence<I...>, Tuple&& tuple) {
         return std::forward_as_tuple(std::get<I>(std::forward<Tuple>(tuple))...);
