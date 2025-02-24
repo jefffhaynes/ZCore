@@ -150,7 +150,11 @@ private:
                         samples[j] = value;
                     }
 
-                    channels[i] = SpanExtensions::Mean(samples.AsSpan()) / max;
+                    // Debug::WriteData(samples.AsSpan());
+
+                    // TODO need to revist this but the first two samples seem to be less reliable
+                    auto samplesSpan = samples.Skip(2);
+                    channels[i] = SpanExtensions::Mean(samplesSpan) / max;
                 }
 
                 Sample.Invoke(channels.AsFixedSpan());
