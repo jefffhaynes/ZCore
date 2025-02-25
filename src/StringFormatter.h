@@ -36,7 +36,14 @@ public:
 
 private:
     // Function to convert integer to string with specified base and padding
-    static constexpr int integer_to_base_string(char* buffer, size_t size, unsigned int value, int base, int width = 0, char pad_char = ' ') {
+    static constexpr int integer_to_base_string(
+        char* buffer, 
+        size_t size, 
+        unsigned int value, 
+        int base, 
+        int width = 0, 
+        char pad_char = ' '
+    ) {
         char temp[33]; // Enough for 32-bit integer in binary
         int i = 0;
 
@@ -55,7 +62,7 @@ private:
         }
 
         // Calculate padding
-        int total_len = i > width ? i : width;
+        int total_len = (i > width) ? i : width;
         if ((size_t)total_len >= size) {
             return -1; // Not enough space
         }
@@ -77,18 +84,29 @@ private:
     }
 
     // Function to convert integer to decimal string with padding
-    static constexpr int integer_to_string(char* buffer, size_t size, int value, int width = 0, char pad_char = ' ') {
+    // Added: `bool always_sign` to control whether we put a '+' in front of non-negative values
+    static constexpr int integer_to_string(
+        char* buffer, 
+        size_t size, 
+        int value, 
+        int width = 0, 
+        char pad_char = ' ', 
+        bool always_sign = false
+    ) {
         char temp[12]; // Buffer to hold the integer string
         int i = 0;
         bool negative = false;
 
+        // Check sign
+        if (value < 0) {
+            negative = true;
+            value = -value;
+        }
+
+        // Special case 0
         if (value == 0) {
             temp[i++] = '0';
         } else {
-            if (value < 0) {
-                negative = true;
-                value = -value;
-            }
             // Convert integer to reversed string
             while (value && i < (int)sizeof(temp) - 1) {
                 temp[i++] = '0' + (value % 10);
@@ -96,12 +114,15 @@ private:
             }
         }
 
+        // Add sign character (negative or plus, if requested)
         if (negative) {
             temp[i++] = '-';
+        } else if (always_sign) {
+            temp[i++] = '+';
         }
 
         // Calculate padding
-        int total_len = i > width ? i : width;
+        int total_len = (i > width) ? i : width;
         if ((size_t)total_len >= size) {
             return -1; // Not enough space
         }
@@ -144,13 +165,14 @@ private:
             frac_multiplier *= 10;
         }
 
+        // Round the fractional part properly
         unsigned long frac = static_cast<unsigned long>(fractional_part * frac_multiplier + 0.5f);
 
         // Convert integer part
         int len_int = integer_to_string(temp, sizeof(temp), int_part);
         if (len_int < 0) return -1;
 
-        int total_len = len_int + (negative ? 1 : 0) + 1 + precision; // Including '.', and decimal digits
+        int total_len = len_int + (negative ? 1 : 0) + 1 + precision; // incl. '-', '.', decimal digits
         if (size < static_cast<size_t>(total_len + 1)) return -1;
 
         if (negative) {
@@ -165,7 +187,6 @@ private:
         buffer[pos++] = '.';
 
         // Convert fractional part
-        // Generate leading zeros if necessary
         if (precision > 0) {
             char frac_str[32]; // Should be enough
             for (int i = precision - 1; i >= 0; --i) {
@@ -192,7 +213,8 @@ private:
                     --size;
                     format += 2;
                 } else {
-                    return -1; // Error: insufficient arguments
+                    // If we see a lone '%', that’s an error in this simplistic implementation
+                    return -1;
                 }
             } else {
                 *buffer++ = *format++;
@@ -218,41 +240,56 @@ private:
                     --size;
                     ++format;
                 } else {
-                    // Handle flags and width
+                    // Handle flags
                     char pad_char = ' ';
+                    bool always_sign = false;
+
+                    // Check for '+' flag
+                    if (*format == '+') {
+                        always_sign = true;
+                        ++format;
+                    }
+                    // Check for '0' flag (for padding)
                     if (*format == '0') {
                         pad_char = '0';
                         ++format;
                     }
+
+                    // Parse width
                     int width = 0;
                     while (*format >= '0' && *format <= '9') {
                         width = width * 10 + (*format - '0');
                         ++format;
                     }
+
                     // Handle length modifier
                     bool is_short = false;
                     if (*format == 'h') {
                         is_short = true;
                         ++format;
                     }
-                    // Handle specifiers
+
+                    // Now handle specifier
                     if (*format == 'd') {
                         ++format;
-                        int len = integer_to_string(buffer, size, value, width, pad_char);
+                        int len = integer_to_string(buffer, size, value, width, pad_char, always_sign);
                         if (len < 0) return -1;
                         buffer += len;
                         size -= len;
                         return format_helper(buffer, size, format, args...);
+
                     } else if (*format == 'x') {
                         ++format;
-                        unsigned int val = is_short ? static_cast<unsigned short>(value) : static_cast<unsigned int>(value);
+                        unsigned int val = is_short 
+                            ? static_cast<unsigned short>(value) 
+                            : static_cast<unsigned int>(value);
                         int len = integer_to_base_string(buffer, size, val, 16, width, pad_char);
                         if (len < 0) return -1;
                         buffer += len;
                         size -= len;
                         return format_helper(buffer, size, format, args...);
                     } else {
-                        return -1; // Error: unsupported format specifier
+                        return -1; // Unsupported format specifier
                     }
                 }
             } else {
@@ -266,7 +303,7 @@ private:
     // Overload for unsigned integer arguments
     template<typename... Args>
     static constexpr int format_helper(char*& buffer, size_t& size, const char*& format, unsigned int value, Args... args) {
-        // just use int format
+        // Just reuse the int overload
         return format_helper(buffer, size, format, static_cast<int>(value), args...);
     }
 
@@ -281,12 +318,12 @@ private:
                     --size;
                     ++format;
                 } else {
-                    // Handle width (ignored for floats in this simple implementation)
+                    // In this implementation, we ignore width for floats
                     while (*format >= '0' && *format <= '9') {
                         ++format;
                     }
                     // Handle precision
-                    int precision = 6; // Default precision
+                    int precision = 6; // Default
                     if (*format == '.') {
                         ++format;
                         precision = 0;
@@ -303,7 +340,7 @@ private:
                         size -= len;
                         return format_helper(buffer, size, format, args...);
                     } else {
-                        return -1; // Error: unsupported format specifier
+                        return -1; // Unsupported specifier
                     }
                 }
             } else {
@@ -314,7 +351,7 @@ private:
         return format_helper(buffer, size, format);
     }
 
-    // overload for char arguments
+    // Overload for char arguments
     template<typename... Args>
     static constexpr int format_helper(char*& buffer, size_t& size, const char*& format, char value, Args... args) {
         while (*format && size > 1) {
@@ -331,7 +368,7 @@ private:
                         ++format;
                         return format_helper(buffer, size, format, args...);
                     } else {
-                        return -1; // Error: unsupported format specifier
+                        return -1; // Unsupported format specifier
                     }
                 }
             } else {
@@ -361,7 +398,7 @@ private:
                         ++format;
                         return format_helper(buffer, size, format, args...);
                     } else {
-                        return -1; // Error: unsupported format specifier
+                        return -1; // Unsupported format specifier
                     }
                 }
             } else {
@@ -375,6 +412,6 @@ private:
     // Catch-all overload for unsupported types
     template<typename T, typename... Args>
     static constexpr int format_helper(char*& buffer, size_t& size, const char*& format, T, Args...) {
-        return -1; // Error: unsupported type
+        return -1; // Unsupported type
     }
 };

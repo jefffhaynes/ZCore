@@ -310,6 +310,13 @@ namespace StringFormatterTests
         return formatted.IsEmpty();
     }(), "Format method failed");
 
+    // Positive sign for positive numbers
+    static_assert([]{
+        Array<char, 16> buffer;
+        auto formatted = StringFormatter::Format(buffer, "Positive: %+d", 42);
+        return formatted == String("Positive: +42");
+    }(), "Format method failed");
+
     // // Special floating-point values (NaN, infinity)
     // static_assert([]{
     //     Array<char, 32> buffer;
