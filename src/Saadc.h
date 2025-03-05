@@ -20,7 +20,7 @@ class Saadc
 {
 public:
     static const uint32_t ChannelCount = 4;
-    static const uint32_t OversampleCount = 8;
+    static const uint32_t OversampleCount = 1;
     static const uint32_t SampleCount = ChannelCount * OversampleCount;
 
     ReturnCode Initialize()
@@ -42,6 +42,11 @@ public:
         _channels[1].channel_config.gain = NRF_SAADC_GAIN1_2;
         _channels[2].channel_config.gain = NRF_SAADC_GAIN1_2;
         _channels[3].channel_config.gain = NRF_SAADC_GAIN1_2;
+
+        _channels[0].channel_config.acq_time = NRF_SAADC_ACQTIME_3US;
+        _channels[1].channel_config.acq_time = NRF_SAADC_ACQTIME_3US;
+        _channels[2].channel_config.acq_time = NRF_SAADC_ACQTIME_3US;
+        _channels[3].channel_config.acq_time = NRF_SAADC_ACQTIME_3US;
         
 
         err = nrfx_saadc_channels_config(_channels, ChannelCount);
@@ -153,7 +158,7 @@ private:
                     // Debug::WriteData(samples.AsSpan());
 
                     // TODO need to revist this but the first two samples seem to be less reliable
-                    auto samplesSpan = samples.Skip(2);
+                    auto samplesSpan = samples.Skip(0).Take(1);
                     channels[i] = SpanExtensions::Mean(samplesSpan) / max;
                 }
 
