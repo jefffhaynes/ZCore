@@ -55,6 +55,12 @@ public:
         return *this;
     }
 
+    constexpr TimeSpan& operator-=(const TimeSpan& other)
+    {
+        _milliseconds -= other._milliseconds;
+        return *this;
+    }
+
     constexpr bool operator==(const TimeSpan& other) const
     {
         return _milliseconds == other._milliseconds;
