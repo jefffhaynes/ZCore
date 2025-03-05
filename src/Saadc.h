@@ -38,10 +38,10 @@ public:
         auto rc = ErrorConverter::Convert(err);
         CHECK_RETURN_CODE(rc);
 
-        _channels[0].channel_config.gain = NRF_SAADC_GAIN1_2;
-        _channels[1].channel_config.gain = NRF_SAADC_GAIN1_2;
-        _channels[2].channel_config.gain = NRF_SAADC_GAIN1_2;
-        _channels[3].channel_config.gain = NRF_SAADC_GAIN1_2;
+        _channels[0].channel_config.gain = NRF_SAADC_GAIN1_3;
+        _channels[1].channel_config.gain = NRF_SAADC_GAIN1_3;
+        _channels[2].channel_config.gain = NRF_SAADC_GAIN1_3;
+        _channels[3].channel_config.gain = NRF_SAADC_GAIN1_3;
 
         _channels[0].channel_config.acq_time = NRF_SAADC_ACQTIME_3US;
         _channels[1].channel_config.acq_time = NRF_SAADC_ACQTIME_3US;
