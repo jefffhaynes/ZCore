@@ -36,7 +36,7 @@ public:
         auto rc = ErrorConverter::Convert(err);
         CHECK_RETURN_CODE(rc);
 
-        auto ticks = nrfx_timer_us_to_ticks(&_timer, period.ToMicroseconds());
+        auto ticks = nrfx_timer_ns_to_ticks(&_timer, period.ToNanoseconds());
         auto flags = Flags::Combine(NRF_TIMER_SHORT_COMPARE0_STOP_MASK, NRF_TIMER_SHORT_COMPARE0_CLEAR_MASK);
         nrfx_timer_extended_compare(&_timer, NRF_TIMER_CC_CHANNEL0, ticks, 
             flags, false);
@@ -59,4 +59,12 @@ public:
 
 private:
     nrfx_timer_t _timer;
+
+    static uint32_t nrfx_timer_ns_to_ticks(nrfx_timer_t const * p_instance, uint64_t time_ns)
+    {
+        uint32_t prescaler = nrfy_timer_prescaler_get(p_instance->p_reg);
+        auto freq_base_ghz = NRFX_TIMER_BASE_FREQUENCY_GET(p_instance) / 1000000000.0f;
+        uint64_t ticks = (((uint64_t)(time_ns * freq_base_ghz)) >> prescaler);
+        return (uint32_t)ticks;
+    }
 };

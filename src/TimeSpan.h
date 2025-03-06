@@ -9,10 +9,12 @@ public:
     {
     }
     
+    static constexpr TimeSpan FromNanoseconds(double nanoseconds) { return TimeSpan(nanoseconds * MillisecondsPerNanosecond); }
     static constexpr TimeSpan FromMicroseconds(double microseconds) { return TimeSpan(microseconds * MillisecondsPerMicrosecond); }
     static constexpr TimeSpan FromMilliseconds(double milliseconds) { return TimeSpan(milliseconds); }
     static constexpr TimeSpan FromSeconds(double seconds) { return TimeSpan(seconds * MillsecondsPerSecond); }
 
+    constexpr double ToNanoseconds() const { return _milliseconds * NanosecondsPerMillisecond; }
     constexpr double ToMicroseconds() const { return _milliseconds * MicrosecondsPerMillisecond; }
     constexpr double ToMilliseconds() const { return _milliseconds; }
     constexpr double ToSeconds() const { return _milliseconds * SecondsPerMillisecond; }
@@ -83,6 +85,8 @@ public:
 
 
 private:
+    static constexpr double NanosecondsPerMillisecond = 1000000;
+    static constexpr double MillisecondsPerNanosecond = 1 / NanosecondsPerMillisecond;
     static constexpr double MicrosecondsPerMillisecond = 1000;
     static constexpr double MillisecondsPerMicrosecond = 1 / MicrosecondsPerMillisecond;
     static constexpr double MillsecondsPerSecond = 1000;
