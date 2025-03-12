@@ -8,6 +8,9 @@
 #include <cstddef>
 
 
+// #pragma GCC push_options
+// #pragma GCC optimize ("O0")
+
 
 class StringFormatter
 {
@@ -415,3 +418,5 @@ private:
         return -1; // Unsupported type
     }
 };
+
+// #pragma GCC pop_options

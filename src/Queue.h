@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Span.h"
+#include <type_traits>
 
 template <typename T>
 class Queue
@@ -11,7 +12,7 @@ public:
     {
     }
 
-    constexpr ReturnCode Enqueue(Span<T> items)
+    constexpr ReturnCode Enqueue(Span<std::add_const_t<T>> items)
     {
         if (items.GetLength() == 0)
         {

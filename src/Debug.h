@@ -13,6 +13,8 @@
 #include <stdio.h>
 #include <algorithm>
 
+// #pragma GCC push_options
+// #pragma GCC optimize ("O0")
 
 class Debug
 {
@@ -72,7 +74,7 @@ public:
     {
         return code == ReturnCode::Success ? 
             ReturnCode::Success : 
-            WriteLine("Error: %s", GetErrorMessage(code), DebugColor::Red);
+            WriteLine("Error: %s", GetErrorMessage(code).GetData(), DebugColor::Red);
     }
 
     template<typename T>
@@ -80,19 +82,19 @@ public:
     {
         for(auto& value : data)
         {
-            if constexpr (std::is_same_v<T, uint8_t> || std::is_same_v<T, int8_t>)
+            if constexpr (std::is_same_v<std::remove_const_t<T>, uint8_t> || std::is_same_v<std::remove_const_t<T>, int8_t>)
             {
-                auto rc = Write("0x%02hx ", value);
+                auto rc = Write("0x%02hx ", static_cast<int>(value));
                 CHECK_RETURN_CODE(rc);
             }
-            else if constexpr (std::is_same_v<T, uint16_t> || std::is_same_v<T, int16_t>)
+            else if constexpr (std::is_same_v<std::remove_const_t<T>, uint16_t> || std::is_same_v<std::remove_const_t<T>, int16_t>)
             {
-                auto rc = Write("%05d ", value);
+                auto rc = Write("%05d ", static_cast<int>(value));
                 CHECK_RETURN_CODE(rc);
             }
-            else if constexpr (std::is_same_v<T, float>)
+            else if constexpr (std::is_same_v<std::remove_const_t<T>, float>)
             {
-                auto rc = Write("%.2f, ", value);
+                auto rc = Write("%.2f, ", static_cast<float>(value));
                 CHECK_RETURN_CODE(rc);
             }
             else
@@ -203,3 +205,5 @@ private:
         return std::forward_as_tuple(std::get<I>(std::forward<Tuple>(tuple))...);
     }
 };
+
+// #pragma GCC pop_options
