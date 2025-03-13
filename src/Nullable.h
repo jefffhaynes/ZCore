@@ -67,6 +67,11 @@ public:
         return _hasValue ? _value : T();
     }
 
+    constexpr void Clear()
+    {
+        _hasValue = false;
+    }
+
 private:
     bool _hasValue;
     T _value;

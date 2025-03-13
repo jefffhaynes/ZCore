@@ -58,13 +58,6 @@ public:
 
         while (totalRead < data.GetLength())
         {
-            auto elapsed = Clock::GetUptime() - start;
-
-            if (elapsed > timeout)
-            {
-                return ReturnCode::Timeout;
-            }
-
             auto remainder = data.Skip(totalRead);
 
             uint32_t read;
@@ -75,6 +68,13 @@ public:
 
             if (totalRead < data.GetLength())
             {
+                auto elapsed = Clock::GetUptime() - start;
+    
+                if (elapsed > timeout)
+                {
+                    return ReturnCode::Timeout;
+                }
+    
                 Clock::Sleep(TimeSpan::FromMicroseconds(10));
             }
         }

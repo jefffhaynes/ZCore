@@ -74,7 +74,7 @@ public:
     {
         return code == ReturnCode::Success ? 
             ReturnCode::Success : 
-            WriteLine("Error: %s", GetErrorMessage(code).GetData(), DebugColor::Red);
+            WriteLine("Error: %s", GetErrorMessage(code).GetData(), DebugColor::BrightRed);
     }
 
     template<typename T>

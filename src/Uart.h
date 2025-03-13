@@ -6,7 +6,7 @@
 #include <Queue.h>
 #include <EventHandler.h>
 #include <Work.h>
-#include <InterruptLock.h>
+#include <CriticalSection.h>
 
 #include <zephyr/drivers/uart.h>
 
@@ -21,11 +21,10 @@ struct uarte_nrfx_config2 {
 #endif
 };
 
-
 class Uart : public Device, public OutputStream, public InputStreamWithDataReceived
 {
 public:
-    Uart(const struct device* device) : Device(device), _queue(_buffer)
+    Uart(const struct device* device) : Device(device), _rxQueue(_rxBuffer), _txQueue(_txBuffer)
     {
     }
 
@@ -64,57 +63,82 @@ public:
 
     ReturnCode Read(Span<uint8_t> data, uint32_t& read) override
     {
-        InterruptLock lock;
-        return _queue.Dequeue(data, read);
+        CriticalSection cs;
+        return _rxQueue.Dequeue(data, read);
     }
 
     using InputStream::Read;
 
     ReturnCode Write(Span<const uint8_t> data) override
     {
-        for (auto byte : data)
-        {
-            uart_poll_out(GetDevice(), byte);
-        }
-        
-        // auto err = uart_fifo_fill(GetDevice(), data.GetData(), data.GetLength());
-        // return ErrorConverter::Convert(err);
+        CriticalSection cs;
+        auto rc = _txQueue.Enqueue(data);
+        CHECK_RETURN_CODE(rc);
+
+        uart_irq_tx_enable(GetDevice());
 
         return ReturnCode::Success;
     }
 
-    constexpr uint32_t GetAvailable()
+    constexpr uint32_t GetAvailable() override
     {
-        return _queue.GetCount();
+        return _rxQueue.GetCount();
     }
 
 private:
-    Array<uint8_t, 512> _buffer;
-    Queue<uint8_t> _queue;
+    Array<uint8_t, 512> _rxBuffer;
+    Array<uint8_t, 512> _txBuffer;
+    Queue<uint8_t> _rxQueue;
+    Queue<uint8_t> _txQueue;
     Work _work;
 
 
     void OnInterrupt()
     {
-        Array<uint8_t, 64> buffer;
-        auto read = uart_fifo_read(GetDevice(), buffer.GetData(), buffer.GetLength());
-        
-        if (read > 0)
+        if (!uart_irq_update(GetDevice()))
         {
-            auto data = buffer.Take(read);
-            _queue.Enqueue(data);
-            _work.Run();
+            return;
+        }
+    
+        if (uart_irq_rx_ready(GetDevice()))
+        {
+            Array<uint8_t, 64> buffer;
+            auto read = uart_fifo_read(GetDevice(), buffer.GetData(), buffer.GetLength());
+            
+            if (read > 0)
+            {
+                auto data = buffer.Take(read);
+                auto rc = _rxQueue.Enqueue(data);
+                Debug::WriteIfError(rc);
+                _work.Run();
+            }
+        }
+
+        if (uart_irq_tx_ready(GetDevice()))
+        {
+            Array<uint8_t, 32> buffer;
+            uint32_t read;
+            auto rc = _txQueue.Dequeue(buffer, read);
+            if (rc == ReturnCode::Success)
+            {
+                uart_fifo_fill(GetDevice(), buffer.GetData(), read);
+
+                if (_txQueue.IsEmpty())
+                {
+                    uart_irq_tx_disable(GetDevice());
+                }
+            }
         }
     }
 
     ReturnCode OnWork()
     {
-        return _queue.GetCount() > 0 ? DataReceived.Invoke() : ReturnCode::Success;
+        return _rxQueue.GetCount() > 0 ? DataReceived.Invoke() : ReturnCode::Success;
     }
 
-    static void OnInterrupt(const struct device *dev, void *user_data)
+    static void OnInterrupt(const struct device *device, void *ctx)
     {
-        auto usb_dev = static_cast<Uart*>(user_data);
-        usb_dev->OnInterrupt();
+        auto uart = static_cast<Uart*>(ctx);
+        uart->OnInterrupt();
     }
 };
