@@ -67,6 +67,11 @@ public:
         return _stream.CopyTo(nullSink);
     }
 
+    constexpr InputStream& GetStream()
+    {
+        return _stream;
+    }
+
 private:
     InputStream& _stream;
 };
