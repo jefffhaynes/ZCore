@@ -51,6 +51,11 @@ private:
 
         auto delta = time - _lastTime;
 
+        if (delta < TimeSpan::Zero)
+        {
+            delta = TimeSpan::Zero;
+        }
+
         if (_tau == TimeSpan::Zero)
         {
             // zero time constant means instant change
