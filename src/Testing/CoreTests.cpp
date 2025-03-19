@@ -16,3 +16,4 @@
 #include "Vector3Tests.h"
 #include "BufferedOutputStreamTests.h"
 #include "CoreMathTests.h"
+#include "CrcOutputStreamTests.h"

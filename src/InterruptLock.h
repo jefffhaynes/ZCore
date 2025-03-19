@@ -5,16 +5,16 @@
 class InterruptLock
 {
 public:
-    InterruptLock()
+    InterruptLock(int irq) : _irq(irq)
     {
-        _key = InterruptControl::Disable();
+        InterruptControl::Disable(_irq);
     }
 
     ~InterruptLock()
     {
-        InterruptControl::Enable(_key);
+        InterruptControl::Enable(_irq);
     }
 
 private:
-    int _key;
+    int _irq;
 };

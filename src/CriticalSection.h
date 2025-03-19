@@ -7,12 +7,12 @@ class CriticalSection
 public:
     CriticalSection()
     {
-        _key = InterruptControl::Disable();
+        _key = InterruptControl::Lock();
     }
 
     ~CriticalSection()
     {
-        InterruptControl::Enable(_key);
+        InterruptControl::Unlock(_key);
     }
 
 private:

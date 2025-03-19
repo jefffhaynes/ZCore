@@ -1,28 +1,30 @@
 #pragma once
 
-#include <stdint.h>
+#include <ICrc.h>
 #include <Array.h>
 
 template<uint8_t Polynomial, uint8_t InitialValue = 0>
-class Crc8
+class Crc8 : public ICrc
 {
 public:
-    Crc8()
+    constexpr Crc8()
     {
         Reset();
     }
 
-    void Reset()
+    constexpr ~Crc8() override = default;
+
+    constexpr void Reset() override
     {
         _crc = InitialValue;
     }
 
-    void Update(uint8_t data)
+    constexpr void Update(uint8_t data) override
     {
         _crc = _table[_crc ^ data];
     }
 
-    void Update(Span<const uint8_t> data)
+    constexpr void Update(Span<const uint8_t> data) override
     {
         for(auto b : data)
         {
@@ -30,7 +32,7 @@ public:
         }
     }
 
-    uint8_t GetValue() const
+    constexpr uint8_t GetValue() const
     {
         return _crc;
     }

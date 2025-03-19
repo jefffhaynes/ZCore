@@ -5,13 +5,23 @@
 class InterruptControl
 {
 public:
-    static int Disable()
+    static int Lock()
     {
         return irq_lock();
     }
 
-    static void Enable(int key)
+    static void Unlock(int key)
     {
         irq_unlock(key);
+    }
+
+    static void Disable(int irq)
+    {
+        irq_disable(irq);
+    }
+
+    static void Enable(int irq)
+    {
+        irq_enable(irq);
     }
 };

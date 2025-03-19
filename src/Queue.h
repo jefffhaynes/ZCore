@@ -3,6 +3,9 @@
 #include "Span.h"
 #include <type_traits>
 
+// #pragma GCC push_options
+// #pragma GCC optimize ("O0")
+
 template <typename T>
 class Queue
 {
@@ -130,3 +133,5 @@ private:
     uint32_t _write;
     uint32_t _count;
 };
+
+// #pragma GCC pop_options
