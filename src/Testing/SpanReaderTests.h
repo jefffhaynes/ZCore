@@ -56,3 +56,13 @@ static_assert([]() constexpr
     auto rc = reader.Read(value);
     return rc == ReturnCode::Success && value == TestEnum::Value1;
 }());
+
+static_assert([]() constexpr
+{
+    uint8_t data[] = { 1, 2, 3, 4 };
+    SpanReader<uint8_t> reader(data);
+    
+    Array<uint8_t, 4> value;
+    auto rc = reader.Read(value.AsSpan());
+    return rc == ReturnCode::Success && value[0] == 0x01 && value[1] == 0x02 && value[2] == 0x03 && value[3] == 0x04;
+}());
