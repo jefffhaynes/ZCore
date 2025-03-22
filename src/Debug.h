@@ -80,6 +80,8 @@ public:
     template<typename T>
     static constexpr ReturnCode WriteData(Span<T> data)
     {
+        Write("Data: ");
+        
         for(auto& value : data)
         {
             if constexpr (std::is_same_v<std::remove_const_t<T>, uint8_t> || std::is_same_v<std::remove_const_t<T>, int8_t>)
