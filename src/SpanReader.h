@@ -59,10 +59,11 @@ public:
 
     constexpr ReturnCode Read(Span<uint8_t> data)
     {
-        auto rc = GetRemaining().CopyTo(data);
+        auto length = data.GetLength();
+        auto rc = GetRemaining().Take(length).CopyTo(data);
         CHECK_RETURN_CODE(rc);
 
-        _offset += data.GetLength();
+        _offset += length;
 
         return ReturnCode::Success;
     }
