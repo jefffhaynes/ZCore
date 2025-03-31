@@ -17,3 +17,4 @@
 #include "BufferedOutputStreamTests.h"
 #include "CoreMathTests.h"
 #include "CrcOutputStreamTests.h"
+#include "PoolTests.h"

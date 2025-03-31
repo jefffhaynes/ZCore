@@ -86,6 +86,11 @@ public:
         return AsSpan().TryGet(index, value);
     }
 
+    constexpr bool TrySet(uint32_t index, T value)
+    {
+        return AsSpan().TrySet(index, value);
+    }
+
     constexpr const Span<const T> Take(uint32_t length) const
     {
         return AsSpan().Take(length);

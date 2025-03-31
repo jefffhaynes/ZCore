@@ -70,6 +70,11 @@ public:
         return Get(index, value) == ReturnCode::Success;
     }
 
+    constexpr bool TrySet(uint32_t index, T value)
+    {
+        return Set(index, value) == ReturnCode::Success;
+    }
+
     constexpr bool TryCompare(uint32_t index, T value) const
     {
         return index < _length && _data[index] == value;

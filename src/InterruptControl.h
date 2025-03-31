@@ -24,4 +24,9 @@ public:
     {
         irq_enable(irq);
     }
+
+    static bool IsIsr()
+    {
+        return k_is_in_isr();
+    }
 };
