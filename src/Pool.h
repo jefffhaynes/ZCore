@@ -11,34 +11,34 @@ public:
 };
 
 template<typename T>
-class PooledHandle
+class PoolItemHandle
 {
 public:
-    constexpr PooledHandle() : _item(nullptr), _pool(nullptr)
+    constexpr PoolItemHandle() : _item(nullptr), _pool(nullptr)
     {
     }
 
-    constexpr PooledHandle(T* item, IPool* pool, int index)
+    constexpr PoolItemHandle(T* item, IPool* pool, int index)
         : _item(item), _pool(pool), _index(index)
     {
     }
 
-    constexpr ~PooledHandle()
+    constexpr ~PoolItemHandle()
     {
         Release();
     }
 
-    constexpr PooledHandle(const PooledHandle&) = delete;
-    constexpr PooledHandle& operator=(const PooledHandle&) = delete;
+    constexpr PoolItemHandle(const PoolItemHandle&) = delete;
+    constexpr PoolItemHandle& operator=(const PoolItemHandle&) = delete;
 
-    constexpr PooledHandle(PooledHandle&& other)
+    constexpr PoolItemHandle(PoolItemHandle&& other)
         : _item(other._item), _pool(other._pool), _index(other._index)
     {
         other._item = nullptr;
         other._pool = nullptr;
     }
 
-    constexpr PooledHandle& operator=(PooledHandle&& other)
+    constexpr PoolItemHandle& operator=(PoolItemHandle&& other)
     {
         if (this != &other)
         {
@@ -77,18 +77,18 @@ template<typename T, int Size>
 class Pool : public IPool
 {
 public:
-    using Handle = PooledHandle<T>;
+    using Handle = PoolItemHandle<T>;
 
     constexpr ~Pool() = default;
 
-    constexpr ReturnCode Acquire(PooledHandle<T>& outHandle)
+    constexpr ReturnCode Acquire(PoolItemHandle<T>& outHandle)
     {
         for (int i = 0; i < Size; ++i)
         {
             if (!_inUse[i])
             {
                 _inUse[i] = true;
-                outHandle = PooledHandle<T>(&_pool[i], this, i);
+                outHandle = PoolItemHandle<T>(&_pool[i], this, i);
                 return ReturnCode::Success;
             }
         }
@@ -102,7 +102,7 @@ public:
     }
 
 private:
-    friend class PooledHandle<T>;
+    friend class PoolItemHandle<T>;
 
     Array<T, Size> _pool;
     Array<bool, Size> _inUse;

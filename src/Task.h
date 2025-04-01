@@ -69,7 +69,7 @@ private:
 template <uint32_t MaxOperations>
 class TaskCompletionSource;
 
-using TaskStateHandle = PooledHandle<TaskState>;
+using TaskStateHandle = PoolItemHandle<TaskState>;
 
 
 class Task

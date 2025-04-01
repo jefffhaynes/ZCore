@@ -7,7 +7,7 @@ static_assert([]() {
     Pool<int, 1> pool;
 
     {
-        PooledHandle<int> handle;
+        PoolItemHandle<int> handle;
         auto rc = pool.Acquire(handle);
 
         if (rc != ReturnCode::Success)
@@ -23,7 +23,7 @@ static_assert([]() {
         }
     }
 
-    PooledHandle<int> handle;
+    PoolItemHandle<int> handle;
     auto rc = pool.Acquire(handle);
 
     if (rc != ReturnCode::Success)
