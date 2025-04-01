@@ -72,7 +72,7 @@ public:
 
         Task task;
         TaskStateHandle handle;
-        auto rc = _asyncOpManager.GetTask(task, handle);
+        auto rc = _tcs.GetTask(task, handle);
         CHECK_RETURN_CODE(rc);
 
         auto err = spi_transceive_cb(_spec.bus, &_spec.config, &txBufSet, &rxBufSet, OnTransferComplete, &handle);
@@ -87,7 +87,7 @@ public:
 
 private:
     const struct spi_dt_spec _spec;
-    AsyncOpManager<> _asyncOpManager;
+    TaskCompletionSource<> _tcs;
 
     static void OnTransferComplete(const struct device *dev, int result, void *data)
     {

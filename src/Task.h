@@ -66,8 +66,8 @@ private:
     ReturnCode _code;
 };
 
-template <uint32_t MaxOps>
-class AsyncOpManager;
+template <uint32_t MaxOperations>
+class TaskCompletionSource;
 
 using TaskStateHandle = PooledHandle<TaskState>;
 
@@ -111,8 +111,8 @@ private:
     TaskStateHandle _handle;
 };
 
-template <uint32_t MaxOps = 4>
-class AsyncOpManager 
+template <uint32_t MaxOperations = 4>
+class TaskCompletionSource 
 {
 public:
     ReturnCode GetTask(Task& task, TaskStateHandle& handle) 
@@ -128,5 +128,5 @@ public:
     }
 
 private:
-    Pool<TaskState, MaxOps> _ops;
+    Pool<TaskState, MaxOperations> _ops;
 };
