@@ -27,15 +27,22 @@ public:
         return _state;
     }
 
+    constexpr void SetTau(TimeSpan tau)
+    {
+        _tau = tau;
+    }
+
+    constexpr TimeSpan GetTau()
+    {
+        return _tau;
+    }
+
     constexpr void Reset()
     {
         _initialized = false;
     }
 
 private:
-    static constexpr float MaxExponent = 5;
-    static constexpr float MinExponent = -5;
-
     bool _initialized = false;
     TimeSpan _tau;
     TimeSpan _lastTime;
