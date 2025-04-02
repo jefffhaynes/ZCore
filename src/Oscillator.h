@@ -2,7 +2,7 @@
 
 #include "EventHandler.h"
 #include "ErrorConverter.h"
-#include "Debug.h"
+#include "Clock.h"
 #include "Work.h"
 #include "EventAddress.h"
 #include "TimeSpan.h"
@@ -62,6 +62,9 @@ private:
             return ReturnCode::Success;
         }
 
+        auto rc = Clock::EnableExternalOscillator();
+        CHECK_RETURN_CODE(rc);
+
         // TODO figure out how to get the instance number at compile time??
         IRQ_CONNECT(NRFX_IRQ_NUMBER_GET(NRF_TIMER_INST_GET(0)), IRQ_PRIO_LOWEST,
                     NRFX_TIMER_INST_HANDLER_GET(0), 0, 0);
@@ -76,7 +79,7 @@ private:
         };
 
         auto err = nrfx_timer_init(&_timer, &config, nullptr);
-        auto rc = ErrorConverter::Convert(err);
+        rc = ErrorConverter::Convert(err);
         CHECK_RETURN_CODE(rc);
 
         nrfx_timer_clear(&_timer);
