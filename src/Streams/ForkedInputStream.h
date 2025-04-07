@@ -3,10 +3,10 @@
 #include "InputStream.h"
 #include "OutputStream.h"
 
-class TapInputStream : public InputStream
+class ForkedInputStream : public InputStream
 {
 public:
-    constexpr TapInputStream(InputStream& stream, OutputStream& tap) : _stream(stream), _tap(tap)
+    constexpr ForkedInputStream(InputStream& stream, OutputStream& tap) : _stream(stream), _tap(tap)
     {
     }
 
