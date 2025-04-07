@@ -2,6 +2,7 @@
 
 #include <Device.h>
 #include <Streams/OutputStream.h>
+#include <Streams/InputStreamWithDataReceived.h>
 #include <ErrorConverter.h>
 #include <Queue.h>
 #include <EventHandler.h>
