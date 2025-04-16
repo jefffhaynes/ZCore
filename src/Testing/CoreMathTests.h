@@ -32,7 +32,15 @@ static_assert(cm_delta3 < 0.00001f, "CoreMath failed");
 // e^-5
 constexpr auto cm_delta4 = []{
     auto value = CoreMath::Exp(-5.0);
-    return value - 0.00673794699f;
+    return CoreMath::Abs(value);
 }();
 
 static_assert(cm_delta4 < 0.00001f, "CoreMath failed");
+
+
+constexpr auto cm_delta5 = []{
+    auto value = CoreMath::Exp(-1.0);
+    return CoreMath::Abs(value - 0.36787944117f);
+}();
+
+static_assert(cm_delta5 < 0.00001f, "CoreMath failed");
