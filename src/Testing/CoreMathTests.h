@@ -7,7 +7,7 @@
 
 constexpr auto cm_delta = []{
     auto value = CoreMath::Exp(1.0);
-    return value - std::numbers::e;
+    return CoreMath::Abs(value - std::numbers::e);
 }();
 
 static_assert(cm_delta < 0.00001f, "CoreMath failed");
@@ -15,7 +15,7 @@ static_assert(cm_delta < 0.00001f, "CoreMath failed");
 
 constexpr auto cm_delta2 = []{
     auto value = CoreMath::Exp(0.0);
-    return value - 1.0f;
+    return CoreMath::Abs(value - 1.0f);
 }();
 
 static_assert(cm_delta2 < 0.00001f, "CoreMath failed");
@@ -23,7 +23,7 @@ static_assert(cm_delta2 < 0.00001f, "CoreMath failed");
 
 constexpr auto cm_delta3 = []{
     auto value = CoreMath::Exp(2.0);
-    return value - std::numbers::e * std::numbers::e;
+    return CoreMath::Abs(value - std::numbers::e * std::numbers::e);
 }();
 
 static_assert(cm_delta3 < 0.00001f, "CoreMath failed");
