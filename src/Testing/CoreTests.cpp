@@ -1,6 +1,7 @@
 #include "AlignedTests.h"
 #include "ArrayTests.h"
 #include "AveragerTests.h"
+#include "FixedAveragerTests.h"
 #include "BucketTests.h"
 #include "EventHandlerTests.h"
 #include "RangeTests.h"
