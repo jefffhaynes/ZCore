@@ -39,6 +39,18 @@ public:
     constexpr const T* GetData() const { return _data; }
     constexpr uint32_t GetLength() const { return Length; }
 
+    constexpr const T& operator[](uint32_t index) const 
+    { 
+        assert(index < GetLength());
+        return _data[index]; 
+    }
+
+    constexpr T& operator[](uint32_t index)
+    { 
+        assert(index < GetLength());
+        return _data[index]; 
+    }
+    
     template<uint32_t Index>
     constexpr void Set(T value)
     {
@@ -80,6 +92,16 @@ public:
         }
 
         return ReturnCode::OutOfRange;
+    }
+
+    constexpr bool TryGet(uint32_t index, std::remove_const_t<T>& value) const
+    {
+        return Get(index, value) == ReturnCode::Success;
+    }
+
+    constexpr bool TrySet(uint32_t index, T value)
+    {
+        return Set(index, value) == ReturnCode::Success;
     }
 
     constexpr FixedSpan& operator=(const FixedSpan& rhs)

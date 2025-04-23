@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CoreMath.h"
+#include "TimeSpan.h"
 
 template<typename T = float>
 class FixedAverager
@@ -31,14 +32,14 @@ public:
         return _state;
     }
 
-    constexpr void SetSmoothing(float smoothing)
-    {
-        _scale = GetScale(smoothing);
-    }
-
     constexpr void Reset()
     {
         _initialized = false;
+    }
+
+    constexpr void SetSmoothing(float smoothing)
+    {
+        _scale = GetScale(smoothing);
     }
 
 private:
@@ -48,6 +49,11 @@ private:
 
     static constexpr float GetScale(float smoothing)
     {
-        return CoreMath::Exp(-smoothing);
+        if(smoothing <= 0.0f)
+        {
+            return 1.0f;
+        }
+
+        return 1 - CoreMath::Exp(-1.0f/smoothing);
     }
 };

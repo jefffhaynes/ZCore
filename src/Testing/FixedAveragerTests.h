@@ -6,10 +6,10 @@
 
 
 constexpr auto fa_delta = []{
-    FixedAverager<float> averager;
+    FixedAverager<> averager;
     averager.Update(0);
     auto value = averager.Update(1);
-    return CoreMath::Abs(value - 0.367879441f);
+    return CoreMath::Abs(value - 0.632120559f);
 }();
 
 static_assert(fa_delta < 0.00001f, "FixedAverager failed");

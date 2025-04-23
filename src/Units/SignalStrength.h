@@ -16,6 +16,9 @@ public:
     constexpr float ToPower() const { return std::pow(10, ToUnits() / PowerScale); }
     constexpr float ToAmplitude() const { return std::pow(10, ToUnits() / AmplitudeScale); }
 
+    static const SignalStrength NegativeInfinity;
+    static const SignalStrength PositiveInfinity;
+
     constexpr SignalStrength operator+(const SignalStrength& other) const
     {
         return SignalStrength(ToUnits() + other.ToUnits());
@@ -72,6 +75,9 @@ private:
     {
     }
 };
+
+constexpr SignalStrength SignalStrength::NegativeInfinity = SignalStrength(-std::numeric_limits<float>::infinity());
+constexpr SignalStrength SignalStrength::PositiveInfinity = SignalStrength(std::numeric_limits<float>::infinity());
 
 inline constexpr SignalStrength operator/(float a, SignalStrength const& b) 
 {
