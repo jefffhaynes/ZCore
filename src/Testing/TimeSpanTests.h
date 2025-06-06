@@ -4,6 +4,9 @@
 
 namespace TimeSpanTests
 {
+    static_assert(TimeSpan::FromNanoseconds(1).ToNanoseconds() == 1, "FromNanoseconds failed");
+    static_assert(TimeSpan::FromMicroseconds(1).ToMicroseconds() == 1, "FromMicroseconds failed");
+    static_assert(TimeSpan::FromMilliseconds(1).ToSeconds() == 0.001, "ToSeconds failed");
     static_assert(TimeSpan::FromMilliseconds(1000).ToMilliseconds() == 1000, "FromMilliseconds or ToMilliseconds failed");
 
     static_assert(TimeSpan::FromSeconds(1).ToMilliseconds() == 1000, "FromSeconds failed");
