@@ -68,7 +68,7 @@ public:
         return _milliseconds == other._milliseconds;
     }
 
-    constexpr bool operator!=(const TimeSpan& other)
+    constexpr bool operator!=(const TimeSpan& other) const
     {
         return _milliseconds != other._milliseconds;
     }

@@ -78,5 +78,5 @@ private:
     static bool _initialized;
 };
 
-inline StorageOutputStream Logging::_stream = StorageOutputStream(Logging::LogFile, FileMode::Create);;
+inline StorageOutputStream Logging::_stream = StorageOutputStream(Logging::LogFile, FileMode::Create);
 inline bool Logging::_initialized = false;
