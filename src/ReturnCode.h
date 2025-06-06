@@ -18,4 +18,9 @@ enum class ReturnCode
     Busy
 };
 
-#define CHECK_RETURN_CODE(rc) if(rc != ReturnCode::Success) return rc;
+#define CHECK_RETURN_CODE(rc)               \
+    do                                     \
+    {                                      \
+        if ((rc) != ReturnCode::Success)    \
+            return (rc);                    \
+    } while (0)
