@@ -19,3 +19,4 @@
 #include "CoreMathTests.h"
 #include "CrcOutputStreamTests.h"
 #include "PoolTests.h"
+#include "ReturnCodeTests.h"
