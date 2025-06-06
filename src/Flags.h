@@ -9,7 +9,7 @@ public:
     static constexpr bool HasFlag(T flags, T flag)
     {
         using UT = std::underlying_type_t<T>;
-        return static_cast<UT>(flags) & static_cast<UT>(flags);
+        return (static_cast<UT>(flags) & static_cast<UT>(flag)) != 0;
     }
 
     template<typename T>
