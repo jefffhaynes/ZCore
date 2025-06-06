@@ -57,7 +57,6 @@ public:
         nrfx_saadc_adv_config_t config = NRFX_SAADC_DEFAULT_ADV_CONFIG;
         config.internal_timer_cc = 0;
         config.start_on_end = false;
-        // config.oversampling = NRF_SAADC_OVERSAMPLE_32X;
 
         auto channel_mask = nrfx_saadc_channels_configured_get();
         err = nrfx_saadc_advanced_mode_set(channel_mask,
@@ -144,10 +143,6 @@ private:
                 Array<float, ChannelCount> channels;
                 for (uint32_t i = 0; i < ChannelCount; i++)
                 {
-                    // auto value = NRFX_SAADC_SAMPLE_GET(NRF_SAADC_RESOLUTION_12BIT, p_event->data.done.p_buffer, i);
-                    // const float max = nrf_saadc_value_max_get(NRF_SAADC_RESOLUTION_12BIT);
-                    // samples[i] = value / max;
-
                     Array<float, OversampleCount> samples;
                     for (uint32_t j = 0; j < OversampleCount; j++)
                     {
@@ -155,11 +150,7 @@ private:
                         samples[j] = value;
                     }
 
-                    // Debug::WriteData(samples.AsSpan());
-
-                    // TODO need to revist this but the first two samples seem to be less reliable
-                    auto samplesSpan = samples.Skip(0).Take(1);
-                    channels[i] = SpanExtensions::Mean(samplesSpan) / max;
+                    channels[i] = SpanExtensions::Mean(samples.AsSpan()) / max;
                 }
 
                 Sample.Invoke(channels.AsFixedSpan());
