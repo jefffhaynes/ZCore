@@ -28,7 +28,7 @@ public:
 
         for (int k = terms; k > 0; --k) 
         {
-            sum = 1.0 + (x / k) * sum;
+            sum = 1.0f + (x / static_cast<float>(k)) * sum;
         }
 
         return sum;

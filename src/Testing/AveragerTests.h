@@ -13,21 +13,21 @@ static_assert([]{
     Averager<float> averager;
     averager.Update(0, TimeSpan::FromMilliseconds(0));
     auto value = averager.Update(1, TimeSpan::FromMilliseconds(100));
-    return abs(value - 0.329679954) < 0.001;
+    return abs(value - 0.329679954f) < 0.001f;
 }(), "Averager failed");
 
 static_assert([]{
     Averager<float> averager;
     averager.Update(0, TimeSpan::FromMilliseconds(0));
     auto value = averager.Update(1, TimeSpan::FromMilliseconds(200));
-    return abs(value - 0.550671036) < 0.001;
+    return abs(value - 0.550671036f) < 0.001f;
 }(), "Averager failed");
 
 static_assert([]{
     Averager<float> averager(TimeSpan::FromSeconds(10));
     averager.Update(0, TimeSpan::FromMilliseconds(0));
     auto value = averager.Update(1, TimeSpan::FromMilliseconds(200));
-    return abs(value - 0.019801327) < 0.001;
+    return abs(value - 0.019801327f) < 0.001;
 }(), "Averager failed");
 
 static_assert([]{
@@ -42,7 +42,7 @@ constexpr auto delta = []{
     averager.Update(0, TimeSpan::FromMilliseconds(0));
     averager.Update(1, TimeSpan::FromMilliseconds(100));
     auto value = averager.Update(2, TimeSpan::FromMilliseconds(200));
-    return value - 0.276431829;
+    return value - 0.276431829f;
 }();
 
 static_assert(delta < 0.00001f, "Averager failed");

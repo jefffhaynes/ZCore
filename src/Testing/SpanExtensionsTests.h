@@ -123,5 +123,5 @@ static_assert([]() constexpr
     auto span = Span<int>(data);
     auto mean = SpanExtensions::Mean(span);
     auto stdDev = SpanExtensions::StandardDeviation(span, mean);
-    return std::abs(stdDev - 0.816496580927726) < 0.0001;
+    return std::abs(stdDev - 0.816496580927726f) < 0.0001f;
 }());

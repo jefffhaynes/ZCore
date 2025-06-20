@@ -11,10 +11,10 @@ public:
     constexpr Angle(const Unit& unit) : Unit(unit) {}
 
     static constexpr Angle FromRadians(float radians) { return Angle(radians); }
-    static constexpr Angle FromDegrees(float degrees) { return Angle(degrees * std::numbers::pi / 180); }
+    static constexpr Angle FromDegrees(float degrees) { return Angle(degrees * std::numbers::pi_v<float> / 180.0f); }
 
     constexpr float ToRadians() const { return ToUnits(); }
-    constexpr float ToDegrees() const { return ToUnits() * 180 / std::numbers::pi; }
+    constexpr float ToDegrees() const { return ToUnits() * 180.0f / std::numbers::pi_v<float>; }
 
     constexpr Angle operator+(const Angle& other) const
     {

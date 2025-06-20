@@ -36,7 +36,7 @@ public:
 
     constexpr Distance operator*(const TimeSpan& time) const
     {
-        return Distance::FromMeters(ToUnits() * time.ToSeconds());
+        return Distance::FromMeters(ToUnits() * static_cast<float>(time.ToSeconds()));
     }
 
     constexpr float operator/(const Velocity& other) const

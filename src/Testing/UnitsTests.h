@@ -183,7 +183,7 @@ namespace TemperatureTests
 namespace VoltageTests
 {
    // Conversion methods
-    static_assert(std::abs(Voltage::FromMillivolts(1000).ToVolts() - 1) < __DBL_EPSILON__, "Voltage conversion from millivolts to volts failed");
+    static_assert(std::abs(Voltage::FromMillivolts(1000).ToVolts() - 1) < Epsilon, "Voltage conversion from millivolts to volts failed");
     static_assert(std::abs(Voltage::FromVolts(1).ToMillivolts() - 1000) < Epsilon, "Voltage conversion from volts to millivolts failed");
 
     // Operators involving two Voltage instances

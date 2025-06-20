@@ -46,7 +46,7 @@ public:
 
     constexpr float operator*(const TimeSpan& time) const
     {
-        return ToHertz() * time.ToSeconds();
+        return ToHertz() * static_cast<float>(time.ToSeconds());
     }
 
     constexpr float operator/(const Frequency& other) const

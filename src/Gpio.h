@@ -16,12 +16,12 @@
 class Gpio : public IGpio
 {
 public:
-    Gpio(const gpio_dt_spec spec, bool scheduled) : _spec(spec),
+    Gpio(const gpio_dt_spec& spec, bool scheduled) : _spec(spec),
         _scheduled(scheduled), _container(this), _configured(false)
     {
     }
 
-    Gpio(const gpio_dt_spec spec) : Gpio(spec, false)
+    Gpio(const gpio_dt_spec& spec) : Gpio(spec, false)
     {
     }
 
@@ -95,7 +95,7 @@ public:
     EventHandler<> Interrupt;
 
 private:
-    const struct gpio_dt_spec _spec;
+    const struct gpio_dt_spec& _spec;
     bool _scheduled;
     CallbackContainer<gpio_callback> _container;
     Work _work;
