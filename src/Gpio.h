@@ -32,6 +32,11 @@ public:
             return ReturnCode::InvalidState;
         }
 
+        if (!gpio_is_ready_dt(&_spec))
+        {
+            return ReturnCode::InvalidArgument;
+        }
+
         if(_scheduled)
         {
             auto rc = _work.Initialize();

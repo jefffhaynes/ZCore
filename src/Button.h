@@ -9,7 +9,7 @@
 class Button
 {
 public:
-    Button(const gpio_dt_spec spec) : _gpio(spec, true)
+    Button(const gpio_dt_spec& spec) : _gpio(spec, true)
     {
         _gpio.Interrupt.Subscribe<Button, &Button::OnToggle>(this);
         _debounceTimer.Expired.Subscribe<Button, &Button::OnDebounceTimeout>(this);

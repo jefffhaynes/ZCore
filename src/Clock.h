@@ -40,7 +40,7 @@ public:
     
         do 
         {
-            int res;
+            int res = 0;
             err = sys_notify_fetch_result(&clk_cli.notify, &res);
             rc = ErrorConverter::Convert(err);
 
