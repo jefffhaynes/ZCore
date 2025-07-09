@@ -18,7 +18,7 @@ public:
 
     static void Sleep(TimeSpan duration)
     {
-        auto microseconds = duration.ToMicroseconds();
+        auto microseconds = (int) duration.ToMicroseconds();
         k_usleep(microseconds);
     }
 
