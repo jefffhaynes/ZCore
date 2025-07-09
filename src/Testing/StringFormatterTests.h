@@ -31,7 +31,14 @@ namespace StringFormatterTests
         return formatted == String("Hello, 42.00!");
     }(), "Format method failed");
 
-    // hex
+    // enum
+    enum class Color { Red, Green, Blue };
+    static_assert([]{
+        Array<char, 16> buffer;
+        auto formatted = StringFormatter::Format(buffer, "Color: %d", Color::Green);
+        return formatted == String("Color: 1");
+    }(), "Format method failed");
+
     static_assert([]{
         Array<char, 16> buffer;
         auto formatted = StringFormatter::Format(buffer, "Hello, %x!", 42);

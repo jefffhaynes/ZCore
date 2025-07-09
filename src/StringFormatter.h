@@ -6,7 +6,7 @@
 #include "CoreString.h"
 
 #include <cstddef>
-
+#include <type_traits>
 
 // #pragma GCC push_options
 // #pragma GCC optimize ("O0")
@@ -412,10 +412,24 @@ private:
         return format_helper(buffer, size, format);
     }
 
-    // Catch-all overload for unsupported types
+    /* Accept enum arguments by forwarding them as ints */
+    template<typename Enum, typename... Args>
+    static constexpr typename std::enable_if<std::is_enum<Enum>::value, int>::type
+    format_helper(char*& buffer, size_t& size, const char*& format,
+                Enum value, Args... args)
+    {
+        return format_helper(buffer, size, format,
+                            static_cast<typename std::underlying_type<Enum>::type>(value),
+                            args...);
+    }
+
+    /* Catch-all for truly unsupported types (now *excluding* enums) */
     template<typename T, typename... Args>
-    static constexpr int format_helper(char*& buffer, size_t& size, const char*& format, T, Args...) {
-        return -1; // Unsupported type
+    static constexpr typename std::enable_if<!std::is_enum<T>::value, int>::type
+    format_helper(char*& /*buffer*/, size_t& /*size*/, const char*& /*format*/,
+                T /*unused*/, Args... /*rest*/)
+    {
+        return -1;   // Unsupported type
     }
 };
 
