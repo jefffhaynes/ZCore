@@ -100,7 +100,7 @@ public:
     EventHandler<> Interrupt;
 
 private:
-    const struct gpio_dt_spec& _spec;
+    const struct gpio_dt_spec _spec;
     bool _scheduled;
     CallbackContainer<gpio_callback> _container;
     Work _work;

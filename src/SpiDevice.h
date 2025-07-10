@@ -8,7 +8,7 @@
 class SpiDevice 
 {
 public:
-    SpiDevice(const spi_dt_spec spec) : _spec(spec)
+    SpiDevice(const spi_dt_spec& spec) : _spec(spec)
     {
     }
 

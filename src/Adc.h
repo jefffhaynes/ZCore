@@ -13,7 +13,7 @@
 class Adc : public IAdc
 {
 public:
-    Adc(const adc_dt_spec adc) : _adc(adc)
+    Adc(const adc_dt_spec& adc) : _adc(adc)
     {
     };
 
