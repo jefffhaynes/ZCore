@@ -43,7 +43,10 @@ public:
     }
 
 
-    constexpr Derived Magnitude() const requires(Signed) { return Derived(std::abs(_value)); }
+    constexpr Derived Magnitude() const requires(Signed)
+    {
+        return Derived(_value < static_cast<ValueType>(0) ? -_value : _value);
+    }
 
 
 protected:
