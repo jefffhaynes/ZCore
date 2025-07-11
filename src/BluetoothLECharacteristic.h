@@ -198,6 +198,13 @@ private:
         return BluetoothLECharacteristicBase::Notify(data, connection);
     }
 
+    ReturnCode Notify(Illuminance value, void* connection)
+    {
+        auto lux = (TIlluminance) value.ToLux();
+        auto data = MemoryMarshal::AsConstBytes(lux);
+        return BluetoothLECharacteristicBase::Notify(data, connection);
+    }
+
     static constexpr ReturnCode Convert(Span<const uint8_t> data, float& value)
     {
         auto valueData = MemoryMarshal::AsBytes(value);
@@ -337,6 +344,18 @@ private:
     {
         auto db = (TSignalStrength) value.ToDecibels();
         auto valueData = MemoryMarshal::AsConstBytes(db);
+        auto rc = valueData.CopyTo(data);
+        CHECK_RETURN_CODE(rc);
+
+        read = valueData.GetLength();
+
+        return ReturnCode::Success;
+    }
+
+    static constexpr ReturnCode ConvertBack(Illuminance value, Span<uint8_t> data, uint32_t& read)
+    {
+        auto lux = (TIlluminance) value.ToLux();
+        auto valueData = MemoryMarshal::AsConstBytes(lux);
         auto rc = valueData.CopyTo(data);
         CHECK_RETURN_CODE(rc);
 
