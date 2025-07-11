@@ -21,12 +21,6 @@ public:
     constexpr ValueType ToRadians() const { return ToUnits(); }
     constexpr ValueType ToDegrees() const { return ToUnits() * 180.0f / std::numbers::pi_v<ValueType>; }
 
-
-    constexpr Angle operator-() const
-    {
-        return Angle(-ToUnits());
-    }
-
     constexpr Angle operator%(const Angle& other) const
     {
         return Angle(std::fmod(ToUnits(), other.ToUnits()));

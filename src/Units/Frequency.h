@@ -3,14 +3,14 @@
 #include "Unit.h"
 #include "TimeSpan.h"
 
-struct Frequency : public Unit<Frequency>
+struct Frequency : public UnsignedUnit<Frequency>
 {
 public:
-    using Unit<Frequency>::Unit;
-    using Unit<Frequency>::operator*;
-    using Unit<Frequency>::operator/;
+    using UnsignedUnit<Frequency>::Unit;
+    using UnsignedUnit<Frequency>::operator*;
+    using UnsignedUnit<Frequency>::operator/;
 
-    friend struct Unit<Frequency>;
+    friend struct Unit<Frequency, false>;
     friend constexpr Frequency operator*(ValueType, const Frequency&);
     friend constexpr Frequency operator/(ValueType, const Frequency&);
 
@@ -37,7 +37,7 @@ public:
     static const Frequency Zero;
 
 private:
-    explicit constexpr Frequency(ValueType value) : Unit<Frequency>(value)
+    explicit constexpr Frequency(ValueType value) : UnsignedUnit<Frequency>(value)
     {
     }
 };

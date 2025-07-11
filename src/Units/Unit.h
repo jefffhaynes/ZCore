@@ -2,7 +2,7 @@
 
 #include <stdint.h>
 
-template <typename Derived>
+template <typename Derived, bool Signed = true>
 class Unit
 {
 public:
@@ -13,7 +13,12 @@ public:
     /* same‑unit arithmetic */
     constexpr Derived operator+(const Derived& rhs) const { return Derived{ _value + rhs._value }; }
     constexpr Derived operator-(const Derived& rhs) const { return Derived{ _value - rhs._value }; }
-    constexpr ValueType operator/(const Derived& rhs) const { return _value / rhs._value; } // ratio
+    constexpr ValueType operator/(const Derived& rhs) const { return _value / rhs._value; }
+
+    constexpr Derived operator-() const requires(Signed)
+    {
+        return Derived(-_value);
+    }
 
     /* scaling by scalar */
     constexpr Derived operator*(ValueType k) const { return Derived{ _value * k }; }
@@ -74,3 +79,9 @@ private:
 
     constexpr Derived& self() { return static_cast<Derived&>(*this); }
 };
+
+template <typename Derived>
+using SignedUnit = Unit<Derived, true>;
+
+template <typename Derived>
+using UnsignedUnit = Unit<Derived, false>;

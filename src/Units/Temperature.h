@@ -3,14 +3,14 @@
 #include "Unit.h"
 #include <algorithm>
 
-class Temperature : public Unit<Temperature>
+class Temperature : public UnsignedUnit<Temperature>
 {
 public:
-    using Unit<Temperature>::Unit;
-    using Unit<Temperature>::operator*;
-    using Unit<Temperature>::operator/;
+    using UnsignedUnit<Temperature>::Unit;
+    using UnsignedUnit<Temperature>::operator*;
+    using UnsignedUnit<Temperature>::operator/;
 
-    friend struct Unit<Temperature>;
+    friend struct Unit<Temperature, false>;
     friend constexpr Temperature operator*(ValueType, const Temperature&);
     friend constexpr Temperature operator/(ValueType, const Temperature&);
 
@@ -25,7 +25,7 @@ public:
 private:
     static constexpr ValueType CelsiusOffset = 273.15;
 
-    explicit constexpr Temperature(ValueType value) : Unit<Temperature>(value)
+    explicit constexpr Temperature(ValueType value) : UnsignedUnit<Temperature>(value)
     {
     }
 };
