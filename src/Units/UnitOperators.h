@@ -12,11 +12,11 @@
 
 
 /* Time */
-// [[nodiscard]] constexpr TimeSpan operator*(Frequency f, TimeSpan period)
-// {
-//     auto seconds = static_cast<Unit<Frequency>::ValueType>(period.ToSeconds());
-//     return TimeSpan::FromSeconds(f.ToHertz() * seconds); // T = f · t
-// }
+[[nodiscard]] constexpr TimeSpan operator*(Frequency f, TimeSpan period)
+{
+    auto seconds = static_cast<Unit<Frequency, false>::ValueType>(period.ToSeconds());
+    return TimeSpan::FromSeconds(f.ToHertz() * seconds); // T = f · t
+}
 
 
 /* Electrical */
