@@ -3,118 +3,29 @@
 #include "Unit.h"
 #include <cmath>
 
-struct Illuminance : public Unit
+struct Illuminance : public Unit<Illuminance>
 {
 public:
-    using Unit::Unit;
-    
-    static constexpr Illuminance FromLux(float lux) { return Illuminance(lux); }
+    using Unit<Illuminance>::Unit;
+    using Unit<Illuminance>::operator*;
+    using Unit<Illuminance>::operator/;
+
+    friend struct Unit<Illuminance>;
+    friend constexpr Illuminance operator*(ValueType k, const Illuminance& u);
+    friend constexpr Illuminance operator/(ValueType k, const Illuminance& u);
+
+    static constexpr Illuminance FromLux(ValueType lux) { return Illuminance(lux); }
 
     constexpr float ToLux() const { return ToUnits(); }
 
-    constexpr Illuminance operator+(const Illuminance& other) const
-    {
-        return Illuminance(ToUnits() + other.ToUnits());
-    }
-
-    constexpr Illuminance operator-(const Illuminance& other) const 
-    {
-        return Illuminance(ToUnits() - other.ToUnits());
-    }
-
-    constexpr Illuminance operator*(float value) const
-    {
-        return Illuminance(ToUnits() * value);
-    }
-
-    constexpr float operator/(const Illuminance& other) const
-    {
-        return ToUnits() / other.ToUnits();
-    }
-
-    constexpr Illuminance operator/(float value) const
-    {
-        return Illuminance(ToUnits() / value);
-    }
-
-    constexpr bool operator==(const Illuminance& other) const
-    {
-        return ToUnits() == other.ToUnits();
-    }
-
-    constexpr bool operator!=(const Illuminance& other) const
-    {
-        return ToUnits() != other.ToUnits();
-    }
-
-    constexpr bool operator<(const Illuminance& other) const
-    {
-        return ToUnits() < other.ToUnits();
-    }
-
-    constexpr bool operator>(const Illuminance& other) const
-    {
-        return ToUnits() > other.ToUnits();
-    }
-
-    constexpr bool operator<=(const Illuminance& other) const
-    {
-        return ToUnits() <= other.ToUnits();
-    }
-
-    constexpr bool operator>=(const Illuminance& other) const
-    {
-        return ToUnits() >= other.ToUnits();
-    }
-    
-    constexpr Illuminance& operator+=(const Illuminance& other)
-    {
-        *this = *this + other;
-        return *this;
-    }
-
-    constexpr Illuminance& operator-=(const Illuminance& other)
-    {
-        *this = *this - other;
-        return *this;
-    }
-
-    constexpr Illuminance& operator*=(float value)
-    {
-        *this = *this * value;
-        return *this;
-    }
-
-    constexpr Illuminance& operator/=(float value)
-    {
-        *this = *this / value;
-        return *this;
-    }
-
-    constexpr Illuminance Magnitude() const
-    {
-        return Illuminance(std::abs(ToUnits()));
-    }
-
-    friend constexpr Illuminance operator/(float a, Illuminance const& b);
-    friend constexpr Illuminance operator*(float a, Illuminance const& b);
+    constexpr Illuminance Magnitude() const { return Illuminance(std::abs(ToUnits())); }
     
     static const Illuminance Zero;
 
 private:
-    constexpr Illuminance(float units) : Unit(units)
+    explicit constexpr Illuminance(ValueType value) : Unit<Illuminance>(value)
     {
     }
 };
-
-inline constexpr Illuminance operator/(float a, Illuminance const& b) 
-{
-    return Illuminance::FromUnits(a / b.ToUnits());
-}
-
-inline constexpr Illuminance operator*(float a, Illuminance const& b) 
-{
-    return Illuminance::FromUnits(a * b.ToUnits());
-}
 
 constexpr Illuminance Illuminance::Zero = Illuminance::FromLux(0);

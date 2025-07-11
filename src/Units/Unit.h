@@ -2,39 +2,75 @@
 
 #include <stdint.h>
 
-struct Unit
+template <typename Derived>
+class Unit
 {
 public:
-    constexpr Unit() = default;
-    constexpr Unit& operator=(const Unit& unit) = default;
+    using ValueType = float;
 
-protected:
-    constexpr Unit(float units) : _units(units)
+    constexpr Unit() = default;
+
+    /* same‑unit arithmetic */
+    constexpr Derived operator+(const Derived& rhs) const { return Derived{ _value + rhs._value }; }
+    constexpr Derived operator-(const Derived& rhs) const { return Derived{ _value - rhs._value }; }
+    constexpr ValueType operator/(const Derived& rhs) const { return _value / rhs._value; } // ratio
+
+    /* scaling by scalar */
+    constexpr Derived operator*(ValueType k) const { return Derived{ _value * k }; }
+    constexpr Derived operator/(ValueType k) const { return Derived{ _value / k }; }
+
+    /* compound assignment */
+    constexpr Derived& operator+=(const Derived& rhs) { _value += rhs._value; return self(); }
+    constexpr Derived& operator-=(const Derived& rhs) { _value -= rhs._value; return self(); }
+    constexpr Derived& operator*=(ValueType k) { _value *= k; return self(); }
+    constexpr Derived& operator/=(ValueType k) { _value /= k; return self(); }
+
+    /* comparisons */
+    constexpr bool operator==(const Derived& rhs) const { return _value == rhs._value; }
+    constexpr auto operator<=>(const Derived& rhs) const { return _value <=> rhs._value; }
+
+    /* scalar on the left */
+    friend constexpr Derived operator*(ValueType k, const Derived& u)
     {
+        return Derived{ k * u._value };
     }
 
-    static constexpr float FromMicrounits(float microunits) { return microunits * u; }
-    static constexpr float FromMilliunits(float milliunits) { return milliunits * m; }
-    static constexpr float FromCentiunits(float centiunits) { return centiunits * c; }
-    static constexpr float FromUnits(float units) { return units; }
-    static constexpr float FromKilounits(float kilounits) { return kilounits * k; }
-    static constexpr float FromMegaunits(float megaunits) { return megaunits * M; }
-    
-    constexpr float ToMicrounits() const { return _units * M; }
-    constexpr float ToMilliunits() const { return _units * k; }
-    constexpr float ToCentiunits() const { return _units * c; }
-    constexpr float ToUnits() const { return _units; }
-    constexpr float ToKilounits() const { return _units * m; }
-    constexpr float ToMegaunits() const { return _units * u; }
+    friend constexpr Derived operator/(ValueType k, const Derived& u)
+    {
+        return Derived{ k / u._value };
+    }
+
+
+protected:
+    constexpr explicit Unit(ValueType value) : _value{ value } {}
+    ~Unit() = default;
+
+    /* factory */
+    static constexpr Derived FromMicrounits(ValueType microunits) { return Derived(microunits * u); }
+    static constexpr Derived FromMilliunits(ValueType milliunits) { return Derived(milliunits * m); }
+    static constexpr Derived FromCentiunits(ValueType centiunits) { return Derived(centiunits * c); }
+    static constexpr Derived FromUnits(ValueType units) { return Derived(units); }
+    static constexpr Derived FromKilounits(ValueType kilounits) { return Derived(kilounits * k); }
+    static constexpr Derived FromMegaunits(ValueType megaunits) { return Derived(megaunits * M); }
+
+    /* conversion */
+    constexpr ValueType ToMicrounits() const { return _value * M; }
+    constexpr ValueType ToMilliunits() const { return _value * k; }
+    constexpr ValueType ToCentiunits() const { return _value * c; }
+    constexpr ValueType ToUnits() const { return _value; }
+    constexpr ValueType ToKilounits() const { return _value * m; }
+    constexpr ValueType ToMegaunits() const { return _value * u; }
 
 private:
-    static constexpr float p = 1e-12;
-    static constexpr float n = 1e-9;
-    static constexpr float u = 1e-6; 
-    static constexpr float m = 1e-3;
-    static constexpr float c = 1e-2;
-    static constexpr float k = 1e3;
-    static constexpr float M = 1e6;
+    static constexpr ValueType p = 1e-12;
+    static constexpr ValueType n = 1e-9;
+    static constexpr ValueType u = 1e-6; 
+    static constexpr ValueType m = 1e-3;
+    static constexpr ValueType c = 1e-2;
+    static constexpr ValueType k = 1e3;
+    static constexpr ValueType M = 1e6;
 
-    float _units = 0;
+    ValueType _value{ 0.0f };
+
+    constexpr Derived& self() { return static_cast<Derived&>(*this); }
 };

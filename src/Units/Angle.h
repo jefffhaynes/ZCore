@@ -4,46 +4,27 @@
 #include <cmath>
 #include <numbers>
 
-struct Angle : public Unit
+struct Angle : public Unit<Angle>
 {
 public:
-    using Unit::Unit;
-    constexpr Angle(const Unit& unit) : Unit(unit) {}
+    using Unit<Angle>::Unit;
+    using Unit<Angle>::operator*;
+    using Unit<Angle>::operator/;
+    
+    friend struct Unit<Angle>;
+    friend constexpr Angle operator*(ValueType, const Angle&);
+    friend constexpr Angle operator/(ValueType, const Angle&);
 
-    static constexpr Angle FromRadians(float radians) { return Angle(radians); }
-    static constexpr Angle FromDegrees(float degrees) { return Angle(degrees * std::numbers::pi_v<float> / 180.0f); }
+    static constexpr Angle FromRadians(ValueType radians) { return Angle(radians); }
+    static constexpr Angle FromDegrees(ValueType degrees) { return Angle(degrees * std::numbers::pi_v<ValueType> / 180.0f); }
 
-    constexpr float ToRadians() const { return ToUnits(); }
-    constexpr float ToDegrees() const { return ToUnits() * 180.0f / std::numbers::pi_v<float>; }
+    constexpr ValueType ToRadians() const { return ToUnits(); }
+    constexpr ValueType ToDegrees() const { return ToUnits() * 180.0f / std::numbers::pi_v<ValueType>; }
 
-    constexpr Angle operator+(const Angle& other) const
-    {
-        return Angle(ToUnits() + other.ToUnits());
-    }
-
-    constexpr Angle operator-(const Angle& other) const 
-    {
-        return Angle(ToUnits() - other.ToUnits());
-    }
 
     constexpr Angle operator-() const
     {
         return Angle(-ToUnits());
-    }
-
-    constexpr Angle operator*(float value) const
-    {
-        return Angle(ToUnits() * value);
-    }
-
-    constexpr float operator/(const Angle& other) const
-    {
-        return ToUnits() / other.ToUnits();
-    }
-
-    constexpr Angle operator/(float value) const
-    {
-        return Angle(ToUnits() / value);
     }
 
     constexpr Angle operator%(const Angle& other) const
@@ -51,77 +32,21 @@ public:
         return Angle(std::fmod(ToUnits(), other.ToUnits()));
     }
 
-    constexpr bool operator==(const Angle& other) const
-    {
-        return ToUnits() == other.ToUnits();
-    }
-
-    constexpr bool operator!=(const Angle& other) const
-    {
-        return ToUnits() != other.ToUnits();
-    }
-
-    constexpr bool operator<(const Angle& other) const
-    {
-        return ToUnits() < other.ToUnits();
-    }
-
-    constexpr bool operator>(const Angle& other) const
-    {
-        return ToUnits() > other.ToUnits();
-    }
-
-    constexpr bool operator<=(const Angle& other) const
-    {
-        return ToUnits() <= other.ToUnits();
-    }
-
-    constexpr bool operator>=(const Angle& other) const
-    {
-        return ToUnits() >= other.ToUnits();
-    }
-
-    constexpr Angle& operator+=(const Angle& other)
-    {
-        *this = *this + other;
-        return *this;
-    }
-
-    constexpr Angle& operator-=(const Angle& other)
-    {
-        *this = *this - other;
-        return *this;
-    }
-
     constexpr Angle Magnitude() const { return Angle(std::abs(ToUnits())); }
 
-    friend constexpr Angle operator/(float a, Angle const& b);
-    friend constexpr Angle operator*(float a, Angle const& b);
-
-    constexpr float Sin() const { return std::sin(ToRadians()); }
-    constexpr float Cos() const { return std::cos(ToRadians()); }
-    constexpr float Tan() const { return std::tan(ToRadians()); }
+    constexpr ValueType Sin() const { return std::sin(ToRadians()); }
+    constexpr ValueType Cos() const { return std::cos(ToRadians()); }
+    constexpr ValueType Tan() const { return std::tan(ToRadians()); }
 
     static const Angle Zero;
     static const Angle Pi;
     static const Angle TwoPi;
 
 private:
-    constexpr Angle(float units) : Unit(units)
+    explicit constexpr Angle(ValueType value) : Unit<Angle>(value)
     {
     }
 };
-
-inline constexpr Angle operator/(float a, Angle const& b) 
-{
-    return Angle::FromUnits(a / b.ToUnits());
-}
-
-inline constexpr Angle operator*(float a, Angle const& b) 
-{
-    return Angle::FromUnits(a * b.ToUnits());
-}
-
 
 constexpr Angle Angle::Zero = Angle::FromRadians(0);
 constexpr Angle Angle::Pi = Angle::FromRadians(std::numbers::pi);

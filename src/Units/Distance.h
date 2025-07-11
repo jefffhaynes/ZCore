@@ -3,123 +3,35 @@
 #include "Unit.h"
 #include <cmath>
 
-struct Distance : public Unit
+struct Distance : public Unit<Distance>
 {
 public:
-    using Unit::Unit;
-    constexpr Distance(const Unit& unit) : Unit(unit) {}
+    using Unit<Distance>::Unit;
+    using Unit<Distance>::operator*;
+    using Unit<Distance>::operator/;
 
-    static constexpr Distance FromMillimeters(float millimeters) { return Distance(FromMilliunits(millimeters)); }
-    static constexpr Distance FromCentimeters(float centimeters) { return Distance(FromCentiunits(centimeters)); }
-    static constexpr Distance FromMeters(float meters) { return Distance(meters); }
-    static constexpr Distance FromKilometers(float kilometers) { return Distance(FromKilounits(kilometers)); }
+    friend struct Unit<Distance>;
+    friend constexpr Distance operator*(ValueType, const Distance&);
+    friend constexpr Distance operator/(ValueType, const Distance&);
 
-    constexpr float ToMillimeters() const { return ToMilliunits(); }
-    constexpr float ToCentimeters() const { return ToCentiunits(); }
-    constexpr float ToMeters() const { return ToUnits(); }
-    constexpr float ToKilometers() const { return ToKilounits(); }
+    static constexpr Distance FromMillimeters(ValueType millimeters) { return FromMilliunits(millimeters); }
+    static constexpr Distance FromCentimeters(ValueType centimeters) { return FromCentiunits(centimeters); }
+    static constexpr Distance FromMeters(ValueType meters) { return Distance(meters); }
+    static constexpr Distance FromKilometers(ValueType kilometers) { return FromKilounits(kilometers); }
 
-    constexpr Distance operator+(const Distance& other) const
-    {
-        return Distance(ToUnits() + other.ToUnits());
-    }
-
-    constexpr Distance operator-(const Distance& other) const 
-    {
-        return Distance(ToUnits() - other.ToUnits());
-    }
-
-    constexpr Distance operator*(float value) const
-    {
-        return Distance(ToUnits() * value);
-    }
-
-    constexpr float operator/(const Distance& other) const
-    {
-        return ToUnits() / other.ToUnits();
-    }
-
-    constexpr Distance operator/(float value) const
-    {
-        return Distance(ToUnits() / value);
-    }
-
-    constexpr bool operator==(const Distance& other) const
-    {
-        return ToUnits() == other.ToUnits();
-    }
-
-    constexpr bool operator!=(const Distance& other) const
-    {
-        return ToUnits() != other.ToUnits();
-    }
-
-    constexpr bool operator<(const Distance& other) const
-    {
-        return ToUnits() < other.ToUnits();
-    }
-
-    constexpr bool operator>(const Distance& other) const
-    {
-        return ToUnits() > other.ToUnits();
-    }
-
-    constexpr bool operator<=(const Distance& other) const
-    {
-        return ToUnits() <= other.ToUnits();
-    }
-
-    constexpr bool operator>=(const Distance& other) const
-    {
-        return ToUnits() >= other.ToUnits();
-    }
-
-    constexpr Distance& operator+=(const Distance& other)
-    {
-        *this = *this + other;
-        return *this;
-    }
-
-    constexpr Distance& operator-=(const Distance& other)
-    {
-        *this = *this - other;
-        return *this;
-    }
-
-    constexpr Distance& operator*=(float value)
-    {
-        *this = *this * value;
-        return *this;
-    }
-
-    constexpr Distance& operator/=(float value)
-    {
-        *this = *this / value;
-        return *this;
-    }
+    constexpr ValueType ToMillimeters() const { return ToMilliunits(); }
+    constexpr ValueType ToCentimeters() const { return ToCentiunits(); }
+    constexpr ValueType ToMeters() const { return ToUnits(); }
+    constexpr ValueType ToKilometers() const { return ToKilounits(); }
 
     constexpr Distance Magnitude() const { return Distance(std::abs(ToUnits())); }
-
-    friend constexpr Distance operator/(float a, Distance const& b);
-    friend constexpr Distance operator*(float a, Distance const& b);
 
     static const Distance Zero;
 
 private:
-    constexpr Distance(float units) : Unit(units)
+    explicit constexpr Distance(ValueType value) : Unit<Distance>(value)
     {
     }
 };
-
-inline constexpr Distance operator/(float a, Distance const& b) 
-{
-    return Distance::FromUnits(a / b.ToUnits());
-}
-
-inline constexpr Distance operator*(float a, Distance const& b) 
-{
-    return Distance::FromUnits(a * b.ToUnits());
-}
-
 
 constexpr Distance Distance::Zero = Distance::FromMeters(0);

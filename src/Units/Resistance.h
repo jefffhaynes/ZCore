@@ -2,80 +2,27 @@
 
 #include "Unit.h"
 
-struct Resistance : public Unit
+struct Resistance : public Unit<Resistance>
 {
 public:
-    using Unit::Unit;
+    using Unit<Resistance>::Unit;
+    using Unit<Resistance>::operator*;
+    using Unit<Resistance>::operator/;
 
-    static constexpr Resistance FromOhms(float ohms) { return Resistance(ohms); }
-    static constexpr Resistance FromKiloohms(float kiloohms) { return Resistance(FromKilounits(kiloohms)); }
-    static constexpr Resistance FromMegaohms(float megaohms) { return Resistance(FromMegaunits(megaohms)); }
+    friend struct Unit<Resistance>;
+    friend constexpr Resistance operator*(ValueType k, const Resistance& u);
+    friend constexpr Resistance operator/(ValueType k, const Resistance& u);
 
-    constexpr float ToOhms() const { return ToUnits(); }
-    constexpr float ToKiloohms() const { return ToKilounits(); }
-    constexpr float ToMegaohms() const { return ToMegaunits(); }
+    static constexpr Resistance FromOhms(ValueType ohms) { return Resistance(ohms); }
+    static constexpr Resistance FromKiloohms(ValueType kiloohms) { return FromKilounits(kiloohms); }
+    static constexpr Resistance FromMegaohms(ValueType megaohms) { return FromMegaunits(megaohms); }
 
-
-    constexpr Resistance operator+(const Resistance& other) const
-    {
-        return Resistance(ToUnits() + other.ToUnits());
-    }
-
-    constexpr Resistance operator-(const Resistance& other) const 
-    {
-        return Resistance(ToUnits() - other.ToUnits());
-    }
-
-    constexpr Resistance operator*(float value) const
-    {
-        return Resistance(ToUnits() * value);
-    }
-
-    constexpr float operator/(const Resistance& other) const
-    {
-        return ToUnits() / other.ToUnits();
-    }
-
-    constexpr Resistance operator/(float value) const
-    {
-        return Resistance(ToUnits() / value);
-    }
-
-    constexpr bool operator==(const Resistance& other) const
-    {
-        return ToUnits() == other.ToUnits();
-    }
-
-    constexpr bool operator!=(const Resistance& other) const
-    {
-        return ToUnits() != other.ToUnits();
-    }
-
-    constexpr bool operator<(const Resistance& other) const
-    {
-        return ToUnits() < other.ToUnits();
-    }
-
-    constexpr bool operator>(const Resistance& other) const
-    {
-        return ToUnits() > other.ToUnits();
-    }
-
-    friend constexpr Resistance operator/(float a, Resistance const& b);
-    friend constexpr Resistance operator*(float a, Resistance const& b);
+    constexpr ValueType ToOhms() const { return ToUnits(); }
+    constexpr ValueType ToKiloohms() const { return ToKilounits(); }
+    constexpr ValueType ToMegaohms() const { return ToMegaunits(); }
 
 private:
-    constexpr Resistance(float units) : Unit(units)
+    explicit constexpr Resistance(ValueType value) : Unit<Resistance>(value)
     {
     }
 };
-
-inline constexpr Resistance operator/(float a, Resistance const& b) 
-{
-    return Resistance::FromUnits(a / b.ToUnits());
-}
-
-inline constexpr Resistance operator*(float a, Resistance const& b) 
-{
-    return Resistance::FromUnits(a * b.ToUnits());
-}

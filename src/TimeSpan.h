@@ -94,7 +94,7 @@ private:
 
     double _milliseconds;
     
-    constexpr TimeSpan(double milliseconds) : _milliseconds(milliseconds)
+    explicit constexpr TimeSpan(double milliseconds) : _milliseconds(milliseconds)
     {
     }
 };
