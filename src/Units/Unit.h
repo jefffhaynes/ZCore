@@ -1,6 +1,5 @@
 #pragma once
 
-#include <stdint.h>
 #include <cmath>
 
 template <typename Derived, bool Signed = true>
@@ -78,7 +77,7 @@ private:
     static constexpr ValueType k = 1e3;
     static constexpr ValueType M = 1e6;
 
-    ValueType _value{ 0.0f };
+    ValueType _value{ static_cast<ValueType>(0) };
 
     constexpr Derived& self() { return static_cast<Derived&>(*this); }
 };
