@@ -35,11 +35,6 @@ public:
     }
 
     static const Frequency Zero;
-
-private:
-    explicit constexpr Frequency(ValueType value) : UnsignedUnit<Frequency>(value)
-    {
-    }
 };
 
 constexpr Frequency Frequency::Zero = Frequency::FromUnits(0);

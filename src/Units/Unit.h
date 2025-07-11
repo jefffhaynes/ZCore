@@ -14,11 +14,7 @@ public:
     constexpr Derived operator+(const Derived& rhs) const { return Derived{ _value + rhs._value }; }
     constexpr Derived operator-(const Derived& rhs) const { return Derived{ _value - rhs._value }; }
     constexpr ValueType operator/(const Derived& rhs) const { return _value / rhs._value; }
-
-    constexpr Derived operator-() const requires(Signed)
-    {
-        return Derived(-_value);
-    }
+    constexpr Derived operator-() const requires(Signed) { return Derived(-_value); }
 
     /* scaling by scalar */
     constexpr Derived operator*(ValueType k) const { return Derived{ _value * k }; }
@@ -44,6 +40,9 @@ public:
     {
         return Derived{ k / u._value };
     }
+
+
+    constexpr Derived Magnitude() const requires(Signed) { return Derived(std::abs(_value)); }
 
 
 protected:

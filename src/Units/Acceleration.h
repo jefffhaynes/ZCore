@@ -26,16 +26,8 @@ public:
     constexpr ValueType ToMetersPerSecondSquared() const { return ToUnits(); }
     constexpr ValueType ToGees() const { return ToMetersPerSecondSquared() / 9.81f; }
 
-
-    constexpr Acceleration Magnitude() const { return Acceleration(std::abs(ToUnits())); }
-
     static const Acceleration Zero;
     static const Acceleration EarthGravity;
-
-private:
-    explicit constexpr Acceleration(ValueType value) : Unit<Acceleration>(value)
-    {
-    }
 };
 
 

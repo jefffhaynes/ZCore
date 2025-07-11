@@ -28,10 +28,6 @@ public:
 private:
     static constexpr ValueType PowerScale = 10;
     static constexpr ValueType AmplitudeScale = 20;
-
-    explicit constexpr SignalStrength(ValueType value) : Unit<SignalStrength>(value)
-    {
-    }
 };
 
 constexpr SignalStrength SignalStrength::NegativeInfinity = SignalStrength(-std::numeric_limits<ValueType>::infinity());

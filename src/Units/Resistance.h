@@ -20,9 +20,4 @@ public:
     constexpr ValueType ToOhms() const { return ToUnits(); }
     constexpr ValueType ToKiloohms() const { return ToKilounits(); }
     constexpr ValueType ToMegaohms() const { return ToMegaunits(); }
-
-private:
-    explicit constexpr Resistance(ValueType value) : Unit<Resistance>(value)
-    {
-    }
 };

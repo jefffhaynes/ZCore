@@ -18,9 +18,4 @@ public:
 
     constexpr ValueType ToWatts() const { return ToUnits(); }
     constexpr ValueType ToMilliwatts() const { return ToMilliunits(); }
-
-private:
-    explicit constexpr Power(ValueType value) : Unit<Power>(value)
-    {
-    }
 };

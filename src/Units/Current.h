@@ -20,10 +20,5 @@ public:
     constexpr ValueType ToAmperes() const { return ToUnits(); }
     constexpr ValueType ToMilliamperes() const { return ToMilliunits(); }
     constexpr ValueType ToMicroamperes() const { return ToMicrounits(); }
-
-private:
-    explicit constexpr Current(ValueType value) : Unit<Current>(value)
-    {
-    }
 };
 

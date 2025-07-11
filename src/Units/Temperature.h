@@ -24,10 +24,6 @@ public:
 
 private:
     static constexpr ValueType CelsiusOffset = 273.15;
-
-    explicit constexpr Temperature(ValueType value) : UnsignedUnit<Temperature>(value)
-    {
-    }
 };
 
 inline constexpr Temperature Temperature::AbsoluteZero = Temperature::FromKelvin(0);

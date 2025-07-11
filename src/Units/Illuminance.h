@@ -18,14 +18,7 @@ public:
 
     constexpr float ToLux() const { return ToUnits(); }
 
-    constexpr Illuminance Magnitude() const { return Illuminance(std::abs(ToUnits())); }
-    
     static const Illuminance Zero;
-
-private:
-    explicit constexpr Illuminance(ValueType value) : Unit<Illuminance>(value)
-    {
-    }
 };
 
 constexpr Illuminance Illuminance::Zero = Illuminance::FromLux(0);

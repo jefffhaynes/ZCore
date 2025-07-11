@@ -26,8 +26,6 @@ public:
         return Angle(std::fmod(ToUnits(), other.ToUnits()));
     }
 
-    constexpr Angle Magnitude() const { return Angle(std::abs(ToUnits())); }
-
     constexpr ValueType Sin() const { return std::sin(ToRadians()); }
     constexpr ValueType Cos() const { return std::cos(ToRadians()); }
     constexpr ValueType Tan() const { return std::tan(ToRadians()); }
@@ -35,11 +33,6 @@ public:
     static const Angle Zero;
     static const Angle Pi;
     static const Angle TwoPi;
-
-private:
-    explicit constexpr Angle(ValueType value) : Unit<Angle>(value)
-    {
-    }
 };
 
 constexpr Angle Angle::Zero = Angle::FromRadians(0);

@@ -24,14 +24,7 @@ public:
     constexpr ValueType ToMeters() const { return ToUnits(); }
     constexpr ValueType ToKilometers() const { return ToKilounits(); }
 
-    constexpr Distance Magnitude() const { return Distance(std::abs(ToUnits())); }
-
     static const Distance Zero;
-
-private:
-    explicit constexpr Distance(ValueType value) : Unit<Distance>(value)
-    {
-    }
 };
 
 constexpr Distance Distance::Zero = Distance::FromMeters(0);

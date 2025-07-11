@@ -20,14 +20,7 @@ public:
     constexpr ValueType ToMillivolts() const { return ToMilliunits(); }
     constexpr ValueType ToVolts() const { return ToUnits(); }
 
-    constexpr Voltage Magnitude() const { return Voltage(std::abs(ToUnits())); }
-
     static const Voltage Zero;
-
-private:
-    explicit constexpr Voltage(ValueType value) : Unit<Voltage>(value)
-    {
-    }
 };
 
 constexpr Voltage Voltage::Zero = Voltage::FromVolts(0);

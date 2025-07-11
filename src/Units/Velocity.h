@@ -24,20 +24,12 @@ public:
     constexpr ValueType ToCentimetersPerSecond() const { return ToCentiunits(); }
     constexpr ValueType ToMetersPerSecond() const { return ToUnits(); }
 
-    constexpr Velocity Magnitude() const { return Velocity(std::abs(ToUnits())); }
-
-    
     constexpr Distance operator*(const TimeSpan& time) const
     {
         return Distance::FromMeters(ToUnits() * static_cast<ValueType>(time.ToSeconds()));
     }
 
     static const Velocity Zero;
-
-private:
-    explicit constexpr Velocity(ValueType value) : Unit<Velocity>(value)
-    {
-    }
 };
 
 constexpr Velocity Velocity::Zero = Velocity::FromMetersPerSecond(0);
