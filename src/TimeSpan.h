@@ -2,7 +2,7 @@
 
 #include <stdint.h>
 
-struct TimeSpan
+struct TimeSpan final
 {
 public:
     constexpr TimeSpan() : TimeSpan(0)

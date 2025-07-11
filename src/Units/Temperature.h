@@ -3,7 +3,7 @@
 #include "Unit.h"
 #include <algorithm>
 
-class Temperature : public UnsignedUnit<Temperature>
+class Temperature final : public UnsignedUnit<Temperature>
 {
 public:
     using UnsignedUnit<Temperature>::Unit;
@@ -27,3 +27,5 @@ private:
 };
 
 inline constexpr Temperature Temperature::AbsoluteZero = Temperature::FromKelvin(0);
+
+#include "UnitOperators.h"

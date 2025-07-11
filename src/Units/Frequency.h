@@ -3,12 +3,12 @@
 #include "Unit.h"
 #include "TimeSpan.h"
 
-struct Frequency : public UnsignedUnit<Frequency>
+struct Frequency final : public Unit<Frequency, false>
 {
 public:
-    using UnsignedUnit<Frequency>::Unit;
-    using UnsignedUnit<Frequency>::operator*;
-    using UnsignedUnit<Frequency>::operator/;
+    using Unit<Frequency, false>::Unit;
+    using Unit<Frequency, false>::operator*;
+    using Unit<Frequency, false>::operator/;
 
     friend struct Unit<Frequency, false>;
     friend constexpr Frequency operator*(ValueType, const Frequency&);
@@ -21,7 +21,7 @@ public:
 
     static constexpr Frequency FromPeriod(const TimeSpan& period)
     {
-        return Frequency(1 / period.ToSeconds());
+        return Frequency(static_cast<ValueType>(1) / static_cast<ValueType>(period.ToSeconds()));
     }
 
     constexpr ValueType ToMillihertz() const { return ToMilliunits(); }
@@ -31,10 +31,12 @@ public:
 
     constexpr TimeSpan ToPeriod() const
     {
-        return TimeSpan::FromSeconds(1 / ToUnits());
+        return TimeSpan::FromSeconds(static_cast<ValueType>(1) / ToUnits());
     }
 
     static const Frequency Zero;
 };
 
 constexpr Frequency Frequency::Zero = Frequency::FromUnits(0);
+
+#include "UnitOperators.h"

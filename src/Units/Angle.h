@@ -4,7 +4,7 @@
 #include <cmath>
 #include <numbers>
 
-struct Angle : public Unit<Angle>
+struct Angle final : public Unit<Angle>
 {
 public:
     using Unit<Angle>::Unit;
@@ -38,3 +38,5 @@ public:
 constexpr Angle Angle::Zero = Angle::FromRadians(0);
 constexpr Angle Angle::Pi = Angle::FromRadians(std::numbers::pi);
 constexpr Angle Angle::TwoPi = Angle::FromRadians(2 * std::numbers::pi);
+
+#include "UnitOperators.h"

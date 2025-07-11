@@ -3,7 +3,7 @@
 #include "Unit.h"
 #include <cmath>
 
-struct Illuminance : public Unit<Illuminance>
+struct Illuminance final : public Unit<Illuminance>
 {
 public:
     using Unit<Illuminance>::Unit;
@@ -22,3 +22,5 @@ public:
 };
 
 constexpr Illuminance Illuminance::Zero = Illuminance::FromLux(0);
+
+#include "UnitOperators.h"

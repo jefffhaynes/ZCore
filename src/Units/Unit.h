@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdint.h>
+#include <cmath>
 
 template <typename Derived, bool Signed = true>
 class Unit

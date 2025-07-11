@@ -3,7 +3,7 @@
 #include "Unit.h"
 #include <cmath>
 
-struct SignalStrength : public Unit<SignalStrength>
+struct SignalStrength final : public Unit<SignalStrength>
 {
 public:
     using Unit<SignalStrength>::Unit;
@@ -32,3 +32,5 @@ private:
 
 constexpr SignalStrength SignalStrength::NegativeInfinity = SignalStrength(-std::numeric_limits<ValueType>::infinity());
 constexpr SignalStrength SignalStrength::PositiveInfinity = SignalStrength(std::numeric_limits<ValueType>::infinity());
+
+#include "UnitOperators.h"

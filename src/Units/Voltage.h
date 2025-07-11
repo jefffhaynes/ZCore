@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Unit.h"
-#include <cmath>
 
 struct Voltage final : public Unit<Voltage>
 {
@@ -24,3 +23,5 @@ public:
 };
 
 constexpr Voltage Voltage::Zero = Voltage::FromVolts(0);
+
+#include "UnitOperators.h"

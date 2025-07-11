@@ -19,3 +19,6 @@ public:
     constexpr ValueType ToWatts() const { return ToUnits(); }
     constexpr ValueType ToMilliwatts() const { return ToMilliunits(); }
 };
+
+#include "UnitOperators.h"
+

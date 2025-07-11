@@ -2,7 +2,7 @@
 
 #include "Unit.h"
 
-struct Current : public Unit<Current>
+struct Current final : public Unit<Current>
 {
 public:
     using Unit<Current>::Unit;
@@ -22,3 +22,4 @@ public:
     constexpr ValueType ToMicroamperes() const { return ToMicrounits(); }
 };
 
+#include "UnitOperators.h"

@@ -2,7 +2,7 @@
 
 #include "Unit.h"
 
-struct Resistance : public Unit<Resistance>
+struct Resistance final : public Unit<Resistance>
 {
 public:
     using Unit<Resistance>::Unit;
@@ -21,3 +21,5 @@ public:
     constexpr ValueType ToKiloohms() const { return ToKilounits(); }
     constexpr ValueType ToMegaohms() const { return ToMegaunits(); }
 };
+
+#include "UnitOperators.h"

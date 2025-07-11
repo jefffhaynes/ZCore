@@ -1,9 +1,11 @@
 #pragma once
 
 #include "Unit.h"
+#include "TimeSpan.h"
+#include "Velocity.h"
 #include <cmath>
 
-struct Distance : public Unit<Distance>
+struct Distance final : public Unit<Distance>
 {
 public:
     using Unit<Distance>::Unit;
@@ -28,3 +30,5 @@ public:
 };
 
 constexpr Distance Distance::Zero = Distance::FromMeters(0);
+
+#include "UnitOperators.h"

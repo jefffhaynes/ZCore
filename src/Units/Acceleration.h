@@ -2,7 +2,7 @@
 
 #include "Unit.h"
 
-struct Acceleration : public Unit<Acceleration>
+struct Acceleration final : public Unit<Acceleration>
 {
 public:
     using Unit<Acceleration>::Unit;
@@ -33,3 +33,5 @@ public:
 
 constexpr Acceleration Acceleration::Zero = Acceleration::FromMetersPerSecondSquared(0);
 constexpr Acceleration Acceleration::EarthGravity = Acceleration::FromGees(1);
+
+#include "UnitOperators.h"
