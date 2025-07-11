@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Unit.h"
-#include <cmath>
 
 struct SignalStrength final : public Unit<SignalStrength>
 {

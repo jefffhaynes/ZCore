@@ -1,14 +1,13 @@
 #pragma once
 
 #include "Unit.h"
-#include <algorithm>
 
-class Temperature final : public UnsignedUnit<Temperature>
+class Temperature final : public Unit<Temperature, false>
 {
 public:
-    using UnsignedUnit<Temperature>::Unit;
-    using UnsignedUnit<Temperature>::operator*;
-    using UnsignedUnit<Temperature>::operator/;
+    using Unit<Temperature, false>::Unit;
+    using Unit<Temperature, false>::operator*;
+    using Unit<Temperature, false>::operator/;
 
     friend struct Unit<Temperature, false>;
     friend constexpr Temperature operator*(ValueType, const Temperature&);

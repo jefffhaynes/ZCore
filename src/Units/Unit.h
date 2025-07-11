@@ -79,9 +79,3 @@ private:
 
     constexpr Derived& self() { return static_cast<Derived&>(*this); }
 };
-
-template <typename Derived>
-using SignedUnit = Unit<Derived, true>;
-
-template <typename Derived>
-using UnsignedUnit = Unit<Derived, false>;

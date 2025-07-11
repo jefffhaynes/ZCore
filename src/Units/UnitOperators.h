@@ -12,10 +12,15 @@
 
 
 /* Time */
-[[nodiscard]] constexpr TimeSpan operator*(Frequency f, TimeSpan period)
+[[nodiscard]] constexpr Frequency::ValueType operator*(Frequency f, TimeSpan period)
 {
-    auto seconds = static_cast<Unit<Frequency, false>::ValueType>(period.ToSeconds());
-    return TimeSpan::FromSeconds(f.ToHertz() * seconds); // T = f · t
+    auto seconds = static_cast<Frequency::ValueType>(period.ToSeconds());
+    return f.ToHertz() * seconds; 
+}
+
+[[nodiscard]] constexpr Frequency::ValueType operator*(TimeSpan t, Frequency f)
+{
+    return f * t;
 }
 
 
@@ -27,7 +32,7 @@
 
 [[nodiscard]] constexpr Voltage operator*(Resistance r, Current i)
 {
-    return Voltage::FromVolts(i.ToAmperes() * r.ToOhms());       // V = I · R
+    return i * r;       // V = I · R
 }
 
 [[nodiscard]] constexpr Current operator/(Voltage v, Resistance r)
@@ -47,7 +52,7 @@
 
 [[nodiscard]] constexpr Power operator*(Current i, Voltage v)
 {
-    return Power::FromWatts(v.ToVolts() * i.ToAmperes());          // P = V · I
+    return i * v; // P = V · I
 }
 
 [[nodiscard]] constexpr Current operator/(Power p, Voltage v)
@@ -65,30 +70,30 @@
 
 [[nodiscard]] constexpr Distance operator*(Velocity v, TimeSpan t)
 {
-    auto seconds = static_cast<Unit<Velocity>::ValueType>(t.ToSeconds());
+    auto seconds = static_cast<Velocity::ValueType>(t.ToSeconds());
     return Distance::FromMeters(v.ToMetersPerSecond() * seconds); // d = v · t
 }
 
 [[nodiscard]] constexpr Velocity operator/(Distance d, TimeSpan t)
 {
-    auto seconds = static_cast<Unit<Distance>::ValueType>(t.ToSeconds());
+    auto seconds = static_cast<Distance::ValueType>(t.ToSeconds());
     return Velocity::FromMetersPerSecond(d.ToMeters() / seconds); // v = d / t
 }
 
 [[nodiscard]] constexpr Acceleration operator/(Velocity v, TimeSpan t)
 {
-    auto seconds = static_cast<Unit<Velocity>::ValueType>(t.ToSeconds());
+    auto seconds = static_cast<Velocity::ValueType>(t.ToSeconds());
     return Acceleration::FromMetersPerSecondSquared(v.ToMetersPerSecond() / seconds); // a = v / t
 }
 
 [[nodiscard]] constexpr Velocity operator*(Acceleration a, TimeSpan t)
 {
-    auto seconds = static_cast<Unit<Acceleration>::ValueType>(t.ToSeconds());
+    auto seconds = static_cast<Acceleration::ValueType>(t.ToSeconds());
     return Velocity::FromMetersPerSecond(a.ToMetersPerSecondSquared() * seconds); // v = a · t
 }
 
-[[nodiscard]] constexpr Distance operator/(Velocity v, Acceleration a)
+[[nodiscard]] constexpr TimeSpan operator/(Velocity v, Acceleration a)
 {
-    return Distance::FromMeters(v.ToMetersPerSecond() / a.ToMetersPerSecondSquared()); // d = v / a
+    return TimeSpan::FromSeconds(v.ToMetersPerSecond() /
+                                 a.ToMetersPerSecondSquared());   // t = v / a
 }
-

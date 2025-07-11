@@ -1,16 +1,15 @@
 #pragma once
 
 #include "Unit.h"
-#include <cmath>
 
-struct Illuminance final : public Unit<Illuminance>
+struct Illuminance final : public Unit<Illuminance, false>
 {
 public:
-    using Unit<Illuminance>::Unit;
-    using Unit<Illuminance>::operator*;
-    using Unit<Illuminance>::operator/;
+    using Unit<Illuminance, false>::Unit;
+    using Unit<Illuminance, false>::operator*;
+    using Unit<Illuminance, false>::operator/;
 
-    friend struct Unit<Illuminance>;
+    friend struct Unit<Illuminance, false>;
     friend constexpr Illuminance operator*(ValueType k, const Illuminance& u);
     friend constexpr Illuminance operator/(ValueType k, const Illuminance& u);
 

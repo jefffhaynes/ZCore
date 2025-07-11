@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Unit.h"
-#include <cmath>
 #include <numbers>
 
 struct Angle final : public Unit<Angle>

@@ -52,8 +52,6 @@ namespace IlluminanceTests
     static_assert(Illuminance::FromLux(2) > Illuminance::FromLux(1), "Greater than operator failed");
     static_assert(Illuminance::FromLux(2) >= Illuminance::FromLux(2), "Greater than operator failed");
     static_assert(Illuminance::FromLux(2) <= Illuminance::FromLux(2), "Greater than operator failed");
-
-    static_assert(Illuminance::FromLux(-2).Magnitude() == Illuminance::FromLux(2), "Magnitude method failed");
 }
 
 namespace PowerTests
