@@ -13,7 +13,10 @@ public:
     friend constexpr Voltage operator*(ValueType, const Voltage&);
     friend constexpr Voltage operator/(ValueType, const Voltage&);
 
-    static constexpr Voltage FromMillivolts(ValueType millivolts) { return Voltage(FromMilliunits(millivolts)); }
+    static constexpr Voltage FromMillivolts(ValueType millivolts)
+    {
+        return FromMilliunits(millivolts);
+    }
     static constexpr Voltage FromVolts(ValueType volts) { return Voltage(volts); }
 
     constexpr ValueType ToMillivolts() const { return ToMilliunits(); }
