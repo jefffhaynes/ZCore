@@ -10,6 +10,8 @@
 #include "Distance.h"
 #include "Velocity.h"
 #include "Acceleration.h"
+#include "Mass.h"
+#include "Force.h"
 #include "Angle.h"
 #include "Illuminance.h"
 #include "Temperature.h"
@@ -264,6 +266,57 @@
 [[nodiscard]] constexpr Acceleration operator"" _mps2(long double metersPerSecondSquared)
 {
     return Acceleration::FromMetersPerSecondSquared(static_cast<Acceleration::ValueType>(metersPerSecondSquared));
+}
+
+
+/* Mass and Mechanics */
+
+[[nodiscard]] constexpr Force operator*(Mass m, Acceleration a)
+{
+    return Force::FromNewtons(m.ToKilograms() * a.ToMetersPerSecondSquared()); // F = m · a
+}
+
+[[nodiscard]] constexpr Force operator*(Acceleration a, Mass m)
+{
+    return m * a; // F = m · a
+}
+
+[[nodiscard]] constexpr Acceleration operator/(Force f, Mass m)
+{
+    return Acceleration::FromMetersPerSecondSquared(f.ToNewtons() / m.ToKilograms()); // a = F / m
+}
+
+[[nodiscard]] constexpr Mass operator/(Force f, Acceleration a)
+{
+    return Mass::FromKilograms(f.ToNewtons() / a.ToMetersPerSecondSquared()); // m = F / a
+}
+
+
+/* Mass UDLs */
+
+[[nodiscard]] constexpr Mass operator"" _g(long double grams)
+{
+    return Mass::FromGrams(static_cast<Mass::ValueType>(grams));
+}
+
+[[nodiscard]] constexpr Mass operator"" _kg(long double kilograms)
+{
+    return Mass::FromKilograms(static_cast<Mass::ValueType>(kilograms));
+}
+
+[[nodiscard]] constexpr Force operator"" _newt(long double newtons) // C++ forbids "_N" as a suffix
+{
+    return Force::FromNewtons(static_cast<Force::ValueType>(newtons));
+}
+
+[[nodiscard]] constexpr Force operator"" _kN(long double kilonewtons)
+{
+    return Force::FromKilonewtons(static_cast<Force::ValueType>(kilonewtons));
+}
+
+[[nodiscard]] constexpr Force operator"" _lbf(long double poundsForce)
+{
+    return Force::FromPoundsForce(static_cast<Force::ValueType>(poundsForce));
 }
 
 

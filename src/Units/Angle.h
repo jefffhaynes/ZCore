@@ -17,6 +17,10 @@ public:
     static constexpr Angle FromRadians(ValueType radians) { return Angle(radians); }
     static constexpr Angle FromDegrees(ValueType degrees) { return Angle(degrees * RadiansPerDegree); }
 
+    static constexpr Angle FromArcSine(ValueType value) { return Angle(std::asin(value)); }
+    static constexpr Angle FromArcCosine(ValueType value) { return Angle(std::acos(value)); }
+    static constexpr Angle FromArcTan(ValueType y, ValueType x) { return Angle(std::atan2(y, x)); }
+
     constexpr ValueType ToRadians() const { return ToUnits(); }
     constexpr ValueType ToDegrees() const { return ToUnits() * DegreesPerRadian; }
 
