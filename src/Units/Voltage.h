@@ -21,10 +21,6 @@ public:
 
     constexpr ValueType ToMillivolts() const { return ToMilliunits(); }
     constexpr ValueType ToVolts() const { return ToUnits(); }
-
-    static const Voltage Zero;
 };
-
-constexpr Voltage Voltage::Zero = Voltage::FromVolts(0);
 
 #include "UnitOperators.h"

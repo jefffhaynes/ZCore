@@ -28,11 +28,6 @@ public:
 
     constexpr ValueType ToCentimetersPerSecond() const { return ToCentiunits(); }
     constexpr ValueType ToMetersPerSecond() const { return ToUnits(); }
-
-    static const Velocity Zero;
 };
-
-constexpr Velocity Velocity::Zero = Velocity::FromMetersPerSecond(0);
-
 
 #include "UnitOperators.h"

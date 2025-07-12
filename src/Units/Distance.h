@@ -22,10 +22,6 @@ public:
     constexpr ValueType ToCentimeters() const { return ToCentiunits(); }
     constexpr ValueType ToMeters() const { return ToUnits(); }
     constexpr ValueType ToKilometers() const { return ToKilounits(); }
-
-    static const Distance Zero;
 };
-
-constexpr Distance Distance::Zero = Distance::FromMeters(0);
 
 #include "UnitOperators.h"

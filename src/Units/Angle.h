@@ -15,10 +15,10 @@ public:
     friend constexpr Angle operator/(ValueType, const Angle&);
 
     static constexpr Angle FromRadians(ValueType radians) { return Angle(radians); }
-    static constexpr Angle FromDegrees(ValueType degrees) { return Angle(degrees * std::numbers::pi_v<ValueType> / 180.0f); }
+    static constexpr Angle FromDegrees(ValueType degrees) { return Angle(degrees * RadiansPerDegree); }
 
     constexpr ValueType ToRadians() const { return ToUnits(); }
-    constexpr ValueType ToDegrees() const { return ToUnits() * 180.0f / std::numbers::pi_v<ValueType>; }
+    constexpr ValueType ToDegrees() const { return ToUnits() * DegreesPerRadian; }
 
     constexpr Angle operator%(const Angle& other) const
     {
@@ -29,13 +29,15 @@ public:
     constexpr ValueType Cos() const { return std::cos(ToRadians()); }
     constexpr ValueType Tan() const { return std::tan(ToRadians()); }
 
-    static const Angle Zero;
     static const Angle Pi;
     static const Angle TwoPi;
+
+private:
+    static constexpr ValueType RadiansPerDegree = std::numbers::pi_v<ValueType> / 180.0f;
+    static constexpr ValueType DegreesPerRadian = 180.0f / std::numbers::pi_v<ValueType>;
 };
 
-constexpr Angle Angle::Zero = Angle::FromRadians(0);
-constexpr Angle Angle::Pi = Angle::FromRadians(std::numbers::pi);
-constexpr Angle Angle::TwoPi = Angle::FromRadians(2 * std::numbers::pi);
+constexpr Angle Angle::Pi = Angle::FromRadians(std::numbers::pi_v<Angle::ValueType>);
+constexpr Angle Angle::TwoPi = Angle::FromRadians(2 * std::numbers::pi_v<Angle::ValueType>);
 
 #include "UnitOperators.h"

@@ -338,5 +338,69 @@ namespace AccelerationTests
     static_assert(Acceleration::FromMetersPerSecondSquared(-5.0f).Magnitude().ToMetersPerSecondSquared() == 5.0f, "Magnitude method failed");
 
     // Test Zero Constant
-    static_assert(Acceleration::Zero.ToMetersPerSecondSquared() == 0.0f, "Zero constant failed");
+    static_assert(Acceleration::Zero().ToMetersPerSecondSquared() == 0.0f, "Zero constant failed");
+}
+
+
+namespace UdlTests
+{
+    // TimeSpan
+    static_assert(TimeSpan::FromNanoseconds(1.0) == 1.0_ns, "User-defined literal for ns failed");
+    static_assert(TimeSpan::FromMicroseconds(1.0) == 1.0_us, "User-defined literal for us failed");
+    static_assert(TimeSpan::FromMilliseconds(1.0) == 1.0_ms, "User-defined literal for ms failed");
+    static_assert(TimeSpan::FromSeconds(1.0) == 1.0_s, "User-defined literal for s failed");
+
+    // Frequency
+    static_assert(Frequency::FromHertz(1.0) == 1.0_Hz, "User-defined literal for Hz failed");
+    static_assert(Frequency::FromKilohertz(1.0) == 1.0_kHz, "User-defined literal for kHz failed");
+    static_assert(Frequency::FromMegahertz(1.0) == 1.0_MHz, "User-defined literal for MHz failed");
+
+    // Voltage
+    static_assert(Voltage::FromMillivolts(1.0) == 1.0_mV, "User-defined literal for mV failed");
+    static_assert(Voltage::FromVolts(1.0) == 1.0_V, "User-defined literal for V failed");
+
+    // Current
+    static_assert(Current::FromMicroamperes(1.0) == 1.0_uA, "User-defined literal for uA failed");
+    static_assert(Current::FromMilliamperes(1.0) == 1.0_mA, "User-defined literal for mA failed");
+    static_assert(Current::FromAmperes(1.0) == 1.0_A, "User-defined literal for A failed");
+
+    // Resistance
+    static_assert(Resistance::FromOhms(1.0) == 1.0_Ohm, "User-defined literal for Ohm failed");
+    static_assert(Resistance::FromKiloohms(1.0) == 1.0_kOhm, "User-defined literal for kOhm failed");
+    static_assert(Resistance::FromMegaohms(1.0) == 1.0_MOhm, "User-defined literal for MOhm failed");
+    static_assert(Resistance::FromOhms(1.0) == 1.0_Ω, "User-defined literal for Ω failed");
+    static_assert(Resistance::FromKiloohms(1.0) == 1.0_kΩ, "User-defined literal for kΩ failed");
+    static_assert(Resistance::FromMegaohms(1.0) == 1.0_MΩ, "User-defined literal for MΩ failed");
+
+    // Power
+    static_assert(Power::FromMilliwatts(1.0) == 1.0_mW, "User-defined literal for mW failed");
+    static_assert(Power::FromWatts(1.0) == 1.0_W, "User-defined literal for W failed");
+    static_assert(Power::FromDecibelMilliwatts(1.0) == 1.0_dBm, "User-defined literal for dBm failed");
+
+    // SignalStrength
+    static_assert(SignalStrength::FromDecibels(1.0) == 1.0_dB, "User-defined literal for dB failed");
+
+    // Distance
+    static_assert(Distance::FromMillimeters(1.0) == 1.0_mm, "User-defined literal for mm failed");
+    static_assert(Distance::FromCentimeters(1.0) == 1.0_cm, "User-defined literal for cm failed");
+    static_assert(Distance::FromMeters(1.0) == 1.0_m, "User-defined literal for m failed");
+    static_assert(Distance::FromKilometers(1.0) == 1.0_km, "User-defined literal for km failed");
+
+    // Velocity
+    static_assert(Velocity::FromMetersPerSecond(1.0) == 1.0_mps, "User-defined literal for mps failed");
+
+    // Acceleration
+    static_assert(Acceleration::FromMetersPerSecondSquared(1.0) == 1.0_mps2, "User-defined literal for mps2 failed");
+
+    // Angle
+    static_assert(Angle::FromDegrees(1.0) == 1.0_deg, "User-defined literal for deg failed");
+    static_assert(Angle::FromRadians(1.0) == 1.0_rad, "User-defined literal for rad failed");
+
+    // Illuminance
+    static_assert(Illuminance::FromLux(1.0) == 1.0_lx, "User-defined literal for lx failed");
+
+    // Temperature
+    static_assert(Temperature::FromCelsius(1.0) == 1.0_degC, "User-defined literal for degC failed");
+    static_assert(Temperature::FromFahrenheit(1.0) == 1.0_degF, "User-defined literal for degF failed");
+    static_assert(Temperature::FromKelvin(1.0) == 1.0_degK, "User-defined literal for degK failed");
 }

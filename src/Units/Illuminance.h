@@ -16,10 +16,6 @@ public:
     static constexpr Illuminance FromLux(ValueType lux) { return Illuminance(lux); }
 
     constexpr float ToLux() const { return ToUnits(); }
-
-    static const Illuminance Zero;
 };
-
-constexpr Illuminance Illuminance::Zero = Illuminance::FromLux(0);
 
 #include "UnitOperators.h"

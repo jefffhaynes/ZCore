@@ -93,7 +93,7 @@ public:
         auto rc = Initialize();
         CHECK_RETURN_CODE(rc);
 
-        range = Range<Voltage>(Voltage::Zero, _max);
+        range = Range<Voltage>(Voltage::Zero(), _max);
 
         return ReturnCode::Success;
     }

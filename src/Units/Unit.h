@@ -47,6 +47,11 @@ public:
         return Derived(_value < static_cast<ValueType>(0) ? -_value : _value);
     }
 
+    static constexpr Derived Zero() requires(Signed)
+    {
+        return Derived(static_cast<ValueType>(0));
+    }
+
 
 protected:
     constexpr explicit Unit(ValueType value) : _value{ value } {}

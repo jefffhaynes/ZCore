@@ -26,12 +26,9 @@ public:
     constexpr ValueType ToMetersPerSecondSquared() const { return ToUnits(); }
     constexpr ValueType ToGees() const { return ToMetersPerSecondSquared() / 9.81f; }
 
-    static const Acceleration Zero;
     static const Acceleration EarthGravity;
 };
 
-
-constexpr Acceleration Acceleration::Zero = Acceleration::FromMetersPerSecondSquared(0);
 constexpr Acceleration Acceleration::EarthGravity = Acceleration::FromGees(1);
 
 #include "UnitOperators.h"
