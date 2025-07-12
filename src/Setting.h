@@ -3,7 +3,7 @@
 #include "SettingBase.h"
 #include "CoreString.h"
 #include "TimeSpan.h"
-#include "Units/SignalStrength.h"
+#include "SignalStrength.h"
 
 template <typename T>
 class Setting : public SettingBase

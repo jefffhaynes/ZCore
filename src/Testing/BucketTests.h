@@ -19,7 +19,7 @@ namespace BucketTests
 
         int buffer[6] = {0};
         uint32_t count = 0;
-        auto rc = bucket.Get(buffer, count, TimeSpan::Zero);
+        auto rc = bucket.Get(buffer, count, TimeSpan::Zero());
         
         if(rc != ReturnCode::Success)
         {
@@ -39,8 +39,8 @@ namespace BucketTests
             }
         }
 
-        rc = bucket.Get(buffer, count, TimeSpan::Zero);
-        
+        rc = bucket.Get(buffer, count, TimeSpan::Zero());
+
         if(rc != ReturnCode::Success)
         {
             return false;
@@ -80,7 +80,7 @@ namespace BucketTests
         // get buffer that is larger than the bucket
         float buffer2[10] = {0};
         uint32_t count = 0;
-        auto rc = bucket.Get(buffer2, count, TimeSpan::Zero);
+        auto rc = bucket.Get(buffer2, count, TimeSpan::Zero());
 
         if(rc != ReturnCode::Success)
         {

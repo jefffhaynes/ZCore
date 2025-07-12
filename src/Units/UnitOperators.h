@@ -49,6 +49,21 @@
     return TimeSpan::FromSeconds(seconds);
 }
 
+[[nodiscard]] constexpr TimeSpan operator"" _min(long double minutes)
+{
+    return TimeSpan::FromMinutes(minutes);
+}
+
+[[nodiscard]] constexpr TimeSpan operator"" _hrs(long double hours)
+{
+    return TimeSpan::FromHours(hours);
+}
+
+[[nodiscard]] constexpr TimeSpan operator"" _days(long double days)
+{
+    return TimeSpan::FromDays(days);
+}
+
 
 /* Electrical */
 [[nodiscard]] constexpr Voltage operator*(Current i, Resistance r)

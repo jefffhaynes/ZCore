@@ -6,10 +6,10 @@
 #include "CoreString.h"
 #include "EventHandler.h"
 #include "BluetoothLEConnections.h"
-#include "Units/Temperature.h"
-#include "Units/Power.h"
-#include "Units/Illuminance.h"
-#include "Units/SignalStrength.h"
+#include "Temperature.h"
+#include "Power.h"
+#include "Illuminance.h"
+#include "SignalStrength.h"
 
 #include <zephyr/bluetooth/bluetooth.h>
 #include <zephyr/bluetooth/uuid.h>

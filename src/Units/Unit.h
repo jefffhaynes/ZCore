@@ -78,20 +78,26 @@ protected:
     ~Unit() = default;
 
     /* factory */
+    static constexpr Derived FromNanounits(ValueType nanounits) { return Derived(nanounits * n); }
     static constexpr Derived FromMicrounits(ValueType microunits) { return Derived(microunits * u); }
     static constexpr Derived FromMilliunits(ValueType milliunits) { return Derived(milliunits * m); }
     static constexpr Derived FromCentiunits(ValueType centiunits) { return Derived(centiunits * c); }
     static constexpr Derived FromUnits(ValueType units) { return Derived(units); }
     static constexpr Derived FromKilounits(ValueType kilounits) { return Derived(kilounits * k); }
     static constexpr Derived FromMegaunits(ValueType megaunits) { return Derived(megaunits * M); }
+    static constexpr Derived FromGigaunits(ValueType gigaunits) { return Derived(gigaunits * G); }
+    static constexpr Derived FromTerraunits(ValueType terraunits) { return Derived(terraunits * T); }
 
     /* conversion */
+    constexpr ValueType ToNanounits() const { return _value * G; }
     constexpr ValueType ToMicrounits() const { return _value * M; }
     constexpr ValueType ToMilliunits() const { return _value * k; }
     constexpr ValueType ToCentiunits() const { return _value * c; }
     constexpr ValueType ToUnits() const { return _value; }
     constexpr ValueType ToKilounits() const { return _value * m; }
     constexpr ValueType ToMegaunits() const { return _value * u; }
+    constexpr ValueType ToGigaunits() const { return _value * n; }
+    constexpr ValueType ToTerraunits() const { return _value * p; }
 
 private:
     static constexpr ValueType p = 1e-12;
@@ -101,6 +107,8 @@ private:
     static constexpr ValueType c = 1e-2;
     static constexpr ValueType k = 1e3;
     static constexpr ValueType M = 1e6;
+    static constexpr ValueType G = 1e9;
+    static constexpr ValueType T = 1e12;
 
     ValueType _value{ static_cast<ValueType>(0) };
 

@@ -1,15 +1,15 @@
 #pragma once
 
-#include "Units/Current.h"
-#include "Units/Illuminance.h"
-#include "Units/Power.h"
-#include "Units/Resistance.h"
-#include "Units/SignalStrength.h"
-#include "Units/Temperature.h"
-#include "Units/Voltage.h"
-#include "Units/Distance.h"
-#include "Units/Velocity.h"
-#include "Units/Acceleration.h"
+#include "Current.h"
+#include "Illuminance.h"
+#include "Power.h"
+#include "Resistance.h"
+#include "SignalStrength.h"
+#include "Temperature.h"
+#include "Voltage.h"
+#include "Distance.h"
+#include "Velocity.h"
+#include "Acceleration.h"
 
 #include <stdint.h>
 #include <limits>

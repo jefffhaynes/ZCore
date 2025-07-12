@@ -2,7 +2,7 @@
 
 #include "ReturnCode.h"
 #include "Range.h"
-#include "Units/Voltage.h"
+#include "Voltage.h"
 
 class IAdc
 { 
