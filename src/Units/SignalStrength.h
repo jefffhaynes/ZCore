@@ -20,16 +20,10 @@ public:
     constexpr ValueType ToDecibels() const { return ToUnits(); }
     constexpr ValueType ToPower() const { return std::pow(10, ToUnits() / PowerScale); }
     constexpr ValueType ToAmplitude() const { return std::pow(10, ToUnits() / AmplitudeScale); }
-
-    static const SignalStrength NegativeInfinity;
-    static const SignalStrength PositiveInfinity;
     
 private:
     static constexpr ValueType PowerScale = 10;
     static constexpr ValueType AmplitudeScale = 20;
 };
-
-constexpr SignalStrength SignalStrength::NegativeInfinity = SignalStrength(-std::numeric_limits<ValueType>::infinity());
-constexpr SignalStrength SignalStrength::PositiveInfinity = SignalStrength(std::numeric_limits<ValueType>::infinity());
 
 #include "UnitOperators.h"

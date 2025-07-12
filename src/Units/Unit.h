@@ -1,20 +1,26 @@
 #pragma once
 
 #include <cmath>
+#include <limits>
+#include <type_traits>
 
-template <typename Derived, bool Signed = true>
+template <typename Derived, bool Signed = true, typename TValue = float>
+    requires(std::is_floating_point_v<TValue>)
 class Unit
 {
 public:
-    using ValueType = float;
-
+    using ValueType = TValue;
     constexpr Unit() = default;
 
     /* same‑unit arithmetic */
     constexpr Derived operator+(const Derived& rhs) const { return Derived{ _value + rhs._value }; }
     constexpr Derived operator-(const Derived& rhs) const { return Derived{ _value - rhs._value }; }
-    constexpr ValueType operator/(const Derived& rhs) const { return _value / rhs._value; }
     constexpr Derived operator-() const requires(Signed) { return Derived(-_value); }
+    constexpr ValueType operator/(const Derived& rhs) const { return _value / rhs._value; }
+    constexpr Derived operator%(const Derived& rhs) const requires(Signed)
+    {
+        return Derived{ std::fmod(_value, rhs._value) };
+    }
 
     /* scaling by scalar */
     constexpr Derived operator*(ValueType k) const { return Derived{ _value * k }; }
@@ -41,15 +47,29 @@ public:
         return Derived{ k / u._value };
     }
 
+    static constexpr Derived Zero()
+    {
+        return Derived(static_cast<ValueType>(0));
+    }
+
+    static constexpr Derived PositiveInfinity()
+    {
+        return Derived(std::numeric_limits<ValueType>::infinity());
+    }
+
+    static constexpr Derived NegativeInfinity() requires(Signed)
+    {
+        return Derived(-std::numeric_limits<ValueType>::infinity());
+    }
 
     constexpr Derived Magnitude() const requires(Signed)
     {
         return Derived(_value < static_cast<ValueType>(0) ? -_value : _value);
     }
 
-    static constexpr Derived Zero()
+    constexpr Derived EuclideanModulo(const Derived& mod) const requires(Signed)
     {
-        return Derived(static_cast<ValueType>(0));
+        return Derived{ std::fmod(_value + mod._value, mod._value) };
     }
 
 
