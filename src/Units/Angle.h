@@ -20,10 +20,10 @@ public:
     constexpr ValueType ToRadians() const { return ToUnits(); }
     constexpr ValueType ToDegrees() const { return ToUnits() * DegreesPerRadian; }
 
-    constexpr Angle operator%(const Angle& other) const
-    {
-        return Angle(std::fmod(ToUnits(), other.ToUnits()));
-    }
+    // constexpr Angle operator%(const Angle& other) const
+    // {
+    //     return Angle(std::fmod(ToUnits(), other.ToUnits()));
+    // }
 
     constexpr ValueType Sin() const { return std::sin(ToRadians()); }
     constexpr ValueType Cos() const { return std::cos(ToRadians()); }
