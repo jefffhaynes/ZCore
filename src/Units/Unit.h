@@ -47,7 +47,7 @@ public:
         return Derived(_value < static_cast<ValueType>(0) ? -_value : _value);
     }
 
-    static constexpr Derived Zero() requires(Signed)
+    static constexpr Derived Zero()
     {
         return Derived(static_cast<ValueType>(0));
     }

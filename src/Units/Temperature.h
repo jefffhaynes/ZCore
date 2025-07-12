@@ -30,15 +30,11 @@ public:
         return celsius * CelsiusToFahrenheitFactor + FahrenheitOffset;
     }
 
-    static const Temperature AbsoluteZero;
-
 private:
     static constexpr ValueType CelsiusOffset = 273.15;
     static constexpr ValueType FahrenheitOffset = 32.0;
     static constexpr ValueType FahrenheitToCelsiusFactor = 5.0 / 9.0;
     static constexpr ValueType CelsiusToFahrenheitFactor = 9.0 / 5.0;
 };
-
-inline constexpr Temperature Temperature::AbsoluteZero = Temperature::FromKelvin(0);
 
 #include "UnitOperators.h"

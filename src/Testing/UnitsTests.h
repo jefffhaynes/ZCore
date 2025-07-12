@@ -125,8 +125,8 @@ namespace TemperatureTests
     static_assert(AreAlmostEqual(Temperature::FromCelsius(0).ToKelvin(), 273.15), "Temperature conversion from Celsius to Kelvin failed");
     static_assert(std::abs(Temperature::FromKelvin(273.15).ToCelsius() - 0) < Epsilon, "Temperature conversion from Kelvin to Celsius failed");
 
-    // Testing Absolute Zero
-    static_assert(Temperature::AbsoluteZero == Temperature::FromKelvin(0), "AbsoluteZero constant incorrect");
+    // Testing Zero
+    static_assert(Temperature::Zero() == Temperature::FromKelvin(0), "Zero() constant incorrect");
 
     // Operators involving two Temperature instances
     static_assert(Temperature::FromKelvin(100) == Temperature::FromKelvin(100), "Equality operator failed");
