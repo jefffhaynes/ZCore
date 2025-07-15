@@ -17,11 +17,15 @@ public:
     static constexpr Power FromWatts(ValueType watts) { return Power(watts); }
     static constexpr Power FromDecibelMilliwatts(ValueType decibelMilliwatts)
     {
-        return Power(std::pow(10, (decibelMilliwatts - 30) / 10));
+        return Power::FromMilliwatts(std::pow(10, decibelMilliwatts / 10));
     }
 
     constexpr ValueType ToWatts() const { return ToUnits(); }
     constexpr ValueType ToMilliwatts() const { return ToMilliunits(); }
+    constexpr ValueType ToDecibelMilliwatts() const
+    {
+        return 10 * std::log10(ToMilliwatts());
+    }
 };
 
 #include "UnitOperators.h"
