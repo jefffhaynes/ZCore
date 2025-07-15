@@ -5,11 +5,8 @@
 #include "EventHandler.h"
 #include "Array.h"
 #include "Interconnect.h"
+#include "PingPongBuffer.h"
 #include <nrfx_saadc.h>
-
-// REMOVE
-#include <helpers/nrfx_gppi.h>
-
 
 
 // #pragma GCC push_options
@@ -20,8 +17,7 @@ class Saadc
 {
 public:
     static const uint32_t ChannelCount = 4;
-    static const uint32_t OversampleCount = 1;
-    static const uint32_t SampleCount = ChannelCount * OversampleCount;
+    static const uint32_t SampleCount = ChannelCount;
 
     ReturnCode Initialize()
     {
@@ -65,9 +61,8 @@ public:
                                             OnEvent);
         rc = ErrorConverter::Convert(err);
         CHECK_RETURN_CODE(rc);
-                                                
-        err = nrfx_saadc_buffer_set(_samples, SampleCount);
-        rc = ErrorConverter::Convert(err);
+                                       
+        rc = SetActiveBuffer();
         CHECK_RETURN_CODE(rc);
 
         err = nrfx_saadc_mode_trigger();
@@ -116,10 +111,15 @@ private:
         NRFX_SAADC_DEFAULT_CHANNEL_SE(NRF_SAADC_INPUT_AIN3, 3)
     };
 
-    static int16_t _samples[SampleCount][2];
-
     bool _initialized = false;
-    static uint32_t _bufferIndex;
+    static PingPongBuffer<int16_t, SampleCount> _buffer;
+
+    static ReturnCode SetActiveBuffer()
+    {
+        auto buffer = _buffer.GetActive();
+        auto err = nrfx_saadc_buffer_set(buffer.GetData(), buffer.GetLength());
+        return ErrorConverter::Convert(err);
+    }
 
     static void OnEvent(nrfx_saadc_evt_t const * p_event)
     {
@@ -130,27 +130,22 @@ private:
                 
             case NRFX_SAADC_EVT_BUF_REQ:
                 {
-                    _bufferIndex = (_bufferIndex + 1) % 2;
-                    auto* buffer = _samples[_bufferIndex];
-                    nrfx_saadc_buffer_set(buffer, SampleCount);
+                    _buffer.Swap();
+                    SetActiveBuffer();
                     break;
                 }
 
             case NRFX_SAADC_EVT_DONE:
             {
                 const float max = nrf_saadc_value_max_get(NRF_SAADC_RESOLUTION_12BIT);
+                const float scale = 1.0f / max;
 
                 Array<float, ChannelCount> channels;
                 for (uint32_t i = 0; i < ChannelCount; i++)
                 {
-                    Array<float, OversampleCount> samples;
-                    for (uint32_t j = 0; j < OversampleCount; j++)
-                    {
-                        auto value = NRFX_SAADC_SAMPLE_GET(NRF_SAADC_RESOLUTION_12BIT, p_event->data.done.p_buffer, j * ChannelCount + i);
-                        samples[j] = value;
-                    }
-
-                    channels[i] = SpanExtensions::Mean(samples.AsSpan()) / max;
+                    auto value = NRFX_SAADC_SAMPLE_GET(NRF_SAADC_RESOLUTION_12BIT, 
+                        p_event->data.done.p_buffer, ChannelCount + i);
+                    channels[i] = value * scale;
                 }
 
                 Sample.Invoke(channels.AsFixedSpan());
@@ -162,8 +157,7 @@ private:
 
 };
 
-inline uint32_t Saadc::_bufferIndex = 0;
-inline int16_t Saadc::_samples[Saadc::SampleCount][2];
+inline PingPongBuffer<int16_t, Saadc::SampleCount> Saadc::_buffer;
 inline EventHandler<FixedSpan<float, Saadc::ChannelCount>> Saadc::Sample;
 
 
