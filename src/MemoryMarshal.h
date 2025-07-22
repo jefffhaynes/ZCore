@@ -5,6 +5,13 @@
 
 #include "pfr/pfr.hpp"
 
+
+template<typename T>
+concept Arithmetic = std::is_arithmetic_v<T>;
+
+template<typename T>
+concept Enum = std::is_enum_v<T>;
+
 template <typename T>
 constexpr bool all_fields_are_safe()
 {
@@ -13,19 +20,14 @@ constexpr bool all_fields_are_safe()
     pfr::for_each_field(T{}, [&](const auto& field)
     {
         using FieldType = std::decay_t<decltype(field)>;
-        result = result && (std::is_arithmetic_v<FieldType> 
-            || std::is_enum_v<FieldType> 
+        result = result && (Arithmetic<FieldType> 
+            || Enum<FieldType> 
             || all_fields_are_safe<FieldType>());
     });
 
     return result;
 }
 
-template<typename T>
-concept Arithmetic = std::is_arithmetic_v<T>;
-
-template<typename T>
-concept Enum = std::is_enum_v<T>;
 
 template<typename T>
 concept ComplexSafe = all_fields_are_safe<T>() && !Arithmetic<T> && !Enum<T>;
