@@ -144,7 +144,7 @@ private:
                 for (uint32_t i = 0; i < ChannelCount; i++)
                 {
                     auto value = NRFX_SAADC_SAMPLE_GET(NRF_SAADC_RESOLUTION_12BIT, 
-                        p_event->data.done.p_buffer, ChannelCount + i);
+                        p_event->data.done.p_buffer, i);
                     channels[i] = value * scale;
                 }
 
