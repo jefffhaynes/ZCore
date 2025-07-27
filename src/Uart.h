@@ -55,6 +55,9 @@ public:
 
     ReturnCode SetBaudRate(uint32_t baudRate)
     {
+        auto rc = Initialize();
+        CHECK_RETURN_CODE(rc);
+        
         auto* device = GetDevice();
         auto* config = static_cast<const struct uarte_nrfx_config2*>(device->config);
         auto* reg = static_cast<NRF_UARTE_Type*>(config->uarte_regs);
@@ -84,7 +87,7 @@ public:
     ReturnCode Write(Span<const uint8_t> data) override
     {
         CriticalSection cs;
-        
+
         auto rc = Initialize();
         CHECK_RETURN_CODE(rc);
 
