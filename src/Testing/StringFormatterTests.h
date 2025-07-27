@@ -30,6 +30,12 @@ namespace StringFormatterTests
         auto formatted = StringFormatter::Format(buffer, "Hello, %.2f!", 42.0f);
         return formatted == String("Hello, 42.00!");
     }(), "Format method failed");
+    
+    static_assert([]{
+        Array<char, 24> buffer;
+        auto formatted = StringFormatter::Format(buffer, "%.1f", 0.99f);
+        return formatted == String("1.0");
+    }(), "Format method failed");
 
     // enum
     enum class Color { Red, Green, Blue };

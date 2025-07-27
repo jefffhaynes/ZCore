@@ -170,7 +170,11 @@ private:
 
         // Round the fractional part properly
         unsigned long frac = static_cast<unsigned long>(fractional_part * frac_multiplier + 0.5f);
-
+        if (frac == frac_multiplier) {   // e.g. 0.99 with precision 1 ⇒ 10
+            ++int_part;                  // bump the integral part
+            frac = 0;                    // fractional digits are now all zeros
+        }
+        
         // Convert integer part
         int len_int = integer_to_string(temp, sizeof(temp), int_part);
         if (len_int < 0) return -1;
