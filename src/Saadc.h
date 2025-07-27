@@ -12,14 +12,35 @@
 // #pragma GCC push_options
 // #pragma GCC optimize ("O0")
 
-// TODO MAKE A TEMPLATE EXCEPT THIS COMPLETELY BREAKS THE CALLBACK FOR SOME REASON
+#define NRFX_SAADC_DEFAULT_CHANNEL_SE_CONFIG(_pin_p, _index, _gain, _acq_time)                  \
+{                                                                      \
+    .channel_config =                                                  \
+    {                                                                  \
+        NRFX_COND_CODE_1(NRF_SAADC_HAS_CH_CONFIG_RES,                  \
+                         (.resistor_p = NRF_SAADC_RESISTOR_DISABLED,   \
+                          .resistor_n = NRF_SAADC_RESISTOR_DISABLED,), \
+                         ())                                           \
+        .gain       = _gain,                                 \
+        .reference  = NRF_SAADC_REFERENCE_INTERNAL,                    \
+        .acq_time   = _acq_time,                      \
+        NRFX_COND_CODE_1(NRF_SAADC_HAS_CONV_TIME,                      \
+                         (.conv_time = NRFX_SAADC_DEFAULT_CONV_TIME,), \
+                         ())                                           \
+        .mode       = NRF_SAADC_MODE_SINGLE_ENDED,                     \
+        .burst      = NRF_SAADC_BURST_DISABLED,                        \
+    },                                                                 \
+    .pin_p          = (nrf_saadc_input_t)_pin_p,                       \
+    .pin_n          = NRF_SAADC_INPUT_DISABLED,                        \
+    .channel_index  = _index,                                          \
+}
+
 class Saadc
 {
 public:
     static const uint32_t ChannelCount = 4;
     static const uint32_t SampleCount = ChannelCount;
 
-    ReturnCode Initialize()
+    static ReturnCode Initialize()
     {
         if (_initialized)
         {
@@ -34,31 +55,19 @@ public:
         auto rc = ErrorConverter::Convert(err);
         CHECK_RETURN_CODE(rc);
 
-        _channels[0].channel_config.gain = NRF_SAADC_GAIN1_3;
-        _channels[1].channel_config.gain = NRF_SAADC_GAIN1_3;
-        _channels[2].channel_config.gain = NRF_SAADC_GAIN1_3;
-        _channels[3].channel_config.gain = NRF_SAADC_GAIN1_3;
-
-        _channels[0].channel_config.acq_time = NRF_SAADC_ACQTIME_3US;
-        _channels[1].channel_config.acq_time = NRF_SAADC_ACQTIME_3US;
-        _channels[2].channel_config.acq_time = NRF_SAADC_ACQTIME_3US;
-        _channels[3].channel_config.acq_time = NRF_SAADC_ACQTIME_3US;
-        
-
         err = nrfx_saadc_channels_config(_channels, ChannelCount);
         rc = ErrorConverter::Convert(err);
         CHECK_RETURN_CODE(rc);
         
-
         nrfx_saadc_adv_config_t config = NRFX_SAADC_DEFAULT_ADV_CONFIG;
         config.internal_timer_cc = 0;
         config.start_on_end = false;
 
         auto channel_mask = nrfx_saadc_channels_configured_get();
         err = nrfx_saadc_advanced_mode_set(channel_mask,
-                                            NRF_SAADC_RESOLUTION_12BIT,
-                                            &config,
-                                            OnEvent);
+                                           NRF_SAADC_RESOLUTION_12BIT,
+                                           &config,
+                                           OnEvent);
         rc = ErrorConverter::Convert(err);
         CHECK_RETURN_CODE(rc);
                                        
@@ -76,25 +85,25 @@ public:
     }
 
 
-    EventAddress GetEndEventAddress()
+    static EventAddress GetEndEventAddress()
     {
         auto addressValue = nrf_saadc_event_address_get(NRF_SAADC, NRF_SAADC_EVENT_END);
         return EventAddress(addressValue);
     }
 
-    EventAddress GetResultDoneEventAddress()
+    static EventAddress GetResultDoneEventAddress()
     {
         auto addressValue = nrf_saadc_event_address_get(NRF_SAADC, NRF_SAADC_EVENT_RESULTDONE);
         return EventAddress(addressValue);
     }
 
-    TaskAddress GetSampleTaskAddress()
+    static TaskAddress GetSampleTaskAddress()
     {
         auto addressValue = nrf_saadc_task_address_get(NRF_SAADC, NRF_SAADC_TASK_SAMPLE);
         return TaskAddress(addressValue);
     }
 
-    TaskAddress GetStartTaskAddress()
+    static TaskAddress GetStartTaskAddress()
     {
         auto addressValue = nrf_saadc_task_address_get(NRF_SAADC, NRF_SAADC_TASK_START);
         return TaskAddress(addressValue);
@@ -103,15 +112,15 @@ public:
     static EventHandler<FixedSpan<float, ChannelCount>> Sample;
 
 private:
-    nrfx_saadc_channel_t _channels[ChannelCount] =
+    static constexpr nrfx_saadc_channel_t _channels[ChannelCount] =
     {
-        NRFX_SAADC_DEFAULT_CHANNEL_SE(NRF_SAADC_INPUT_AIN0, 0),
-        NRFX_SAADC_DEFAULT_CHANNEL_SE(NRF_SAADC_INPUT_AIN1, 1),
-        NRFX_SAADC_DEFAULT_CHANNEL_SE(NRF_SAADC_INPUT_AIN2, 2),
-        NRFX_SAADC_DEFAULT_CHANNEL_SE(NRF_SAADC_INPUT_AIN3, 3)
+        NRFX_SAADC_DEFAULT_CHANNEL_SE_CONFIG(NRF_SAADC_INPUT_AIN0, 0, NRF_SAADC_GAIN1_3, NRF_SAADC_ACQTIME_3US),
+        NRFX_SAADC_DEFAULT_CHANNEL_SE_CONFIG(NRF_SAADC_INPUT_AIN1, 1, NRF_SAADC_GAIN1_3, NRF_SAADC_ACQTIME_3US),
+        NRFX_SAADC_DEFAULT_CHANNEL_SE_CONFIG(NRF_SAADC_INPUT_AIN2, 2, NRF_SAADC_GAIN1_3, NRF_SAADC_ACQTIME_3US),
+        NRFX_SAADC_DEFAULT_CHANNEL_SE_CONFIG(NRF_SAADC_INPUT_AIN3, 3, NRF_SAADC_GAIN1_3, NRF_SAADC_ACQTIME_3US)
     };
 
-    bool _initialized = false;
+    static bool _initialized;
     static PingPongBuffer<int16_t, SampleCount> _buffer;
 
     static ReturnCode SetActiveBuffer()
@@ -155,8 +164,10 @@ private:
         }
     }
 
+    constexpr Saadc() = default;
 };
 
+inline bool Saadc::_initialized = false;
 inline PingPongBuffer<int16_t, Saadc::SampleCount> Saadc::_buffer;
 inline EventHandler<FixedSpan<float, Saadc::ChannelCount>> Saadc::Sample;
 
