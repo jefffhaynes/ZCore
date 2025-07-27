@@ -31,6 +31,11 @@ public:
 
     virtual ReturnCode Initialize()
     {
+        if (_initialized)
+        {
+            return ReturnCode::Success;
+        }
+
         auto error = uart_irq_callback_user_data_set(GetDevice(), OnInterrupt, this);
         auto rc = ErrorConverter::Convert(error);
         CHECK_RETURN_CODE(rc);
@@ -42,6 +47,8 @@ public:
         CHECK_RETURN_CODE(rc);
 
         uart_irq_rx_enable(GetDevice());
+
+        _initialized = true;
 
         return ReturnCode::Success;
     }
@@ -65,6 +72,10 @@ public:
     ReturnCode Read(Span<uint8_t> data, uint32_t& read) override
     {
         CriticalSection cs;
+
+        auto rc = Initialize();
+        CHECK_RETURN_CODE(rc);
+
         return _rxQueue.Dequeue(data, read);
     }
 
@@ -73,7 +84,11 @@ public:
     ReturnCode Write(Span<const uint8_t> data) override
     {
         CriticalSection cs;
-        auto rc = _txQueue.Enqueue(data);
+        
+        auto rc = Initialize();
+        CHECK_RETURN_CODE(rc);
+
+        rc = _txQueue.Enqueue(data);
         CHECK_RETURN_CODE(rc);
 
         uart_irq_tx_enable(GetDevice());
@@ -87,6 +102,7 @@ public:
     }
 
 private:
+    bool _initialized = false;
     Array<uint8_t, 512> _rxBuffer;
     Array<uint8_t, 512> _txBuffer;
     Queue<uint8_t> _rxQueue;
