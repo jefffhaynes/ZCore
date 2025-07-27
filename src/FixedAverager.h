@@ -27,7 +27,7 @@ public:
         return _state;
     }
 
-    constexpr T GetValue()
+    constexpr T GetValue() const
     {
         return _state;
     }
