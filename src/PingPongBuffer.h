@@ -13,6 +13,11 @@ public:
         return _state ? _buffer1.AsFixedSpan() : _buffer2.AsFixedSpan();
     }
 
+    constexpr FixedSpan<T, Length> GetInactive()
+    {
+        return _state ? _buffer2.AsFixedSpan() : _buffer1.AsFixedSpan();
+    }
+
     constexpr void Swap()
     {
         _state = !_state;

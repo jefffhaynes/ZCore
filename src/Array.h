@@ -25,7 +25,9 @@ public:
     constexpr const FixedSpan<const T, Length> AsFixedSpan() const { return FixedSpan<const T, Length>::FromArray(_data); }
     constexpr FixedSpan<T, Length> AsFixedSpan() { return FixedSpan<T, Length>::FromArray(_data); }
     constexpr operator Span<T>() { return AsSpan(); }
+    constexpr operator Span<const T>() const { return AsSpan(); }
     constexpr operator FixedSpan<T, Length>() { return AsFixedSpan(); }
+    constexpr operator FixedSpan<const T, Length>() const { return AsFixedSpan(); }
 
     constexpr Iterator<T> begin() { return AsSpan().begin(); }
     constexpr Iterator<T> end() { return AsSpan().end(); }
