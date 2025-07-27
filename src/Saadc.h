@@ -34,6 +34,7 @@
     .channel_index  = _index,                                          \
 }
 
+// TODO template for different channel counts (BREAKS CALLBACK FOR SOME REASON)
 class Saadc
 {
 public:
