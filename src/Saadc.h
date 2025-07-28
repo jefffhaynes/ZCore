@@ -12,27 +12,6 @@
 // #pragma GCC push_options
 // #pragma GCC optimize ("O0")
 
-#define NRFX_SAADC_DEFAULT_CHANNEL_SE_CONFIG(_pin_p, _index, _gain, _acq_time)                  \
-{                                                                      \
-    .channel_config =                                                  \
-    {                                                                  \
-        NRFX_COND_CODE_1(NRF_SAADC_HAS_CH_CONFIG_RES,                  \
-                         (.resistor_p = NRF_SAADC_RESISTOR_DISABLED,   \
-                          .resistor_n = NRF_SAADC_RESISTOR_DISABLED,), \
-                         ())                                           \
-        .gain       = _gain,                                 \
-        .reference  = NRF_SAADC_REFERENCE_INTERNAL,                    \
-        .acq_time   = _acq_time,                      \
-        NRFX_COND_CODE_1(NRF_SAADC_HAS_CONV_TIME,                      \
-                         (.conv_time = NRFX_SAADC_DEFAULT_CONV_TIME,), \
-                         ())                                           \
-        .mode       = NRF_SAADC_MODE_SINGLE_ENDED,                     \
-        .burst      = NRF_SAADC_BURST_DISABLED,                        \
-    },                                                                 \
-    .pin_p          = (nrf_saadc_input_t)_pin_p,                       \
-    .pin_n          = NRF_SAADC_INPUT_DISABLED,                        \
-    .channel_index  = _index,                                          \
-}
 
 // TODO template for different channel counts (BREAKS CALLBACK FOR SOME REASON)
 class Saadc
@@ -56,7 +35,21 @@ public:
         auto rc = ErrorConverter::Convert(err);
         CHECK_RETURN_CODE(rc);
 
-        err = nrfx_saadc_channels_config(_channels, ChannelCount);
+          nrfx_saadc_channel_t channels[ChannelCount] = 
+        {
+            NRFX_SAADC_DEFAULT_CHANNEL_SE(NRF_SAADC_INPUT_AIN0, 0),
+            NRFX_SAADC_DEFAULT_CHANNEL_SE(NRF_SAADC_INPUT_AIN1, 1),
+            NRFX_SAADC_DEFAULT_CHANNEL_SE(NRF_SAADC_INPUT_AIN2, 2),
+            NRFX_SAADC_DEFAULT_CHANNEL_SE(NRF_SAADC_INPUT_AIN3, 3),
+        };
+
+        for (uint32_t i = 0; i < ChannelCount; i++)
+        {
+            channels[i].channel_config.gain = NRF_SAADC_GAIN1_3;
+            channels[i].channel_config.acq_time = NRF_SAADC_ACQTIME_3US;
+        }
+
+        err = nrfx_saadc_channels_config(channels, ChannelCount);
         rc = ErrorConverter::Convert(err);
         CHECK_RETURN_CODE(rc);
         
@@ -65,10 +58,7 @@ public:
         config.start_on_end = false;
 
         auto channel_mask = nrfx_saadc_channels_configured_get();
-        err = nrfx_saadc_advanced_mode_set(channel_mask,
-                                           NRF_SAADC_RESOLUTION_12BIT,
-                                           &config,
-                                           OnEvent);
+        err = nrfx_saadc_advanced_mode_set(channel_mask, Resolution, &config, OnEvent);
         rc = ErrorConverter::Convert(err);
         CHECK_RETURN_CODE(rc);
                                        
@@ -113,13 +103,7 @@ public:
     static EventHandler<FixedSpan<float, ChannelCount>> Sample;
 
 private:
-    static constexpr nrfx_saadc_channel_t _channels[ChannelCount] =
-    {
-        NRFX_SAADC_DEFAULT_CHANNEL_SE_CONFIG(NRF_SAADC_INPUT_AIN0, 0, NRF_SAADC_GAIN1_3, NRF_SAADC_ACQTIME_3US),
-        NRFX_SAADC_DEFAULT_CHANNEL_SE_CONFIG(NRF_SAADC_INPUT_AIN1, 1, NRF_SAADC_GAIN1_3, NRF_SAADC_ACQTIME_3US),
-        NRFX_SAADC_DEFAULT_CHANNEL_SE_CONFIG(NRF_SAADC_INPUT_AIN2, 2, NRF_SAADC_GAIN1_3, NRF_SAADC_ACQTIME_3US),
-        NRFX_SAADC_DEFAULT_CHANNEL_SE_CONFIG(NRF_SAADC_INPUT_AIN3, 3, NRF_SAADC_GAIN1_3, NRF_SAADC_ACQTIME_3US)
-    };
+    static const nrf_saadc_resolution_t Resolution = NRF_SAADC_RESOLUTION_12BIT;
 
     static bool _initialized;
     static PingPongBuffer<int16_t, SampleCount> _buffer;
@@ -147,14 +131,13 @@ private:
 
             case NRFX_SAADC_EVT_DONE:
             {
-                const float max = nrf_saadc_value_max_get(NRF_SAADC_RESOLUTION_12BIT);
+                const float max = nrf_saadc_value_max_get(Resolution);
                 const float scale = 1.0f / max;
 
                 Array<float, ChannelCount> channels;
                 for (uint32_t i = 0; i < ChannelCount; i++)
                 {
-                    auto value = NRFX_SAADC_SAMPLE_GET(NRF_SAADC_RESOLUTION_12BIT, 
-                        p_event->data.done.p_buffer, i);
+                    auto value = NRFX_SAADC_SAMPLE_GET(Resolution, p_event->data.done.p_buffer, i);
                     channels[i] = value * scale;
                 }
 
