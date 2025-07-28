@@ -22,6 +22,9 @@ struct uarte_nrfx_config2 {
 #endif
 };
 
+#pragma GCC push_options
+#pragma GCC optimize ("O0")
+
 class Uart : public Device, public OutputStream, public InputStreamWithDataReceived
 {
 public:
@@ -29,15 +32,18 @@ public:
     {
     }
 
-    virtual ReturnCode Initialize()
+    ReturnCode Initialize()
     {
         if (_initialized)
         {
             return ReturnCode::Success;
         }
 
+        auto rc = OnInitialize();
+        CHECK_RETURN_CODE(rc);
+
         auto error = uart_irq_callback_user_data_set(GetDevice(), OnInterrupt, this);
-        auto rc = ErrorConverter::Convert(error);
+        rc = ErrorConverter::Convert(error);
         CHECK_RETURN_CODE(rc);
 
         rc = _work.Initialize();
@@ -74,11 +80,10 @@ public:
 
     ReturnCode Read(Span<uint8_t> data, uint32_t& read) override
     {
-        CriticalSection cs;
-
         auto rc = Initialize();
         CHECK_RETURN_CODE(rc);
 
+        CriticalSection cs;
         return _rxQueue.Dequeue(data, read);
     }
 
@@ -86,11 +91,10 @@ public:
 
     ReturnCode Write(Span<const uint8_t> data) override
     {
-        CriticalSection cs;
-
         auto rc = Initialize();
         CHECK_RETURN_CODE(rc);
 
+        CriticalSection cs;
         rc = _txQueue.Enqueue(data);
         CHECK_RETURN_CODE(rc);
 
@@ -102,6 +106,12 @@ public:
     constexpr uint32_t GetAvailable() override
     {
         return _rxQueue.GetCount();
+    }
+
+protected:
+    virtual ReturnCode OnInitialize()
+    {
+        return ReturnCode::Success;
     }
 
 private:
@@ -141,7 +151,13 @@ private:
             auto rc = _txQueue.Dequeue(buffer, read);
             if (rc == ReturnCode::Success)
             {
-                uart_fifo_fill(GetDevice(), buffer.GetData(), read);
+                auto err = uart_fifo_fill(GetDevice(), buffer.GetData(), read);
+                rc = ErrorConverter::Convert(err);
+
+                if (rc != ReturnCode::Success)
+                {
+                    _txQueue.Enqueue(buffer.Take(read));
+                }
 
                 if (_txQueue.IsEmpty())
                 {
@@ -162,3 +178,5 @@ private:
         uart->OnInterrupt();
     }
 };
+
+#pragma GCC pop_options

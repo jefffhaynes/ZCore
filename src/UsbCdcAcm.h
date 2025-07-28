@@ -11,12 +11,10 @@ class UsbCdcAcm : public Uart
         {
         }
 
-        ReturnCode Initialize() override
+    protected:
+        ReturnCode OnInitialize() override
         {
             auto error = usb_enable(nullptr);
-            auto rc = ErrorConverter::Convert(error);
-            CHECK_RETURN_CODE(rc);
-
-            return Uart::Initialize();
+            return ErrorConverter::Convert(error);
         }
 };
