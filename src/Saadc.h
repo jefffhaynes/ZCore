@@ -35,7 +35,7 @@ public:
         auto rc = ErrorConverter::Convert(err);
         CHECK_RETURN_CODE(rc);
 
-          nrfx_saadc_channel_t channels[ChannelCount] = 
+        nrfx_saadc_channel_t channels[ChannelCount] = 
         {
             NRFX_SAADC_DEFAULT_CHANNEL_SE(NRF_SAADC_INPUT_AIN0, 0),
             NRFX_SAADC_DEFAULT_CHANNEL_SE(NRF_SAADC_INPUT_AIN1, 1),
