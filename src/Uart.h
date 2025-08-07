@@ -22,8 +22,8 @@ struct uarte_nrfx_config2 {
 #endif
 };
 
-#pragma GCC push_options
-#pragma GCC optimize ("O0")
+// #pragma GCC push_options
+// #pragma GCC optimize ("O0")
 
 class Uart : public Device, public OutputStream, public InputStreamWithDataReceived
 {
@@ -179,4 +179,4 @@ private:
     }
 };
 
-#pragma GCC pop_options
+// #pragma GCC pop_options

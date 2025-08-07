@@ -11,8 +11,7 @@ public:
     {
 #ifndef CONFIG_SCHED_THREAD_USAGE_ALL
         return ReturnCode::NotSupported;
-#endif
-
+#else
         k_thread_runtime_stats_t stats;
         auto err = k_thread_runtime_stats_all_get(&stats);
         auto rc = ErrorConverter::Convert(err);
@@ -21,5 +20,6 @@ public:
         utilization = stats.total_cycles / (float) stats.execution_cycles;
 
         return ReturnCode::Success;
+#endif // CONFIG_SCHED_THREAD_USAGE_ALL
     }
 };
