@@ -113,7 +113,7 @@ public:
 #if defined(CONFIG_USE_SEGGER_RTT)
         return Write(RTT_CTRL_CLEAR);
 #else
-        return ReturnCode::NotImplemented;
+        return ReturnCode::Success;
 #endif
     }
 
@@ -128,7 +128,7 @@ public:
 #if defined(CONFIG_USE_SEGGER_RTT)
         return Write(RTT_CTRL_RESET);
 #else
-        return ReturnCode::NotImplemented;
+        return ReturnCode::Success;
 #endif
     }
 
@@ -170,7 +170,7 @@ private:
         auto err = SEGGER_RTT_Write(Channel, data.GetData(), data.GetLength());
         return ErrorConverter::Convert(err);
 #else
-        return ReturnCode::NotImplemented;
+        return ReturnCode::Success;
 #endif
     }
 
