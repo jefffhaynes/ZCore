@@ -36,12 +36,12 @@ public:
 
     ReturnCode Join(TimeSpan timeout)
     {
-        return Join(K_MSEC(timeout.ToMilliseconds()));
+        return Join(K_USEC(timeout.ToMicroseconds()));
     }
 
     static void Sleep(TimeSpan duration)
     {
-        k_sleep(K_MSEC(duration.ToMilliseconds()));
+        k_sleep(K_USEC(duration.ToMicroseconds()));
     }
 
 private:
@@ -66,7 +66,7 @@ private:
         }
         else if constexpr (sizeof...(Args) == 2)
         {
-            _entryPoint(std::get<1>(_args));
+            _entryPoint(std::get<0>(_args), std::get<1>(_args));
         }
     }
 

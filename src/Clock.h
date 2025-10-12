@@ -18,8 +18,18 @@ public:
 
     static void Sleep(TimeSpan duration)
     {
-        auto microseconds = (int) duration.ToMicroseconds();
-        k_usleep(microseconds);
+        auto milliseconds = static_cast<int>(duration.ToMilliseconds());
+        if (milliseconds > 0)
+        {
+            k_msleep(milliseconds);
+            duration -= TimeSpan::FromMilliseconds(milliseconds);
+        }
+
+        auto microseconds = static_cast<int>(duration.ToMicroseconds());
+        if (microseconds > 0)
+        {
+            k_usleep(microseconds);
+        }
     }
 
     static ReturnCode EnableExternalOscillator()

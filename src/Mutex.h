@@ -20,7 +20,7 @@ public:
 
     ReturnCode Lock(TimeSpan timeout)
     {
-        auto err = k_mutex_lock(&_mutex, K_MSEC(timeout.ToMilliseconds()));
+        auto err = k_mutex_lock(&_mutex, K_USEC(timeout.ToMicroseconds()));
         return ErrorConverter::Convert(err);
     }
 

@@ -14,8 +14,8 @@ public:
 
     ReturnCode Wait(TimeSpan timeout)
     {
-        auto milliseconds = static_cast<uint32_t>(timeout.ToMilliseconds());
-        auto rc = k_sem_take(&_semaphore, K_MSEC(milliseconds));
+        auto microseconds = static_cast<uint32_t>(timeout.ToMicroseconds());
+        auto rc = k_sem_take(&_semaphore, K_USEC(microseconds));
 
         if(rc == -EAGAIN)
         {

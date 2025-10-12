@@ -22,11 +22,11 @@ public:
 
     constexpr ReturnCode Get(T& item, TimeSpan timeout = TimeSpan::Zero)
     {
-        auto err = k_msgq_get(&_queue, item, K_MSEC(timeout.ToMilliseconds()));
+        auto err = k_msgq_get(&_queue, &item, K_MSEC(timeout.ToMilliseconds()));
         return ErrorConverter::Convert(err);
     }
 
-    constexpr ReturnCode Peek(T& item, TimeSpan timeout = TimeSpan::Zero)
+    constexpr ReturnCode Peek(T& item)
     {
         auto err = k_msgq_peek(&_queue, &item);
         return ErrorConverter::Convert(err);
