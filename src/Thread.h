@@ -3,6 +3,7 @@
 #include <zephyr/kernel.h>
 #include "TimeSpan.h"
 #include "ErrorConverter.h"
+#include "TimeHelper.h"
 #include "Aligned.h"
 #include <tuple>
 
@@ -24,24 +25,24 @@ public:
         auto id = k_thread_create(&_thread, 
             _stack.Value, K_THREAD_STACK_SIZEOF(_stack.Value), 
             EntryPoint, this, nullptr, nullptr, 
-            K_PRIO_PREEMPT(7), 0, K_NO_WAIT);
+            K_PRIO_PREEMPT(7), 0, TimeHelper::NoWait());
 
         return id == nullptr ? ReturnCode::InvalidOperation : ReturnCode::Success;
     }
 
     ReturnCode Join()
     {
-        return Join(K_FOREVER);
+        return Join(TimeHelper::Forever());
     }
 
     ReturnCode Join(TimeSpan timeout)
     {
-        return Join(K_USEC(timeout.ToMicroseconds()));
+        return Join(TimeHelper::ToTimeout(timeout));
     }
 
     static void Sleep(TimeSpan duration)
     {
-        k_sleep(K_USEC(duration.ToMicroseconds()));
+        k_sleep(TimeHelper::ToTimeout(duration));
     }
 
 private:

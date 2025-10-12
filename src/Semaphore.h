@@ -3,6 +3,7 @@
 #include <zephyr/kernel.h>
 #include "TimeSpan.h"
 #include "ErrorConverter.h"
+#include "TimeHelper.h"
 
 class Semaphore
 {
@@ -14,8 +15,7 @@ public:
 
     ReturnCode Wait(TimeSpan timeout)
     {
-        auto microseconds = static_cast<uint32_t>(timeout.ToMicroseconds());
-        auto rc = k_sem_take(&_semaphore, K_USEC(microseconds));
+        auto rc = k_sem_take(&_semaphore, TimeHelper::ToTimeout(timeout));
 
         if(rc == -EAGAIN)
         {
@@ -27,7 +27,7 @@ public:
 
     ReturnCode Wait()
     {
-        auto rc = k_sem_take(&_semaphore, K_FOREVER);
+        auto rc = k_sem_take(&_semaphore, TimeHelper::Forever());
         return ErrorConverter::Convert(rc);
     }
     

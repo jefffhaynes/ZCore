@@ -2,6 +2,7 @@
 
 #include "TimeSpan.h"
 #include "ErrorConverter.h"
+#include "TimeHelper.h"
 
 #include <zephyr/kernel.h>
 #include <zephyr/drivers/clock_control.h>
@@ -18,18 +19,8 @@ public:
 
     static void Sleep(TimeSpan duration)
     {
-        auto milliseconds = static_cast<int>(duration.ToMilliseconds());
-        if (milliseconds > 0)
-        {
-            k_msleep(milliseconds);
-            duration -= TimeSpan::FromMilliseconds(milliseconds);
-        }
-
-        auto microseconds = static_cast<int>(duration.ToMicroseconds());
-        if (microseconds > 0)
-        {
-            k_usleep(microseconds);
-        }
+        auto timeout = TimeHelper::ToTimeout(duration);
+        k_sleep(timeout);
     }
 
     static ReturnCode EnableExternalOscillator()

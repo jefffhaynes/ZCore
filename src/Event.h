@@ -2,6 +2,7 @@
 
 #include <zephyr/kernel.h>
 #include "TimeSpan.h"
+#include "TimeHelper.h"
 
 class Event
 {
@@ -28,25 +29,25 @@ public:
 
     ReturnCode Wait(bool reset, uint32_t flags, TimeSpan timeout)
     {
-        auto result = k_event_wait(&_event, flags, reset, K_USEC(timeout.ToMicroseconds()));
+        auto result = k_event_wait(&_event, flags, reset, TimeHelper::ToTimeout(timeout));
         return result == flags ? ReturnCode::Success : ReturnCode::Timeout;
     }
 
     ReturnCode Wait(bool reset, uint32_t flags)
     {
-        auto result = k_event_wait(&_event, flags, reset, K_FOREVER);
+        auto result = k_event_wait(&_event, flags, reset, TimeHelper::Forever());
         return result == flags ? ReturnCode::Success : ReturnCode::Timeout;
     }
 
     ReturnCode WaitAll(bool reset, uint32_t flags, TimeSpan timeout)
     {
-        auto result = k_event_wait_all(&_event, flags, reset, K_USEC(timeout.ToMicroseconds()));
+        auto result = k_event_wait_all(&_event, flags, reset, TimeHelper::ToTimeout(timeout));
         return result == flags ? ReturnCode::Success : ReturnCode::Timeout;
     }
 
     ReturnCode WaitAll(bool reset, uint32_t flags)
     {
-        auto result = k_event_wait_all(&_event, flags, reset, K_FOREVER);
+        auto result = k_event_wait_all(&_event, flags, reset, TimeHelper::Forever());
         return result == flags ? ReturnCode::Success : ReturnCode::Timeout;
     }
 

@@ -7,6 +7,7 @@
 #include "TimeSpan.h"
 #include "EventHandler.h"
 #include "Flags.h"
+#include "TimeHelper.h"
 
 class Timer
 {
@@ -45,15 +46,15 @@ public:
         rc = Initialize();
         CHECK_RETURN_CODE(rc);
 
-        auto microseconds = static_cast<uint32_t>(period.ToMicroseconds());
+        auto timeout = TimeHelper::ToTimeout(period);
 
         if(mode == TimerMode::Single)
         {
-            k_timer_start(&_timer, K_USEC(microseconds), K_NO_WAIT);
+            k_timer_start(&_timer, timeout, TimeHelper::NoWait());
         }
         else
         {
-            k_timer_start(&_timer, K_USEC(microseconds), K_USEC(microseconds));
+            k_timer_start(&_timer, timeout, timeout);
         }
 
         _running = true;
