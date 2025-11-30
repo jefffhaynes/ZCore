@@ -1,5 +1,7 @@
 #pragma once
 
+#include "DebugHook.h"
+
 enum class ReturnCode
 {
     Success,
@@ -18,9 +20,13 @@ enum class ReturnCode
     Busy
 };
 
+
 #define CHECK_RETURN_CODE(rc)               \
-    do                                     \
-    {                                      \
+    do                                      \
+    {                                       \
         if ((rc) != ReturnCode::Success)    \
+        {                                   \
+            DebugHook::Trigger();           \
             return (rc);                    \
+        }                                   \
     } while (0)

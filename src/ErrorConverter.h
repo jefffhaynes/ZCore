@@ -16,15 +16,13 @@ public:
 
         switch(err)
         {
-            case -EPERM: return ReturnCode::InvalidOperation;
-            case -ENOENT: return ReturnCode::NotFound;
+            case -EIO: 
+            case -ENOENT: 
             case -ESRCH: return ReturnCode::NotFound; 
             case -EALREADY:
             case -EAGAIN: return ReturnCode::Busy;
-            case -EINVAL: return ReturnCode::InvalidOperation;
+            default: return ReturnCode::InvalidOperation;
         }
-
-        return ReturnCode::InvalidOperation;
     }
 
     static ReturnCode Convert(nrfx_err_t err)
