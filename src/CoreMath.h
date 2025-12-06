@@ -39,11 +39,5 @@ public:
     {
         return value < min ? min : (value > max ? max : value);
     }
-
-    template<typename T>
-    static constexpr T EuclideanModulo(T value, T mod)
-    {
-        return (value % mod + mod) % mod;
-    }
 };
 

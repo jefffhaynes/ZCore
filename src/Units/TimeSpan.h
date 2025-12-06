@@ -11,7 +11,6 @@ public:
 
     friend struct Unit<TimeSpan, true, ValueType>;
     friend constexpr TimeSpan operator*(ValueType, const TimeSpan&);
-    friend constexpr TimeSpan operator/(ValueType, const TimeSpan&);
 
     static constexpr TimeSpan FromNanoseconds(ValueType nanoseconds) { return FromNanounits(nanoseconds); }
     static constexpr TimeSpan FromMicroseconds(ValueType microseconds) { return FromMicrounits(microseconds); }

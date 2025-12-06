@@ -12,7 +12,6 @@ public:
     
     friend struct Unit<Angle>;
     friend constexpr Angle operator*(ValueType, const Angle&);
-    friend constexpr Angle operator/(ValueType, const Angle&);
 
     static constexpr Angle FromRadians(ValueType radians) { return Angle(radians); }
     static constexpr Angle FromDegrees(ValueType degrees) { return Angle(degrees * RadiansPerDegree); }

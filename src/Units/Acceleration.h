@@ -11,7 +11,6 @@ public:
 
     friend struct Unit<Acceleration>;
     friend constexpr Acceleration operator*(ValueType, const Acceleration&);
-    friend constexpr Acceleration operator/(ValueType, const Acceleration&);
 
     static constexpr Acceleration FromMetersPerSecondSquared(ValueType metersPerSecondSquared) 
     { 

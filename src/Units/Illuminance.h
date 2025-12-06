@@ -11,7 +11,6 @@ public:
 
     friend struct Unit<Illuminance, false>;
     friend constexpr Illuminance operator*(ValueType k, const Illuminance& u);
-    friend constexpr Illuminance operator/(ValueType k, const Illuminance& u);
 
     static constexpr Illuminance FromLux(ValueType lux) { return Illuminance(lux); }
 

@@ -11,7 +11,6 @@ public:
 
     friend struct Unit<Temperature, false>;
     friend constexpr Temperature operator*(ValueType, const Temperature&);
-    friend constexpr Temperature operator/(ValueType, const Temperature&);
 
     static constexpr Temperature FromKelvin(ValueType kelvin) { return Temperature(kelvin); }
     static constexpr Temperature FromCelsius(ValueType celsius) { return Temperature(celsius + CelsiusOffset); }

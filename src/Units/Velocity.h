@@ -14,7 +14,6 @@ public:
     
     friend struct Unit<Velocity>;
     friend constexpr Velocity operator*(ValueType, const Velocity&);
-    friend constexpr Velocity operator/(ValueType, const Velocity&);
 
     static constexpr Velocity FromCentimetersPerSecond(ValueType centimetersPerSecond) 
     {

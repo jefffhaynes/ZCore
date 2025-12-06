@@ -11,7 +11,6 @@ public:
 
     friend struct Unit<Force>;
     friend constexpr Force operator*(ValueType, const Force&);
-    friend constexpr Force operator/(ValueType, const Force&);
 
     static constexpr Force FromNewtons(ValueType newtons) { return Force(newtons); }
     static constexpr Force FromKilonewtons(ValueType kilonewtons) { return FromKilounits(kilonewtons); }

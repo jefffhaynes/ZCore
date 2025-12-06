@@ -11,7 +11,6 @@ public:
 
     friend struct Unit<Mass>;
     friend constexpr Mass operator*(ValueType, const Mass&);
-    friend constexpr Mass operator/(ValueType, const Mass&);
 
     static constexpr Mass FromGrams(ValueType grams) { return Mass(grams); }
     static constexpr Mass FromKilograms(ValueType kilograms) { return FromKilounits(kilograms); }

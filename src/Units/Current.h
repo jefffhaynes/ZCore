@@ -11,7 +11,6 @@ public:
 
     friend struct Unit<Current>;
     friend constexpr Current operator*(ValueType, const Current&);
-    friend constexpr Current operator/(ValueType, const Current&);
 
     static constexpr Current FromMicroamperes(ValueType microamperes) { return FromMicrounits(microamperes); }
     static constexpr Current FromMilliamperes(ValueType milliamperes) { return FromMilliunits(milliamperes); }

@@ -11,7 +11,6 @@ public:
 
     friend struct Unit<Voltage>;
     friend constexpr Voltage operator*(ValueType, const Voltage&);
-    friend constexpr Voltage operator/(ValueType, const Voltage&);
 
     static constexpr Voltage FromMillivolts(ValueType millivolts)
     {

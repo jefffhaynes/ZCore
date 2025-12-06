@@ -11,7 +11,6 @@ public:
 
     friend struct Unit<SignalStrength>;
     friend constexpr SignalStrength operator*(ValueType, const SignalStrength&);
-    friend constexpr SignalStrength operator/(ValueType, const SignalStrength&);
 
     static constexpr SignalStrength FromDecibels(ValueType decibels) { return SignalStrength(decibels); }
     static constexpr SignalStrength FromPower(ValueType power) { return SignalStrength(PowerScale * std::log10(power)); }

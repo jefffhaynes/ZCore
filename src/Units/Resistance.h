@@ -11,7 +11,6 @@ public:
 
     friend struct Unit<Resistance>;
     friend constexpr Resistance operator*(ValueType k, const Resistance& u);
-    friend constexpr Resistance operator/(ValueType k, const Resistance& u);
 
     static constexpr Resistance FromOhms(ValueType ohms) { return Resistance(ohms); }
     static constexpr Resistance FromKiloohms(ValueType kiloohms) { return FromKilounits(kiloohms); }

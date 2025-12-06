@@ -12,7 +12,6 @@ public:
 
     friend struct Unit<Frequency, false>;
     friend constexpr Frequency operator*(ValueType, const Frequency&);
-    friend constexpr Frequency operator/(ValueType, const Frequency&);
 
     static constexpr Frequency FromMillihertz(ValueType millihertz) { return FromMilliunits(millihertz); }
     static constexpr Frequency FromHertz(ValueType hertz) { return Frequency(hertz); }

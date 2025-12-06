@@ -11,7 +11,6 @@ public:
 
     friend struct Unit<Power>;
     friend constexpr Power operator*(ValueType k, const Power& u);
-    friend constexpr Power operator/(ValueType k, const Power& u);
 
     static constexpr Power FromMilliwatts(ValueType milliwatts) { return FromMilliunits(milliwatts); }
     static constexpr Power FromWatts(ValueType watts) { return Power(watts); }

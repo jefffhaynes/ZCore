@@ -10,6 +10,7 @@
 #include "Power.h"
 #include "Illuminance.h"
 #include "SignalStrength.h"
+#include "Angle.h"
 
 #include <zephyr/bluetooth/bluetooth.h>
 #include <zephyr/bluetooth/uuid.h>
@@ -83,7 +84,7 @@ private:
             .func = nullptr,
         };
 
-        // there's a bit of a race condition that means this could always fail, but that's ok
+        // there's a bit of a race condition that means this could fail, but that's ok
         bt_gatt_notify_cb(connection, &parameters);
     
         return ReturnCode::Success;
@@ -99,6 +100,7 @@ class BluetoothLEValueCharacteristic : public BluetoothLECharacteristicBase
     typedef float TPower;
     typedef float TIlluminance;
     typedef float TSignalStrength;
+    typedef float TAngle;
     typedef uint32_t TTime;
 
 public:
@@ -181,6 +183,13 @@ private:
     {
 	    auto seconds = (TTime) value.ToSeconds();
         auto data = MemoryMarshal::AsConstBytes(seconds);
+        return BluetoothLECharacteristicBase::Notify(data, connection);
+    }
+
+    ReturnCode Notify(Angle value, void* connection)
+    {
+        auto degrees = value.ToDegrees();
+        auto data = MemoryMarshal::AsConstBytes(degrees);
         return BluetoothLECharacteristicBase::Notify(data, connection);
     }
 
@@ -283,6 +292,18 @@ private:
         return ReturnCode::Success;
     }
 
+    static constexpr ReturnCode Convert(Span<const uint8_t> data, Angle& value)
+    {
+        TAngle degrees = 0;
+        auto valueData = MemoryMarshal::AsBytes(degrees);
+        auto rc = data.CopyTo(valueData);
+        CHECK_RETURN_CODE(rc);
+
+        value = Angle::FromDegrees(degrees);
+
+        return ReturnCode::Success;
+    }
+
     static constexpr ReturnCode ConvertBack(float value, Span<uint8_t> data, uint32_t& read)
     {
         auto valueData = MemoryMarshal::AsConstBytes(value);
@@ -368,6 +389,18 @@ private:
     {
         auto seconds = (TTime) value.ToSeconds();
         auto valueData = MemoryMarshal::AsConstBytes(seconds);
+        auto rc = valueData.CopyTo(data);
+        CHECK_RETURN_CODE(rc);
+
+        read = valueData.GetLength();
+
+        return ReturnCode::Success;
+    }
+    
+    static constexpr ReturnCode ConvertBack(Angle value, Span<uint8_t> data, uint32_t& read)
+    {
+        auto degrees = (TTime) value.ToDegrees();
+        auto valueData = MemoryMarshal::AsConstBytes(degrees);
         auto rc = valueData.CopyTo(data);
         CHECK_RETURN_CODE(rc);
 

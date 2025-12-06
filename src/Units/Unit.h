@@ -4,10 +4,18 @@
 #include <limits>
 #include <type_traits>
 
+struct UnitBase {};
+
+template <typename T>
+inline constexpr bool IsUnit =
+    std::is_base_of_v<UnitBase, std::remove_cvref_t<T>>;
+
 template <typename Derived, bool Signed = true, typename TValue = float>
     requires(std::is_floating_point_v<TValue>)
-class Unit
+class Unit : public UnitBase
 {
+    friend class UnitHelper;
+
 public:
     using ValueType = TValue;
     constexpr Unit() = default;
@@ -42,11 +50,6 @@ public:
         return Derived{ k * u._value };
     }
 
-    friend constexpr Derived operator/(ValueType k, const Derived& u)
-    {
-        return Derived{ k / u._value };
-    }
-
     static constexpr Derived Zero()
     {
         return Derived(static_cast<ValueType>(0));
@@ -67,12 +70,6 @@ public:
         return Derived(_value < static_cast<ValueType>(0) ? -_value : _value);
     }
 
-    constexpr Derived EuclideanModulo(const Derived& mod) const requires(Signed)
-    {
-        return Derived{ std::fmod(_value + mod._value, mod._value) };
-    }
-
-
 protected:
     constexpr explicit Unit(ValueType value) : _value{ value } {}
     ~Unit() = default;
@@ -86,18 +83,18 @@ protected:
     static constexpr Derived FromKilounits(ValueType kilounits) { return Derived(kilounits * k); }
     static constexpr Derived FromMegaunits(ValueType megaunits) { return Derived(megaunits * M); }
     static constexpr Derived FromGigaunits(ValueType gigaunits) { return Derived(gigaunits * G); }
-    static constexpr Derived FromTerraunits(ValueType terraunits) { return Derived(terraunits * T); }
+    static constexpr Derived FromTeraunits(ValueType teraunits) { return Derived(teraunits * T); }
 
     /* conversion */
     constexpr ValueType ToNanounits() const { return _value * G; }
     constexpr ValueType ToMicrounits() const { return _value * M; }
     constexpr ValueType ToMilliunits() const { return _value * k; }
-    constexpr ValueType ToCentiunits() const { return _value * c; }
+    constexpr ValueType ToCentiunits() const { return _value * h; }
     constexpr ValueType ToUnits() const { return _value; }
     constexpr ValueType ToKilounits() const { return _value * m; }
     constexpr ValueType ToMegaunits() const { return _value * u; }
     constexpr ValueType ToGigaunits() const { return _value * n; }
-    constexpr ValueType ToTerraunits() const { return _value * p; }
+    constexpr ValueType ToTeraunits() const { return _value * p; }
 
 private:
     static constexpr ValueType p = 1e-12;
@@ -105,6 +102,7 @@ private:
     static constexpr ValueType u = 1e-6; 
     static constexpr ValueType m = 1e-3;
     static constexpr ValueType c = 1e-2;
+    static constexpr ValueType h = 1e2;
     static constexpr ValueType k = 1e3;
     static constexpr ValueType M = 1e6;
     static constexpr ValueType G = 1e9;

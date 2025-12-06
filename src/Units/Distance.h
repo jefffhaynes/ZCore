@@ -11,7 +11,6 @@ public:
 
     friend struct Unit<Distance>;
     friend constexpr Distance operator*(ValueType, const Distance&);
-    friend constexpr Distance operator/(ValueType, const Distance&);
 
     static constexpr Distance FromMillimeters(ValueType millimeters) { return FromMilliunits(millimeters); }
     static constexpr Distance FromCentimeters(ValueType centimeters) { return FromCentiunits(centimeters); }
