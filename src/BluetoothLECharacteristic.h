@@ -399,7 +399,7 @@ private:
     
     static constexpr ReturnCode ConvertBack(Angle value, Span<uint8_t> data, uint32_t& read)
     {
-        auto degrees = (TTime) value.ToDegrees();
+        auto degrees = (TAngle) value.ToDegrees();
         auto valueData = MemoryMarshal::AsConstBytes(degrees);
         auto rc = valueData.CopyTo(data);
         CHECK_RETURN_CODE(rc);
