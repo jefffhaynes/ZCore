@@ -2,31 +2,14 @@
 
 #include "Span.h"
 #include "SettingBase.h"
-
-// disable optimizations
-// #pragma GCC push_options
-// #pragma GCC optimize ("O0")
+#include "Timer.h"
 
 class SettingsBase
 {
 public:
-    static ReturnCode Load()
+    static ReturnCode ResetAll()
     {
-        auto rc = Initialize();
-        CHECK_RETURN_CODE(rc);
-
-        auto err = settings_load();
-        return ErrorConverter::Convert(err);
-    }
-
-protected:
-    constexpr SettingsBase()
-    {
-    }
-
-    static ReturnCode Reset(Span<SettingBase*> settings)
-    {
-        for (auto* setting : settings)
+        for (auto* setting : _settings)
         {
             auto rc = setting->Reset();
             CHECK_RETURN_CODE(rc);
@@ -34,12 +17,11 @@ protected:
 
         return ReturnCode::Success;
     }
-
-    static int OnSet(Span<SettingBase*> settings, 
-        const char* name, size_t len, 
+    
+    static int OnSet(const char* name, size_t len, 
         settings_read_cb read_cb, void *cb_arg)
     {
-        for (auto* setting : settings)
+        for (auto* setting : _settings)
         {
             auto nameValue = String::FromNullTerminated(name);
             auto keyValue = setting->GetKey();
@@ -62,8 +44,26 @@ protected:
         return 0;
     }
 
+
+protected:
+    constexpr SettingsBase()
+    {
+    }
+
+    static ReturnCode Load(Span<SettingBase*> settings)
+    {
+        auto rc = Initialize();
+        CHECK_RETURN_CODE(rc);
+
+        _settings = settings;
+
+        auto err = settings_load();
+        return ErrorConverter::Convert(err);
+    }
+
 private:
     static bool _initialized;
+    static Span<SettingBase*> _settings;
     
     static ReturnCode Initialize()
     {
@@ -80,10 +80,7 @@ private:
 
         return ReturnCode::Success;
     }
-
 };
 
 inline bool SettingsBase::_initialized = false;
-
-
-// #pragma GCC pop_options
+inline Span<SettingBase*> SettingsBase::_settings;
