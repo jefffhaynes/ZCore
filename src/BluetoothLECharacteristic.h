@@ -19,7 +19,8 @@
 class BluetoothLECharacteristicBase
 {
 public:
-    BluetoothLECharacteristicBase(bt_uuid_128& uuid, TimeSpan updateCooldown = TimeSpan::FromMilliseconds(50)) : 
+    static constexpr TimeSpan DefaultUpdateCooldown = TimeSpan::FromMilliseconds(50);
+    BluetoothLECharacteristicBase(bt_uuid_128& uuid, TimeSpan updateCooldown = DefaultUpdateCooldown) : 
         _uuid(uuid), _updateCooldown(updateCooldown), _attribute(nullptr)
     {
     }
@@ -104,8 +105,8 @@ class BluetoothLEValueCharacteristic : public BluetoothLECharacteristicBase
     typedef uint32_t TTime;
 
 public:
-    BluetoothLEValueCharacteristic(bt_uuid_128& uuid, TValue updateThreshold) : 
-        BluetoothLECharacteristicBase(uuid), _updateThreshold(updateThreshold)
+    BluetoothLEValueCharacteristic(bt_uuid_128& uuid, TimeSpan updateCooldown = DefaultUpdateCooldown) : 
+        BluetoothLECharacteristicBase(uuid, updateCooldown)
     {
     }
 
@@ -130,37 +131,20 @@ public:
         return ConvertBack(value, data, read);
     }
 
-    ReturnCode Update(TValue value, void* originator = nullptr)
-    {
-        TValue currentValue;
-        auto rc = GetValue(currentValue);
-        CHECK_RETURN_CODE(rc);
-
-        if constexpr(std::is_same_v<TValue, bool>)
-        {
-            if (currentValue == value)
-            {
-                return ReturnCode::Success;
-            }
-        }
-        else if (currentValue < value + _updateThreshold && value < currentValue + _updateThreshold)
-        {
-            return ReturnCode::Success;
-        }
-
-        return Notify(value, originator);
-    }
-
     EventHandler<TValue, void*> Updated;
 
 protected:
     virtual ReturnCode GetValue(TValue& value) = 0;
     virtual ReturnCode SetValue(TValue value) = 0;
 
-private:
-    TValue _updateThreshold;
 
     ReturnCode Notify(float value, void* connection)
+    {
+        auto data = MemoryMarshal::AsConstBytes(value);
+        return BluetoothLECharacteristicBase::Notify(data, connection);
+    }
+
+    ReturnCode Notify(bool value, void* connection)
     {
         auto data = MemoryMarshal::AsConstBytes(value);
         return BluetoothLECharacteristicBase::Notify(data, connection);
@@ -414,9 +398,31 @@ template<typename TValue>
 class BluetoothLECharacteristic : public BluetoothLEValueCharacteristic<TValue>
 {
 public:
-    BluetoothLECharacteristic(bt_uuid_128& uuid, TValue updateThreshold, TValue initialValue) :
-        BluetoothLEValueCharacteristic<TValue>(uuid, updateThreshold), _value(initialValue)
+    BluetoothLECharacteristic(bt_uuid_128& uuid, TValue updateThreshold, TValue initialValue, 
+        TimeSpan updateCooldown = BluetoothLECharacteristicBase::DefaultUpdateCooldown) :
+        BluetoothLEValueCharacteristic<TValue>(uuid, updateCooldown), _updateThreshold(updateThreshold), _value(initialValue)
     {
+    }
+
+    ReturnCode Update(TValue value, void* originator = nullptr)
+    {
+        TValue currentValue;
+        auto rc = GetValue(currentValue);
+        CHECK_RETURN_CODE(rc);
+
+        if constexpr(std::is_same_v<TValue, bool>)
+        {
+            if (currentValue == value)
+            {
+                return ReturnCode::Success;
+            }
+        }
+        else if (currentValue < value + _updateThreshold && value < currentValue + _updateThreshold)
+        {
+            return ReturnCode::Success;
+        }
+
+        return BluetoothLEValueCharacteristic<TValue>::Notify(value, originator);
     }
 
 protected:
@@ -433,6 +439,7 @@ protected:
     }
 
 private:
+    TValue _updateThreshold;
     TValue _value;
 };
 
@@ -443,11 +450,17 @@ public:
     typedef TValue (*SettingGetter)();
     typedef ReturnCode (*SettingSetter)(TValue);
 
-    BluetoothLESettingCharacteristic(bt_uuid_128& uuid, TValue updateThreshold,
-        SettingGetter getter, SettingSetter setter = nullptr) :
-        BluetoothLEValueCharacteristic<TValue>(uuid, updateThreshold), 
-        _getter(getter), _setter(setter)
+    BluetoothLESettingCharacteristic(bt_uuid_128& uuid,
+        SettingGetter getter, SettingSetter setter = nullptr, 
+        TimeSpan updateCooldown = BluetoothLECharacteristicBase::DefaultUpdateCooldown) : 
+            BluetoothLEValueCharacteristic<TValue>(uuid, updateCooldown), _getter(getter), _setter(setter)
     {
+    }
+
+    ReturnCode TriggerUpdate(void* connection = nullptr)
+    {
+        TValue value = _getter();
+        return BluetoothLEValueCharacteristic<TValue>::Notify(value, connection);
     }
 
 protected:
@@ -470,6 +483,11 @@ protected:
 private:
     SettingGetter _getter;
     SettingSetter _setter;
+
+    ReturnCode Notify(TValue value)
+    {
+        return BluetoothLEValueCharacteristic<TValue>::Notify(value, nullptr);
+    }
 };
 
 
