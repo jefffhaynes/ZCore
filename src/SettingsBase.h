@@ -57,6 +57,12 @@ protected:
 
         _settings = settings;
 
+        rc = _autoSaveTimer.Expired.Subscribe(AutoSave);
+        CHECK_RETURN_CODE(rc);
+
+        rc = _autoSaveTimer.Start(TimeSpan::FromSeconds(3), TimerMode::Repeating);
+        CHECK_RETURN_CODE(rc);
+
         auto err = settings_load();
         return ErrorConverter::Convert(err);
     }
@@ -64,6 +70,7 @@ protected:
 private:
     static bool _initialized;
     static Span<SettingBase*> _settings;
+    static Timer _autoSaveTimer;
     
     static ReturnCode Initialize()
     {
@@ -80,7 +87,19 @@ private:
 
         return ReturnCode::Success;
     }
+
+    static ReturnCode AutoSave(void* context)
+    {
+        for (auto* setting : _settings)
+        {
+            auto rc = setting->Flush();
+            CHECK_RETURN_CODE(rc);
+        }
+
+        return ReturnCode::Success;
+    }
 };
 
 inline bool SettingsBase::_initialized = false;
 inline Span<SettingBase*> SettingsBase::_settings;
+inline Timer SettingsBase::_autoSaveTimer = Timer(TimerOptions::Scheduled);
