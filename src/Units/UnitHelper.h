@@ -8,7 +8,7 @@ class UnitHelper
 {
 public:
     template<typename Derived, bool Signed, typename TValue>
-    static constexpr typename Unit<Derived, Signed, TValue>::ValueType ToRawValue(const Unit<Derived, Signed, TValue> unit)
+    static constexpr typename Unit<Derived, Signed, TValue>::ValueType ToRawValue(const Unit<Derived, Signed, TValue>& unit)
     {
         return unit._value;
     }
