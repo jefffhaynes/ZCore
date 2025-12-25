@@ -8,9 +8,6 @@
 #include <cstddef>
 #include <type_traits>
 
-// #pragma GCC push_options
-// #pragma GCC optimize ("O0")
-
 
 class StringFormatter
 {
@@ -314,6 +311,34 @@ private:
         return format_helper(buffer, size, format, static_cast<int>(value), args...);
     }
 
+    // Overload for int8_t
+    template<typename... Args>
+    static constexpr int format_helper(char*& buffer, size_t& size, const char*& format, int8_t value, Args... args) {
+        // Just reuse the int overload
+        return format_helper(buffer, size, format, static_cast<int>(value), args...);
+    }
+
+    // Overload for uint8_t
+    template<typename... Args>
+    static constexpr int format_helper(char*& buffer, size_t& size, const char*& format, uint8_t value, Args... args) {
+        // Just reuse the unsigned int overload
+        return format_helper(buffer, size, format, static_cast<unsigned int>(value), args...);
+    }
+
+    // Overload for int16_t
+    template<typename... Args>
+    static constexpr int format_helper(char*& buffer, size_t& size, const char*& format, int16_t value, Args... args) {
+        // Just reuse the int overload
+        return format_helper(buffer, size, format, static_cast<int>(value), args...);
+    }
+
+    // Overload for uint16_t
+    template<typename... Args>
+    static constexpr int format_helper(char*& buffer, size_t& size, const char*& format, uint16_t value, Args... args) {
+        // Just reuse the unsigned int overload
+        return format_helper(buffer, size, format, static_cast<unsigned int>(value), args...);
+    }
+
     // Overload for float arguments with precision handling
     template<typename... Args>
     static constexpr int format_helper(char*& buffer, size_t& size, const char*& format, float value, Args... args) {
@@ -356,6 +381,13 @@ private:
             }
         }
         return format_helper(buffer, size, format);
+    }
+
+    // Overload for double arguments
+    template<typename... Args>
+    static constexpr int format_helper(char*& buffer, size_t& size, const char*& format, double value, Args... args) {
+        // Just reuse the float overload
+        return format_helper(buffer, size, format, static_cast<float>(value), args...);
     }
 
     // Overload for char arguments
@@ -436,5 +468,3 @@ private:
         return -1;   // Unsupported type
     }
 };
-
-// #pragma GCC pop_options

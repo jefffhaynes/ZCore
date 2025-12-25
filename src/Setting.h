@@ -11,7 +11,7 @@ template <typename T>
 class Setting<T, false> : public SettingBase
 {
 public:
-    constexpr Setting(StringLiteral key, T defaultValue) : SettingBase(key),
+    constexpr Setting(StringLiteral key, T defaultValue, bool throttle = false) : SettingBase(key, throttle),
         _value(defaultValue), _defaultValue(defaultValue)
     {
     }
@@ -65,7 +65,7 @@ template <typename T>
 class Setting<T, true> : public SettingBase
 {
 public:
-    constexpr Setting(StringLiteral key, T defaultValue) : SettingBase(key),
+    constexpr Setting(StringLiteral key, T defaultValue, bool throttle = false) : SettingBase(key, throttle),
         _value(defaultValue), _defaultValue(defaultValue)
     {
     }

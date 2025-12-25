@@ -14,7 +14,7 @@ public:
     virtual ReturnCode Reset() = 0;
 
 protected:
-    constexpr SettingBase(StringLiteral key) : _key(key)
+    constexpr SettingBase(StringLiteral key, bool throttle) : _key(key), _throttle(throttle)
     {
     }
 
@@ -31,14 +31,19 @@ protected:
 
     ReturnCode Save(Span<const uint8_t> value)
     {
-        auto rc = value.CopyTo(_valueBuffer.AsSpan());
-        CHECK_RETURN_CODE(rc);
+        if (_throttle)
+        {
+            auto rc = value.CopyTo(_valueBuffer.AsSpan());
+            CHECK_RETURN_CODE(rc);
 
-        _valueLength = value.GetLength();
+            _valueSpan = _valueBuffer.Take(value.GetLength());
 
-        _dirty = true;
+            _dirty = true;
 
-        return ReturnCode::Success;
+            return ReturnCode::Success;
+        }
+
+        return SaveImpl(value);
     }
 
     StringLiteral GetKey() const
@@ -54,7 +59,8 @@ private:
 
     StringLiteral _key;
     Array<uint8_t, MaxValueLength> _valueBuffer;
-    uint32_t _valueLength = 0;
+    Span<const uint8_t> _valueSpan;
+    bool _throttle;
     bool _dirty = false;
 
     ReturnCode Flush()
@@ -64,12 +70,17 @@ private:
             return ReturnCode::Success;
         }
 
-        auto err = settings_save_one(_key.GetData(), _valueBuffer.GetData(), _valueLength);
-        auto rc = ErrorConverter::Convert(err);
+        auto rc = SaveImpl(_valueSpan);
         CHECK_RETURN_CODE(rc);
 
         _dirty = false;
 
         return ReturnCode::Success;
+    }
+
+    ReturnCode SaveImpl(Span<const uint8_t> value)
+    {
+        auto err = settings_save_one(_key.GetData(), value.GetData(), value.GetLength());
+        return ErrorConverter::Convert(err);
     }
 };
