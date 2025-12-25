@@ -49,8 +49,7 @@ public:
 	    struct adc_sequence sequence = {
             .buffer = &sample,
             /* buffer size in bytes, not number of samples */
-            .buffer_size = sizeof(sample),
-            .oversampling = 5
+            .buffer_size = sizeof(sample)
         };
 
         auto err = adc_sequence_init_dt(&_adc, &sequence);
