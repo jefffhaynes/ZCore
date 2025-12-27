@@ -10,7 +10,7 @@ class EventHandler
 public:
     typedef ReturnCode (*EventHandlerCallback)(Args... args, void* context);
 
-    static constexpr uint32_t MaxCallbackCount = 2;
+    static constexpr uint32_t MaxCallbackCount = 4;
     
     constexpr EventHandler()
     {
