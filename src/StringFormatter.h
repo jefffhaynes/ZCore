@@ -274,7 +274,7 @@ private:
                     }
 
                     // Now handle specifier
-                    if (*format == 'd') {
+                    if (*format == 'd' || *format == 'i' || *format == 'u') {
                         ++format;
                         int len = integer_to_string(buffer, size, value, width, pad_char, always_sign);
                         if (len < 0) return -1;
