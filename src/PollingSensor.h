@@ -5,11 +5,6 @@
 class PollingSensor
 {
 public:
-    constexpr PollingSensor() : _timer(TimerOptions::Scheduled)
-    {
-        _timer.Expired.Subscribe(OnExpired, this);
-    }
-
     ReturnCode Start()
     {
         if(_timer.IsRunning())
@@ -21,7 +16,7 @@ public:
         auto rc = OnRefresh();
         CHECK_RETURN_CODE(rc);
 
-        return _timer.Start(GetPeriod(), TimerMode::Repeating);
+        return _timer.Start(_period, TimerMode::Repeating);
     }
 
     ReturnCode Stop()
@@ -30,11 +25,17 @@ public:
     }
 
 protected:
-    virtual TimeSpan GetPeriod() = 0;
+    constexpr PollingSensor(TimeSpan period) : 
+        _timer(TimerOptions::Scheduled), _period(period)
+    {
+        _timer.Expired.Subscribe(OnExpired, this);
+    }
+
     virtual ReturnCode OnRefresh() = 0;
 
 private:
     Timer _timer;
+    TimeSpan _period;
 
     static ReturnCode OnExpired(void* context)
     {
