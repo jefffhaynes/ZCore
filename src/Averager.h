@@ -14,7 +14,7 @@ public:
     constexpr T Update(T value, TimeSpan time = Clock::GetUptime())
     {
         auto alpha = GetAlpha(time);
-        _state = _state + alpha * (value - _state);
+        _state = _state + (value - _state) * alpha;
 
         _lastTime = time;
 
