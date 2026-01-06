@@ -3,6 +3,7 @@
 #include "Averager.h"
 #include "Testing/TestSupport.h"
 
+// initialization test
 static_assert([]{
     Averager<float> averager;
     auto value = averager.Update(5, TimeSpan::FromMilliseconds(100));
@@ -13,7 +14,7 @@ static_assert([]{
     Averager<float> averager;
     averager.Update(0, TimeSpan::FromMilliseconds(0));
     auto value = averager.Update(1, TimeSpan::FromMilliseconds(100));
-    return abs(value - 0.329679954f) < 0.001f;
+    return abs(value - 0.367879441f) < 0.001f;
 }(), "Averager failed");
 
 static_assert([]{
@@ -82,3 +83,12 @@ static_assert([]{
     auto value = averager.Update(TimeSpan::FromSeconds(1), TimeSpan::FromMilliseconds(200));
     return CoreMath::Abs(value - TimeSpan::FromSeconds(0.019801327)) < TimeSpan::FromSeconds(0.001);
 }(), "Averager failed");
+
+
+constexpr auto delta5 = []{
+    Averager<float> averager;
+    averager.Update(0, TimeSpan::Zero());
+    return averager.Update(1, TimeSpan::FromMilliseconds(500));
+}();
+
+static_assert(delta5 == 0.39346934f, "Averager failed");

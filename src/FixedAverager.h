@@ -1,13 +1,14 @@
 #pragma once
 
-#include "CoreMath.h"
-#include "TimeSpan.h"
+#include "AveragerHelper.h"
 
 template<typename T = float>
 class FixedAverager
 {
 public:
-    constexpr FixedAverager(float smoothing = 1.0f) : _scale(GetScale(smoothing))
+    constexpr FixedAverager(TimeSpan updateInterval = AveragerHelper::DefaultTimeConstant, 
+                            TimeSpan timeConstant = AveragerHelper::DefaultTimeConstant) : 
+                            _alpha(AveragerHelper::GetAlpha(updateInterval, timeConstant))
     {
     }
 
@@ -19,10 +20,8 @@ public:
             _initialized = true;
             return _state;
         }
-
-        auto scaledValue = value * _scale;
-        auto scaledState = _state * (1 - _scale);
-        _state = scaledValue + scaledState;
+        
+        _state = _state + _alpha * (value - _state);
 
         return _state;
     }
@@ -37,23 +36,13 @@ public:
         _initialized = false;
     }
 
-    constexpr void SetSmoothing(float smoothing)
+    constexpr void SetSmoothing(TimeSpan updateInterval, TimeSpan timeConstant)
     {
-        _scale = GetScale(smoothing);
+        _alpha = AveragerHelper::GetAlpha(updateInterval, timeConstant);
     }
 
 private:
     bool _initialized = false;
-    float _scale;
+    float _alpha;
     T _state = T();
-
-    static constexpr float GetScale(float smoothing)
-    {
-        if(smoothing <= 0.0f)
-        {
-            return 1.0f;
-        }
-
-        return 1 - CoreMath::Exp(-1.0f/smoothing);
-    }
 };

@@ -1,22 +1,21 @@
 #pragma once
 
 #include "Clock.h"
-#include "CoreMath.h"
+#include "AveragerHelper.h"
 
 template<typename T = float>
 class Averager
 {
 public:
-    constexpr Averager(TimeSpan tau = TimeSpan::FromSeconds(1)) : _tau(tau)
+    constexpr Averager(TimeSpan timeConstant = AveragerHelper::DefaultTimeConstant) : _timeConstant(timeConstant)
     {
     }
 
     constexpr T Update(T value, TimeSpan time = Clock::GetUptime())
     {
-        auto scale = GetScale(time);
-        auto scaledValue = value * scale;
-        auto scaledState = _state * (1 - scale);
-        _state = scaledValue + scaledState;
+        auto alpha = GetAlpha(time);
+        _state = _state + alpha * (value - _state);
+
         _lastTime = time;
 
         return _state;
@@ -27,14 +26,14 @@ public:
         return _state;
     }
 
-    constexpr void SetTau(TimeSpan tau)
+    constexpr void SetTimeConstant(TimeSpan timeConstant)
     {
-        _tau = tau;
+        _timeConstant = timeConstant;
     }
 
-    constexpr TimeSpan GetTau()
+    constexpr TimeSpan GetTimeConstant()
     {
-        return _tau;
+        return _timeConstant;
     }
 
     constexpr void Reset()
@@ -44,11 +43,11 @@ public:
 
 private:
     bool _initialized = false;
-    TimeSpan _tau;
+    TimeSpan _timeConstant;
     TimeSpan _lastTime;
     T _state = T();
 
-    constexpr float GetScale(TimeSpan time)
+    constexpr float GetAlpha(TimeSpan time)
     {
         if(!_initialized)
         {
@@ -57,19 +56,6 @@ private:
         }
 
         auto delta = time - _lastTime;
-
-        if (delta < TimeSpan::Zero())
-        {
-            delta = TimeSpan::Zero();
-        }
-
-        if (_tau == TimeSpan::Zero())
-        {
-            // zero time constant means instant change
-            return 1;
-        }
-
-        auto exponent = -delta / _tau;
-        return 1 - CoreMath::Exp(exponent);
+        return AveragerHelper::GetAlpha(delta, _timeConstant);
     }
 };
