@@ -32,12 +32,12 @@ public:
         return { X - other.X, Y - other.Y };
     }
 
-    constexpr Vector2 operator*(T value) const
+    constexpr Vector2 operator*(float value) const
     {
         return { X * value, Y * value };
     }
 
-    constexpr Vector2 operator/(T value) const
+    constexpr Vector2 operator/(float value) const
     {
         return { X / value, Y / value };
     }

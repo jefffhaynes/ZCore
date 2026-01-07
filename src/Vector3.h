@@ -33,12 +33,12 @@ struct Vector3
         return { X - other.X, Y - other.Y, Z - other.Z };
     }
 
-    constexpr Vector3 operator*(T value) const
+    constexpr Vector3 operator*(float value) const
     {
         return { X * value, Y * value, Z * value };
     }
 
-    constexpr Vector3 operator/(T value) const
+    constexpr Vector3 operator/(float value) const
     {
         return { X / value, Y / value, Z / value };
     }

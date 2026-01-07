@@ -5,17 +5,17 @@
 class GpioResetter
 {
 public:
-    constexpr GpioResetter(IGpio& gpio, bool set = true) : _gpio(gpio), _set(set)
+    constexpr GpioResetter(IGpio& gpio, bool initialState) : _gpio(gpio), _initialState(initialState)
     {
-        _gpio.Set(_set);
+        _gpio.Set(_initialState);
     }
 
     constexpr ~GpioResetter()
     {
-        _gpio.Set(!_set);
+        _gpio.Set(!_initialState);
     }
 
 private:
     IGpio& _gpio;
-    bool _set;
+    bool _initialState;
 };
