@@ -38,7 +38,17 @@ struct Vector3
         return { X * value, Y * value, Z * value };
     }
 
+    constexpr Vector3 operator*(int value) const
+    {
+        return { X * value, Y * value, Z * value };
+    }
+
     constexpr Vector3 operator/(float value) const
+    {
+        return { X / value, Y / value, Z / value };
+    }
+
+    constexpr Vector3 operator/(int value) const
     {
         return { X / value, Y / value, Z / value };
     }
