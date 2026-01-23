@@ -59,7 +59,13 @@ public:
 
     constexpr ReturnCode Write(uint8_t value)
     {
-        return _span.Set(_offset++, value);
+        if (_span.TrySet(_offset, value))
+        {
+            _offset++;
+            return ReturnCode::Success;
+        }
+
+        return ReturnCode::InvalidLength;
     }
 
     template<uint32_t N>
