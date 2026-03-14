@@ -11,6 +11,7 @@
 #include "Illuminance.h"
 #include "SignalStrength.h"
 #include "Angle.h"
+#include "Nullable.h"
 
 #include <zephyr/bluetooth/bluetooth.h>
 #include <zephyr/bluetooth/uuid.h>
@@ -22,6 +23,7 @@ public:
     typedef bt_gatt_attr* (*FindAttributeCallback)(const bt_uuid_128& uuid);
 
     static constexpr TimeSpan DefaultUpdateCooldown = TimeSpan::FromMilliseconds(50);
+
     BluetoothLECharacteristicBase(bt_uuid_128& uuid, TimeSpan updateCooldown = DefaultUpdateCooldown) : 
         _uuid(uuid), _updateCooldown(updateCooldown), _attribute(nullptr)
     {
@@ -41,11 +43,11 @@ protected:
         if(_attribute == nullptr)
         {
             _attribute = GetAttribute();
-        }
 
-        if (_attribute == nullptr)
-        {
-            return ReturnCode::NotFound;
+            if (_attribute == nullptr)
+            {
+                return ReturnCode::NotFound;
+            }
         }
 
         if(_lastUpdate + _updateCooldown > Clock::GetUptime())
@@ -137,17 +139,22 @@ public:
 
     ReturnCode Read(Span<uint8_t> data, uint32_t& read) override
     {
-        TValue value;
+        Nullable<TValue> value;
         auto rc = GetValue(value);
         CHECK_RETURN_CODE(rc);
 
-        return ConvertBack(value, data, read);
+        if (!value.HasValue())
+        {
+            return ReturnCode::NotFound;
+        }
+
+        return ConvertBack(value.GetValue(), data, read);
     }
 
     EventHandler<TValue, void*> Updated;
 
 protected:
-    virtual ReturnCode GetValue(TValue& value) = 0;
+    virtual ReturnCode GetValue(Nullable<TValue>& value) = 0;
     virtual ReturnCode SetValue(TValue value) = 0;
 
 
@@ -419,27 +426,34 @@ public:
 
     ReturnCode Update(TValue value, void* originator = nullptr)
     {
-        TValue currentValue;
-        auto rc = GetValue(currentValue);
+        Nullable<TValue> current;
+        auto rc = GetValue(current);
         CHECK_RETURN_CODE(rc);
 
-        if constexpr(std::is_same_v<TValue, bool>)
+        TValue currentValue;
+        if (current.TryGetValue(currentValue))
         {
-            if (currentValue == value)
+            if constexpr(std::is_same_v<TValue, bool>)
+            {
+                if (currentValue == value)
+                {
+                    return ReturnCode::Success;
+                }
+            }
+            else if (currentValue < value + _updateThreshold && value < currentValue + _updateThreshold)
             {
                 return ReturnCode::Success;
             }
         }
-        else if (currentValue < value + _updateThreshold && value < currentValue + _updateThreshold)
-        {
-            return ReturnCode::Success;
-        }
 
-        return BluetoothLEValueCharacteristic<TValue>::Notify(value, originator);
+        rc = BluetoothLEValueCharacteristic<TValue>::Notify(value, originator);
+        CHECK_RETURN_CODE(rc);
+
+        return SetValue(value);
     }
 
 protected:
-    ReturnCode GetValue(TValue& value) override
+    ReturnCode GetValue(Nullable<TValue>& value) override
     {
         value = _value;
         return ReturnCode::Success;
@@ -453,7 +467,7 @@ protected:
 
 private:
     TValue _updateThreshold;
-    TValue _value;
+    Nullable<TValue> _value;
 };
 
 template<typename TValue>
@@ -477,7 +491,7 @@ public:
     }
 
 protected:
-    ReturnCode GetValue(TValue& value) override
+    ReturnCode GetValue(Nullable<TValue>& value) override
     {
         value = _getter();
         return ReturnCode::Success;
