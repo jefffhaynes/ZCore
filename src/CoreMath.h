@@ -1,5 +1,7 @@
 #pragma once
 
+#include <stdint.h>
+
 // here because we need constexpr for unit tests
 // switch to std when available
 
@@ -38,6 +40,11 @@ public:
     static constexpr T Clamp(T value, T min, T max)
     {
         return value < min ? min : (value > max ? max : value);
+    }
+
+    static constexpr bool IsPowerOfTwo(uint32_t value)
+    {
+        return value != 0 && (value & (value - 1)) == 0;
     }
 };
 

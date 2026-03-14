@@ -1,41 +1,37 @@
 #pragma once
 
-#include <kernel.h>
+#include <Array.h>
+#include <Aligned.h>
+#include <zephyr/kernel.h>
 
-template<typename T, uint32_t Count, uint32_t Alignment>
-class MemorySlab
+
+template<uint32_t BlockSize, uint32_t BlockCount, uint32_t Alignment = 4>
+class MemorySlab 
 {
+    static_assert((BlockSize % Alignment) == 0, "BlockSize must be a multiple of Alignment");
+    
 public:
     constexpr MemorySlab()
     {
-        k_mem_slab_init(&_slab, _buffer.Value, sizeof(T), Count);
+        k_mem_slab_init(&_slab, _buffer.Value.GetData(), BlockSize, BlockCount);
     }
 
-    constexpr ReturnCode Alloc(T*& item, TimeSpan timeout = TimeSpan::Zero)
+    MemorySlab(const MemorySlab&) = delete;
+    MemorySlab& operator=(const MemorySlab&) = delete;
+    MemorySlab(MemorySlab&&) = delete;
+    MemorySlab& operator=(MemorySlab&&) = delete;
+
+    k_mem_slab* GetSlab()
     {
-        auto err = k_mem_slab_alloc(&_slab, reinterpret_cast<void**>(&item),
-            K_MSEC(timeout.ToMilliseconds()));
-        return ErrorConverter::Convert(err);
+        return &_slab;
     }
 
-    constexpr ReturnCode Free(T* item)
+    void Free(void* block)
     {
-        auto err = k_mem_slab_free(&_slab, reinterpret_cast<void*>(item));
-        return ErrorConverter::Convert(err);
+        k_mem_slab_free(&_slab, block);
     }
 
 private:
-    Aligned<T, Alignment> _buffer[Count * sizeof(T)];
+    Aligned<Array<uint8_t, BlockSize * BlockCount>, Alignment> _buffer;
     struct k_mem_slab _slab;
 };
-
-
-// #define K_MEM_SLAB_DEFINE_STATIC(name, slab_block_size, slab_num_blocks, slab_align) 
-	static char __noinit_named(k_mem_slab_buf_my_slab) 
-                __aligned(WB_UP(slab_align)) 
-                _k_mem_slab_buf_my_slab[(slab_num_blocks) * WB_UP(slab_block_size)];
-
-
-	static STRUCT_SECTION_ITERABLE(k_mem_slab, name) = \
-		Z_MEM_SLAB_INITIALIZER(name, _k_mem_slab_buf_##name, \
-					WB_UP(slab_block_size), slab_num_blocks)

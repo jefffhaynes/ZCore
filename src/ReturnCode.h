@@ -1,6 +1,5 @@
 #pragma once
 
-#include "DebugHook.h"
 
 enum class ReturnCode
 {
@@ -26,7 +25,6 @@ enum class ReturnCode
     {                                       \
         if ((rc) != ReturnCode::Success)    \
         {                                   \
-            DebugHook::Trigger();           \
             return (rc);                    \
         }                                   \
     } while (0)

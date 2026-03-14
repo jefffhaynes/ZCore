@@ -19,15 +19,17 @@
 class BluetoothLECharacteristicBase
 {
 public:
+    typedef bt_gatt_attr* (*FindAttributeCallback)(const bt_uuid_128& uuid);
+
     static constexpr TimeSpan DefaultUpdateCooldown = TimeSpan::FromMilliseconds(50);
     BluetoothLECharacteristicBase(bt_uuid_128& uuid, TimeSpan updateCooldown = DefaultUpdateCooldown) : 
         _uuid(uuid), _updateCooldown(updateCooldown), _attribute(nullptr)
     {
     }
 
-    static void SetFirstServiceAttribute(const bt_gatt_attr* attribute)
+    static void SetFindAttributeCallback(FindAttributeCallback callback)
     {
-        _firstServiceAttribute = attribute;
+        _findAttributeCallback = callback;
     }
 
     virtual ReturnCode Read(Span<uint8_t> data, uint32_t& read) = 0;
@@ -39,6 +41,11 @@ protected:
         if(_attribute == nullptr)
         {
             _attribute = GetAttribute();
+        }
+
+        if (_attribute == nullptr)
+        {
+            return ReturnCode::NotFound;
         }
 
         if(_lastUpdate + _updateCooldown > Clock::GetUptime())
@@ -63,15 +70,21 @@ protected:
     }
 
 private:
+    static FindAttributeCallback _findAttributeCallback;
+
     bt_uuid_128& _uuid;
     TimeSpan _updateCooldown;
     TimeSpan _lastUpdate;
-    static const bt_gatt_attr* _firstServiceAttribute;
     bt_gatt_attr* _attribute;
 
     bt_gatt_attr* GetAttribute()
     {
-        return bt_gatt_find_by_uuid(_firstServiceAttribute, 1, &_uuid.uuid);
+        if (_findAttributeCallback == nullptr)
+        {
+            return nullptr;
+        }
+
+        return _findAttributeCallback(_uuid);
     }
 
     ReturnCode NotifyImpl(Span<const uint8_t> data, bt_conn* connection = nullptr)
@@ -87,12 +100,12 @@ private:
 
         // there's a bit of a race condition that means this could fail, but that's ok
         bt_gatt_notify_cb(connection, &parameters);
-    
+
         return ReturnCode::Success;
     }
 };
 
-inline const bt_gatt_attr* BluetoothLECharacteristicBase::_firstServiceAttribute = nullptr;
+inline BluetoothLECharacteristicBase::FindAttributeCallback BluetoothLECharacteristicBase::_findAttributeCallback = nullptr;
 
 template<typename TValue>
 class BluetoothLEValueCharacteristic : public BluetoothLECharacteristicBase
