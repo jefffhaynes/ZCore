@@ -16,6 +16,12 @@ public:
     {
     }
 
+    ~Timer()
+    {
+        auto rc = Stop();
+        Debug::WriteIfError(rc);
+    }
+
     constexpr ReturnCode Initialize()
     {
         if(_timer.expiry_fn != nullptr)
@@ -89,8 +95,8 @@ public:
 private:
     TimerOptions _options;
     k_timer _timer = {};
-    Work _work;
     bool _running;
+    Work _work;
 
     constexpr bool IsScheduled()
     {

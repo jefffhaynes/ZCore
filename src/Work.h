@@ -17,6 +17,12 @@ public:
     {
     }
 
+    ~Work()
+    {
+        auto rc = CancelSync();
+        Debug::WriteIfError(rc);
+    }
+
     constexpr ReturnCode Initialize()
     {
         if(_initialized)
@@ -40,10 +46,22 @@ public:
         return ErrorConverter::Convert(err);
     }
 
+    ReturnCode CancelSync()
+    {
+        if(!_initialized)
+        {
+            return ReturnCode::Success;
+        }
+
+        k_work_cancel_sync(&_container.CallbackContext, &_sync);
+        return ReturnCode::Success;
+    }
+
     EventHandler<> Worker;
 
 private:
     CallbackContainer<k_work> _container;
+    k_work_sync _sync = {};
     bool _initialized;
 
     void OnWork()

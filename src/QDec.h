@@ -38,7 +38,6 @@ public:
     
 private:
     QDecOptions _options;
-    Work _work;
     Angle _value;
 
     struct SensorTriggerWithContext : public sensor_trigger
@@ -50,6 +49,7 @@ private:
     };
 
     const struct SensorTriggerWithContext Trigger;
+    Work _work;
 
     ReturnCode Read(Angle& angle)
     {
