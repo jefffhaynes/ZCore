@@ -525,6 +525,13 @@ public:
         BluetoothLECharacteristicBase(uuid)
     {
     }
+
+    ReturnCode TriggerUpdate(void* connection = nullptr)
+    {
+        auto name = String::FromNullTerminated(bt_get_name());
+        auto data = name.AsConstBytes();
+        return BluetoothLECharacteristicBase::Notify(data, connection);
+    }
     
     ReturnCode Write(Span<const uint8_t> data, const bt_conn* connection) override
     {
@@ -539,7 +546,10 @@ public:
         auto rc = data.CopyTo(span);
         CHECK_RETURN_CODE(rc);
 
-        return SetName(nameData);
+                rc = SetName(nameData);
+                CHECK_RETURN_CODE(rc);
+
+                return TriggerUpdate((void*) connection);
     }
 
     ReturnCode Read(Span<uint8_t> data, uint32_t& read) override
