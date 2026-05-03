@@ -1,10 +1,12 @@
 #pragma once
 
+#include <cassert>
+
 template<typename T>
 class Nullable
 {
 public:
-    constexpr Nullable() : _hasValue(false)
+    constexpr Nullable() : _hasValue(false), _value{}
     {
     }
 
@@ -50,7 +52,13 @@ public:
         return _value;
     }
 
-    constexpr bool TryGetValue(T& value)
+    constexpr const T& GetValue() const
+    {
+        assert(_hasValue);
+        return _value;
+    }
+
+    constexpr bool TryGetValue(T& value) const
     {
         if(!_hasValue)
         {
@@ -62,7 +70,7 @@ public:
         return true;
     }
 
-    constexpr T GetValueOrDefault()
+    constexpr T GetValueOrDefault() const
     {
         return _hasValue ? _value : T();
     }

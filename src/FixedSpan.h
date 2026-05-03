@@ -1,6 +1,10 @@
 #pragma once
 
+#include <cassert>
 #include <stdint.h>
+#include <type_traits>
+
+#include "Span.h"
 
 template<typename T, uint32_t Length>
 struct FixedSpan

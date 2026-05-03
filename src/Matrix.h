@@ -1,12 +1,14 @@
 #pragma once
 
+#include <initializer_list>
+
 #include <Span.h>
 
 template<typename T, uint32_t Rows, uint32_t Columns>
 class Matrix
 {
 public:
-    constexpr Matrix()
+    constexpr Matrix() : _data{}
     {
     }
 

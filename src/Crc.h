@@ -22,24 +22,38 @@ public:
 
     constexpr void Update(uint8_t data) override
     {
-        constexpr int Width = std::numeric_limits<T>::digits;
-        constexpr int Shift = Width - 8;
-
-        const uint8_t index = static_cast<uint8_t>((_crc >> Shift) ^ data);
-        _crc = static_cast<T>((_crc << 8) ^ _table[index]);
+        _crc = UpdateValue(_crc, data);
     }
 
     constexpr void Update(Span<const uint8_t> data) override
     {
-        for (auto b : data)
-        {
-            Update(b);
-        }
+        _crc = Calculate(data, _crc);
     }
 
     constexpr T GetValue() const
     {
         return _crc;
+    }
+
+    static constexpr T UpdateValue(T crc, uint8_t data)
+    {
+        constexpr int Width = std::numeric_limits<T>::digits;
+        constexpr int Shift = Width - 8;
+
+        const uint8_t index = static_cast<uint8_t>((crc >> Shift) ^ data);
+        return static_cast<T>((crc << 8) ^ _table[index]);
+    }
+
+    static constexpr T Calculate(Span<const uint8_t> data, T initialValue = InitialValue)
+    {
+        auto crc = initialValue;
+
+        for (auto b : data)
+        {
+            crc = UpdateValue(crc, b);
+        }
+
+        return crc;
     }
 
 private:
