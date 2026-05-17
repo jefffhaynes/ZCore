@@ -501,9 +501,9 @@ public:
     
     ReturnCode Write(Span<const uint8_t> data, const bt_conn* connection) override
     {
-        Array<char, CONFIG_BT_DEVICE_NAME_MAX> nameData;
+        Array<char, CONFIG_BT_DEVICE_NAME_MAX + 1> nameData;
         
-        if(data.GetLength() >= nameData.GetLength())
+        if(data.GetLength() > CONFIG_BT_DEVICE_NAME_MAX)
         {
             return ReturnCode::InvalidLength;
         }
