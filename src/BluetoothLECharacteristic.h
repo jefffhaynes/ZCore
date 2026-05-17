@@ -168,6 +168,16 @@ protected:
     virtual ReturnCode GetValue(Nullable<TValue>& value) = 0;
     virtual ReturnCode SetValue(TValue value) = 0;
 
+    static constexpr ReturnCode CopyExact(Span<const uint8_t> data, Span<uint8_t> valueData)
+    {
+        if (data.GetLength() != valueData.GetLength())
+        {
+            return ReturnCode::InvalidLength;
+        }
+
+        return data.CopyTo(valueData);
+    }
+
 
     ReturnCode Notify(float value, void* connection)
     {
@@ -232,26 +242,26 @@ protected:
     static constexpr ReturnCode Convert(Span<const uint8_t> data, float& value)
     {
         auto valueData = MemoryMarshal::AsBytes(value);
-        return data.CopyTo(valueData);
+        return CopyExact(data, valueData);
     }
 
     static constexpr ReturnCode Convert(Span<const uint8_t> data, uint32_t& value)
     {
         auto valueData = MemoryMarshal::AsBytes(value);
-        return data.CopyTo(valueData);
+        return CopyExact(data, valueData);
     }
     
     static constexpr ReturnCode Convert(Span<const uint8_t> data, bool& value)
     {
         auto valueData = MemoryMarshal::AsBytes(value);
-        return data.CopyTo(valueData);
+        return CopyExact(data, valueData);
     }
 
     static constexpr ReturnCode Convert(Span<const uint8_t> data, Power& value)
     {
         TPower watts = 0;
         auto valueData = MemoryMarshal::AsBytes(watts);
-        auto rc = data.CopyTo(valueData);
+        auto rc = CopyExact(data, valueData);
         CHECK_RETURN_CODE(rc);
 
         value = Power::FromWatts(watts);
@@ -263,7 +273,7 @@ protected:
     {
         TIlluminance lux = 0;
         auto valueData = MemoryMarshal::AsBytes(lux);
-        auto rc = data.CopyTo(valueData);
+        auto rc = CopyExact(data, valueData);
         CHECK_RETURN_CODE(rc);
 
         value = Illuminance::FromLux(lux);
@@ -275,7 +285,7 @@ protected:
     {
         TTemperature celsius = 0;
         auto valueData = MemoryMarshal::AsBytes(celsius);
-        auto rc = data.CopyTo(valueData);
+        auto rc = CopyExact(data, valueData);
         CHECK_RETURN_CODE(rc);
 
         value = Temperature::FromCelsius(celsius);
@@ -287,7 +297,7 @@ protected:
     {
         TSignalStrength db = 0;
         auto valueData = MemoryMarshal::AsBytes(db);
-        auto rc = data.CopyTo(valueData);
+        auto rc = CopyExact(data, valueData);
         CHECK_RETURN_CODE(rc);
 
         value = SignalStrength::FromDecibels(db);
@@ -299,7 +309,7 @@ protected:
     {
         TTime seconds = 0;
         auto valueData = MemoryMarshal::AsBytes(seconds);
-        auto rc = data.CopyTo(valueData);
+        auto rc = CopyExact(data, valueData);
         CHECK_RETURN_CODE(rc);
 
         value = TimeSpan::FromSeconds(seconds);
@@ -311,7 +321,7 @@ protected:
     {
         TAngle degrees = 0;
         auto valueData = MemoryMarshal::AsBytes(degrees);
-        auto rc = data.CopyTo(valueData);
+        auto rc = CopyExact(data, valueData);
         CHECK_RETURN_CODE(rc);
 
         value = Angle::FromDegrees(degrees);
