@@ -34,10 +34,21 @@ public:
         _findAttributeCallback = callback;
     }
 
-    virtual ReturnCode Read(Span<uint8_t> data, uint32_t& read) = 0;
+    virtual ReturnCode Read(Span<uint8_t> data, uint32_t& read, uint16_t offset) = 0;
     virtual ReturnCode Write(Span<const uint8_t> data, const bt_conn* connection) = 0;
 
 protected:
+    static ReturnCode ReadData(Span<const uint8_t> source, Span<uint8_t> destination, uint32_t& read, uint16_t offset)
+    {
+        auto chunk = source.Skip(offset).Take(destination.GetLength());
+        auto rc = chunk.CopyTo(destination);
+        CHECK_RETURN_CODE(rc);
+
+        read = chunk.GetLength();
+
+        return ReturnCode::Success;
+    }
+
     ReturnCode Notify(Span<const uint8_t> data, void* originator)
     {
         if(_attribute == nullptr)
@@ -137,7 +148,7 @@ public:
         return Updated.Invoke(value, (void*) connection);
     }
 
-    ReturnCode Read(Span<uint8_t> data, uint32_t& read) override
+    ReturnCode Read(Span<uint8_t> data, uint32_t& read, uint16_t offset) override
     {
         Nullable<TValue> value;
         auto rc = GetValue(value);
@@ -148,7 +159,7 @@ public:
             return ReturnCode::NotFound;
         }
 
-        return ConvertBack(value.GetValue(), data, read);
+        return ConvertBack(value.GetValue(), data, read, offset);
     }
 
     EventHandler<TValue, void*> Updated;
@@ -308,109 +319,64 @@ protected:
         return ReturnCode::Success;
     }
 
-    static constexpr ReturnCode ConvertBack(float value, Span<uint8_t> data, uint32_t& read)
+    static ReturnCode ConvertBack(float value, Span<uint8_t> data, uint32_t& read, uint16_t offset)
     {
         auto valueData = MemoryMarshal::AsConstBytes(value);
-        auto rc = valueData.CopyTo(data);
-        CHECK_RETURN_CODE(rc);
-
-        read = valueData.GetLength();
-
-        return ReturnCode::Success;
+        return BluetoothLECharacteristicBase::ReadData(valueData, data, read, offset);
     }
 
-    static constexpr ReturnCode ConvertBack(uint32_t value, Span<uint8_t> data, uint32_t& read)
+    static ReturnCode ConvertBack(uint32_t value, Span<uint8_t> data, uint32_t& read, uint16_t offset)
     {
         auto valueData = MemoryMarshal::AsConstBytes(value);
-        auto rc = valueData.CopyTo(data);
-        CHECK_RETURN_CODE(rc);
-
-        read = valueData.GetLength();
-
-        return ReturnCode::Success;
+        return BluetoothLECharacteristicBase::ReadData(valueData, data, read, offset);
     }
 
-    static constexpr ReturnCode ConvertBack(bool value, Span<uint8_t> data, uint32_t& read)
+    static ReturnCode ConvertBack(bool value, Span<uint8_t> data, uint32_t& read, uint16_t offset)
     {
         auto valueData = MemoryMarshal::AsConstBytes(value);
-        auto rc = valueData.CopyTo(data);
-        CHECK_RETURN_CODE(rc);
-
-        read = valueData.GetLength();
-
-        return ReturnCode::Success;
+        return BluetoothLECharacteristicBase::ReadData(valueData, data, read, offset);
     }
     
-    static constexpr ReturnCode ConvertBack(Temperature value, Span<uint8_t> data, uint32_t& read)
+    static ReturnCode ConvertBack(Temperature value, Span<uint8_t> data, uint32_t& read, uint16_t offset)
     {
         auto celsius = (TTemperature) value.ToCelsius();
         auto valueData = MemoryMarshal::AsConstBytes(celsius);
-        auto rc = valueData.CopyTo(data);
-        CHECK_RETURN_CODE(rc);
-
-        read = valueData.GetLength();
-
-        return ReturnCode::Success;
+        return BluetoothLECharacteristicBase::ReadData(valueData, data, read, offset);
     }
 
-    static constexpr ReturnCode ConvertBack(Power value, Span<uint8_t> data, uint32_t& read)
+    static ReturnCode ConvertBack(Power value, Span<uint8_t> data, uint32_t& read, uint16_t offset)
     {
         auto watts = (TPower) value.ToWatts();
         auto valueData = MemoryMarshal::AsConstBytes(watts);
-        auto rc = valueData.CopyTo(data);
-        CHECK_RETURN_CODE(rc);
-
-        read = valueData.GetLength();
-
-        return ReturnCode::Success;
+        return BluetoothLECharacteristicBase::ReadData(valueData, data, read, offset);
     }
     
-    static constexpr ReturnCode ConvertBack(SignalStrength value, Span<uint8_t> data, uint32_t& read)
+    static ReturnCode ConvertBack(SignalStrength value, Span<uint8_t> data, uint32_t& read, uint16_t offset)
     {
         auto db = (TSignalStrength) value.ToDecibels();
         auto valueData = MemoryMarshal::AsConstBytes(db);
-        auto rc = valueData.CopyTo(data);
-        CHECK_RETURN_CODE(rc);
-
-        read = valueData.GetLength();
-
-        return ReturnCode::Success;
+        return BluetoothLECharacteristicBase::ReadData(valueData, data, read, offset);
     }
 
-    static constexpr ReturnCode ConvertBack(Illuminance value, Span<uint8_t> data, uint32_t& read)
+    static ReturnCode ConvertBack(Illuminance value, Span<uint8_t> data, uint32_t& read, uint16_t offset)
     {
         auto lux = (TIlluminance) value.ToLux();
         auto valueData = MemoryMarshal::AsConstBytes(lux);
-        auto rc = valueData.CopyTo(data);
-        CHECK_RETURN_CODE(rc);
-
-        read = valueData.GetLength();
-
-        return ReturnCode::Success;
+        return BluetoothLECharacteristicBase::ReadData(valueData, data, read, offset);
     }
     
-    static constexpr ReturnCode ConvertBack(TimeSpan value, Span<uint8_t> data, uint32_t& read)
+    static ReturnCode ConvertBack(TimeSpan value, Span<uint8_t> data, uint32_t& read, uint16_t offset)
     {
         auto seconds = (TTime) value.ToSeconds();
         auto valueData = MemoryMarshal::AsConstBytes(seconds);
-        auto rc = valueData.CopyTo(data);
-        CHECK_RETURN_CODE(rc);
-
-        read = valueData.GetLength();
-
-        return ReturnCode::Success;
+        return BluetoothLECharacteristicBase::ReadData(valueData, data, read, offset);
     }
     
-    static constexpr ReturnCode ConvertBack(Angle value, Span<uint8_t> data, uint32_t& read)
+    static ReturnCode ConvertBack(Angle value, Span<uint8_t> data, uint32_t& read, uint16_t offset)
     {
         auto degrees = (TAngle) value.ToDegrees();
         auto valueData = MemoryMarshal::AsConstBytes(degrees);
-        auto rc = valueData.CopyTo(data);
-        CHECK_RETURN_CODE(rc);
-
-        read = valueData.GetLength();
-
-        return ReturnCode::Success;
+        return BluetoothLECharacteristicBase::ReadData(valueData, data, read, offset);
     }
 };
 
@@ -552,16 +518,11 @@ public:
                 return TriggerUpdate((void*) connection);
     }
 
-    ReturnCode Read(Span<uint8_t> data, uint32_t& read) override
+    ReturnCode Read(Span<uint8_t> data, uint32_t& read, uint16_t offset) override
     {
         auto name = String::FromNullTerminated(bt_get_name());
 	    auto nameSpan = name.AsConstBytes();
-	    auto rc = nameSpan.CopyTo(data);
-        CHECK_RETURN_CODE(rc);
-
-        read = nameSpan.GetLength();
-
-        return ReturnCode::Success;
+	    return ReadData(nameSpan, data, read, offset);
     }
 
 private:
