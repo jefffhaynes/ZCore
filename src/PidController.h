@@ -38,7 +38,7 @@ public:
         auto dtSeconds = static_cast<float>(dt.ToSeconds());
         _integral += dtSeconds * error;
         
-        _integralLimits.Clamp(_integral);
+        _integral = _integralLimits.Clamp(_integral);
 
         auto Iout = _ki * _integral;
 
