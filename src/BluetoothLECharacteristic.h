@@ -12,6 +12,7 @@
 #include "SignalStrength.h"
 #include "Angle.h"
 #include "Nullable.h"
+#include "ImageManager.h"
 
 #include <zephyr/bluetooth/bluetooth.h>
 #include <zephyr/bluetooth/uuid.h>
@@ -51,6 +52,11 @@ protected:
 
     ReturnCode Notify(Span<const uint8_t> data, void* originator)
     {
+        if (ImageManager::IsUpdating())
+        {
+            return ReturnCode::Success;
+        }
+
         if(_attribute == nullptr)
         {
             _attribute = GetAttribute();
