@@ -98,7 +98,7 @@ private:
     float _ki;
     float _kd;
     float _setPoint;
-    Range<float> _integralLimits = Range<float>(std::numeric_limits<float>::min(), std::numeric_limits<float>::max());
+    Range<float> _integralLimits = Range<float>(std::numeric_limits<float>::lowest(), std::numeric_limits<float>::max());
     float _integral;
     float _previousError;
 };

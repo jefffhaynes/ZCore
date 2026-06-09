@@ -42,14 +42,17 @@ public:
 
     constexpr T Clamp(T value) const
     {
-        if(value > _max)
-        {
-            return _max;
-        }
-
-        if(value < _min)
+        // Negated comparisons so that a NaN input (for which every ordered
+        // comparison is false) collapses to _min instead of passing through
+        // unclamped. Finite and +/-infinity inputs behave exactly as before.
+        if(!(value >= _min))
         {
             return _min;
+        }
+
+        if(!(value <= _max))
+        {
+            return _max;
         }
 
         return value;
