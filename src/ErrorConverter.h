@@ -21,6 +21,7 @@ public:
             case -ESRCH: return ReturnCode::NotFound; 
             case -EALREADY:
             case -EAGAIN: return ReturnCode::Busy;
+            case -ENOMEM: return ReturnCode::OutOfMemory;
             default: return ReturnCode::InvalidOperation;
         }
     }
