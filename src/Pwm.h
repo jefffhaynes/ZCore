@@ -39,9 +39,9 @@ public:
 private:
     ReturnCode Apply()
     {
-        auto period = _period.ToNanoseconds();
+        auto period = static_cast<uint32_t>(_period.ToNanoseconds());
         auto pulse = _dutyCycle * period;
-        auto err = pwm_set_dt(&_pwm, static_cast<uint32_t>(period), static_cast<uint32_t>(pulse));
+        auto err = pwm_set_dt(&_pwm, period, static_cast<uint32_t>(pulse));
         return ErrorConverter::Convert(err);
     }
 

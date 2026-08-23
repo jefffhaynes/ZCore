@@ -1,6 +1,8 @@
 #pragma once
 
 #include "SettingBase.h"
+#include <Range.h>
+#include <Nullable.h>
 #include "CoreString.h"
 #include "UnitHelper.h"
 
@@ -16,6 +18,11 @@ public:
     {
     }
 
+    constexpr Setting(StringLiteral key, T defaultValue, Range<T> range, bool throttle = false) : SettingBase(key, throttle),
+        _value(defaultValue), _defaultValue(defaultValue), _range(range)
+    {
+    }
+
     constexpr T Get() const
     {
         return _value;
@@ -23,6 +30,7 @@ public:
 
     constexpr ReturnCode Set(T value)
     {
+        value = _range.HasValue() ? _range.GetValue().Clamp(value) : value;
         auto data = MemoryMarshal::AsConstBytes(value);
         auto rc = SettingBase::Save(data);
         CHECK_RETURN_CODE(rc);
@@ -56,6 +64,7 @@ protected:
 private:
     T _value;
     T _defaultValue;
+    Nullable<Range<T>> _range;
 };
 
 
