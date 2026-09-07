@@ -1,7 +1,9 @@
 #pragma once
 
 #include <stdint.h>
+#include <assert.h>
 #include <cstring>
+#include <functional>
 #include <type_traits>
 #include "Iterator.h"
 #include "ReturnCode.h"
@@ -122,18 +124,23 @@ public:
     // within a single span.
     constexpr ReturnCode CopyTo(Span<std::remove_const_t<T>> other) const
     {
-        if(!std::is_constant_evaluated() && std::is_trivially_copyable_v<T>)
+        if(!std::is_constant_evaluated())
         {
-            auto length = GetLength();
+            assert(!Overlaps(other) && "CopyTo regions overlap - use ShiftLeft");
 
-            if(other.GetLength() < length)
+            if constexpr(std::is_trivially_copyable_v<T>)
             {
-                return ReturnCode::InvalidLength;
+                auto length = GetLength();
+
+                if(other.GetLength() < length)
+                {
+                    return ReturnCode::InvalidLength;
+                }
+
+                memcpy(other.GetData(), _data, length * sizeof(T));
+
+                return ReturnCode::Success;
             }
-
-            memcpy(other.GetData(), _data, length * sizeof(T));
-
-            return ReturnCode::Success;
         }
 
         return CopyTo(other, NoOp);
@@ -151,6 +158,11 @@ public:
         {
             return ReturnCode::InvalidArgument;
         }
+
+        if(!std::is_constant_evaluated())
+        {
+            assert(!Overlaps(other) && "CopyTo regions overlap - use ShiftLeft");
+        }
         
         auto length = GetLength();
 
@@ -165,6 +177,16 @@ public:
         }
 
         return ReturnCode::Success;
+    }
+
+    // True when the two spans share any memory. std::less provides the total
+    // pointer order the raw < operator only guarantees within one object.
+    template<typename TOther>
+    constexpr bool Overlaps(Span<TOther> other) const
+    {
+        std::less<const void*> before;
+        return before(_data, other.GetData() + other.GetLength())
+            && before(other.GetData(), _data + _length);
     }
 
     constexpr bool SequenceEquals(Span<T> other) const

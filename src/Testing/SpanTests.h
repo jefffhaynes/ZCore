@@ -33,6 +33,10 @@ namespace SpanTests
         return mutableSpan.TryCompare(0, 2);
     }(), "Set method failed");
 
+    static_assert(testSpan.Take(3).Overlaps(testSpan.Skip(2)), "Overlaps method failed");
+    static_assert(!testSpan.Take(2).Overlaps(testSpan.Skip(3)), "Overlaps method failed");
+    static_assert(!testSpan.Take(0).Overlaps(testSpan), "Overlaps method failed for empty span");
+
     static_assert([]{
         int values[5] = {1, 2, 3, 4, 5};
         Span<int> span(values);
