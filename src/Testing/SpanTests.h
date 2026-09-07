@@ -34,6 +34,23 @@ namespace SpanTests
     }(), "Set method failed");
 
     static_assert([]{
+        int values[5] = {1, 2, 3, 4, 5};
+        Span<int> span(values);
+        span.ShiftLeft(2);
+        return span.TryCompare(0, 3) && span.TryCompare(1, 4) && span.TryCompare(2, 5)
+            && span.TryCompare(3, 4) && span.TryCompare(4, 5);
+    }(), "ShiftLeft method failed");
+
+    static_assert([]{
+        int values[3] = {1, 2, 3};
+        Span<int> span(values);
+        span.ShiftLeft(0);
+        span.ShiftLeft(3);  // whole span discarded - storage untouched
+        span.ShiftLeft(7);  // beyond length - no-op
+        return span.TryCompare(0, 1) && span.TryCompare(1, 2) && span.TryCompare(2, 3);
+    }(), "ShiftLeft boundary handling failed");
+
+    static_assert([]{
         int value = 0;
         if(testSpan.Get(0, value) != ReturnCode::Success)
         {

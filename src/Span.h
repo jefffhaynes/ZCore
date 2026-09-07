@@ -179,6 +179,32 @@ public:
         }
     }
 
+    // Discards `count` elements from the front by sliding the remainder toward
+    // index zero; the vacated tail keeps its previous values. Unlike CopyTo,
+    // overlap is part of the contract here - this is the supported way to
+    // advance a sliding window in place.
+    constexpr void ShiftLeft(uint32_t count)
+    {
+        if(count == 0 || count >= _length)
+        {
+            return;
+        }
+
+        auto remaining = _length - count;
+
+        if(!std::is_constant_evaluated() && std::is_trivially_copyable_v<T>)
+        {
+            // the platform's optimized copy; memmove (unlike memcpy) permits overlap
+            memmove(_data, _data + count, remaining * sizeof(T));
+            return;
+        }
+
+        for(uint32_t i = 0; i < remaining; i++)
+        {
+            _data[i] = _data[i + count];
+        }
+    }
+
     constexpr auto Aggregate(T(*func)(T, T)) const
     {
         if (func == nullptr)
