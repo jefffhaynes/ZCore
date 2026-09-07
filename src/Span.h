@@ -118,8 +118,24 @@ public:
         return Span(_data + _length, 0);
     }
 
+    // Source and destination must not overlap; use ShiftLeft to slide data
+    // within a single span.
     constexpr ReturnCode CopyTo(Span<std::remove_const_t<T>> other) const
     {
+        if(!std::is_constant_evaluated() && std::is_trivially_copyable_v<T>)
+        {
+            auto length = GetLength();
+
+            if(other.GetLength() < length)
+            {
+                return ReturnCode::InvalidLength;
+            }
+
+            memcpy(other.GetData(), _data, length * sizeof(T));
+
+            return ReturnCode::Success;
+        }
+
         return CopyTo(other, NoOp);
     }
 
