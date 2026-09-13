@@ -29,3 +29,4 @@
 #include "CrcInputStreamTests.h"
 #include "PoolTests.h"
 #include "ReturnCodeTests.h"
+#include "PidControllerTests.h"

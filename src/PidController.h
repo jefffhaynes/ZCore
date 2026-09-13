@@ -28,16 +28,26 @@ public:
 
         // Calculate time since last update
         auto dt = time - _lastUpdate;
+        auto dtSeconds = static_cast<float>(dt.ToSeconds());
 
-        _lastUpdate = time;
-        
         // Proportional term
         auto Pout = _kp * error;
 
+        // A second update inside the same clock tick (or a clock step backwards)
+        // gives dt == 0. The derivative would then be +/-inf or NaN, and even a
+        // zero gain can't neutralise that (inf * 0 is NaN), so the caller would
+        // receive NaN. Treat it as a repeated sample: proportional plus the
+        // integral so far, no time-dependent terms, no state update.
+        if (!(dtSeconds > 0.0f))
+        {
+            return Pout + _ki * _integral;
+        }
+
+        _lastUpdate = time;
+
         // Integral term
-        auto dtSeconds = static_cast<float>(dt.ToSeconds());
         _integral += dtSeconds * error;
-        
+
         _integral = _integralLimits.Clamp(_integral);
 
         auto Iout = _ki * _integral;
