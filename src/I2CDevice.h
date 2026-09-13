@@ -56,18 +56,22 @@ public:
         return Read(buffer);
     }
 
+    // Register write: the register address followed by `buffer`, in one
+    // transaction. Payloads up to BufferSize - 1 bytes.
     ReturnCode Write(uint8_t reg, Span<const uint8_t> buffer) const
     {
         Array<uint8_t, BufferSize> addressAndBuffer;
-        
+
         auto rc = addressAndBuffer.Set(0, reg);
         CHECK_RETURN_CODE(rc);
 
+        // CopyTo rejects a payload that doesn't fit after the address byte.
         auto span = addressAndBuffer.Skip(1);
         rc = buffer.CopyTo(span);
         CHECK_RETURN_CODE(rc);
 
-        return Write(addressAndBuffer.AsSpan());
+        // Only the address and the payload, not the whole scratch array.
+        return Write(addressAndBuffer.Take(1 + buffer.GetLength()));
     }
 
     ReturnCode Read(uint8_t reg, uint8_t& value) const
