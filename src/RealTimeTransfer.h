@@ -54,7 +54,11 @@ private:
     static constexpr String Name = "Control";
     static const uint32_t TxBufferSize = 256;
     static const uint32_t RxBufferSize = 16;
-    static constexpr TimeSpan PollInterval = TimeSpan::FromMilliseconds(1);
+    // Bench/manufacturing protocol only, but this timer runs in every build,
+    // so keep it cheap: 20 ms is 50 wakeups/s instead of 1000, and adds at
+    // most 20 ms to a host command round-trip. The host tool's read timeout is
+    // far longer than that.
+    static constexpr TimeSpan PollInterval = TimeSpan::FromMilliseconds(20);
 
     static bool IsInitialized;
     static Array<char, TxBufferSize> TxBuffer;
