@@ -151,7 +151,14 @@ public:
         rc = SetValue(value);
         CHECK_RETURN_CODE(rc);
 
-        return Updated.Invoke(value, (void*) connection);
+        // Report what was actually stored, not what was written: a setting-backed
+        // characteristic may have constrained the value, and the handler must
+        // apply the same value the client will read back.
+        Nullable<TValue> stored;
+        rc = GetValue(stored);
+        CHECK_RETURN_CODE(rc);
+
+        return Updated.Invoke(stored.HasValue() ? stored.GetValue() : value, (void*) connection);
     }
 
     ReturnCode Read(Span<uint8_t> data, uint32_t& read, uint16_t offset) override

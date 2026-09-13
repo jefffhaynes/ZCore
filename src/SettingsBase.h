@@ -37,7 +37,22 @@ public:
 
             if(nameSpan == nameValue)
             {
-                return read_cb(cb_arg, setting->GetValuePointer(), setting->GetValueLength());
+                // A stored value of a different size (the setting's type changed
+                // between firmware versions, or the entry is damaged) would only
+                // partially overwrite the default. Leave the default in place.
+                if(len != setting->GetValueLength())
+                {
+                    return 0;
+                }
+
+                auto read = read_cb(cb_arg, setting->GetValuePointer(), setting->GetValueLength());
+
+                if(read >= 0)
+                {
+                    setting->Sanitize();
+                }
+
+                return read;
             }
         }
 

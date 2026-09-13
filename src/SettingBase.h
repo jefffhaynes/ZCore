@@ -13,8 +13,20 @@ friend class SettingsBase;
 public:
     virtual ReturnCode Reset() = 0;
 
+    StringLiteral GetKey() const
+    {
+        return _key;
+    }
+
 protected:
     constexpr SettingBase(StringLiteral key, bool throttle) : _key(key), _throttle(throttle)
+    {
+    }
+
+    // Called after a value has been loaded from storage into GetValuePointer().
+    // Implementations bring the value back into their valid range; storage is
+    // not rewritten (the next Set() will).
+    virtual void Sanitize()
     {
     }
 
@@ -44,11 +56,6 @@ protected:
         }
 
         return SaveImpl(value);
-    }
-
-    StringLiteral GetKey() const
-    {
-        return _key;
     }
 
     virtual uint32_t GetValueLength() = 0;

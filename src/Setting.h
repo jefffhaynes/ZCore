@@ -6,6 +6,12 @@
 #include "CoreString.h"
 #include "UnitHelper.h"
 
+// A persisted value. An optional Range is enforced at every boundary the value
+// can cross: Set() clamps before persisting (so a bad write can never be stored)
+// and Sanitize() clamps what was loaded from storage (so a stale or corrupt
+// stored value can never reach the code that applies it). Keep the range in
+// sync with whatever consumes the setting, ideally by sharing one constant.
+
 template <typename T, bool UnitLike = IsUnit<T>>
 class Setting;
 
@@ -30,7 +36,7 @@ public:
 
     constexpr ReturnCode Set(T value)
     {
-        value = _range.HasValue() ? _range.GetValue().Clamp(value) : value;
+        value = Constrain(value);
         auto data = MemoryMarshal::AsConstBytes(value);
         auto rc = SettingBase::Save(data);
         CHECK_RETURN_CODE(rc);
@@ -40,7 +46,7 @@ public:
         return ReturnCode::Success;
     }
 
-    constexpr ReturnCode Reset()
+    constexpr ReturnCode Reset() override
     {
         auto rc = SettingBase::Clear();
         CHECK_RETURN_CODE(rc);
@@ -61,10 +67,20 @@ protected:
         return &_value;
     }
 
+    void Sanitize() override
+    {
+        _value = Constrain(_value);
+    }
+
 private:
     T _value;
     T _defaultValue;
     Nullable<Range<T>> _range;
+
+    constexpr T Constrain(T value) const
+    {
+        return _range.HasValue() ? _range.GetValue().Clamp(value) : value;
+    }
 };
 
 
@@ -79,6 +95,11 @@ public:
     {
     }
 
+    constexpr Setting(StringLiteral key, T defaultValue, Range<T> range, bool throttle = false) : SettingBase(key, throttle),
+        _value(defaultValue), _defaultValue(defaultValue), _range(range)
+    {
+    }
+
     constexpr T Get() const
     {
         return _value;
@@ -86,6 +107,7 @@ public:
 
     constexpr ReturnCode Set(T value)
     {
+        value = Constrain(value);
         auto rawValue = UnitHelper::ToRawValue(value);
         auto data = MemoryMarshal::AsConstBytes(rawValue);
         auto rc = SettingBase::Save(data);
@@ -96,7 +118,7 @@ public:
         return ReturnCode::Success;
     }
 
-    constexpr ReturnCode Reset()
+    constexpr ReturnCode Reset() override
     {
         auto rc = SettingBase::Clear();
         CHECK_RETURN_CODE(rc);
@@ -117,7 +139,18 @@ protected:
         return &_value;
     }
 
+    void Sanitize() override
+    {
+        _value = Constrain(_value);
+    }
+
 private:
     T _value;
     T _defaultValue;
+    Nullable<Range<T>> _range;
+
+    constexpr T Constrain(T value) const
+    {
+        return _range.HasValue() ? _range.GetValue().Clamp(value) : value;
+    }
 };
