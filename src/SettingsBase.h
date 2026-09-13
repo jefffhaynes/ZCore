@@ -65,7 +65,11 @@ protected:
     {
     }
 
-    static ReturnCode Load(Span<SettingBase*> settings)
+    // Loads the settings. With `subtree` (e.g. the app's own handler prefix) only
+    // that subtree is loaded, which lets the application's values be read early
+    // in boot, before subsystems whose own settings can't be loaded yet (the
+    // Bluetooth subtree must wait for bt_enable()). With nullptr, everything.
+    static ReturnCode Load(Span<SettingBase*> settings, const char* subtree = nullptr)
     {
         auto rc = Initialize();
         CHECK_RETURN_CODE(rc);
@@ -78,7 +82,7 @@ protected:
         rc = _autoSaveTimer.Start(TimeSpan::FromSeconds(3), TimerMode::Repeating);
         CHECK_RETURN_CODE(rc);
 
-        auto err = settings_load();
+        auto err = subtree != nullptr ? settings_load_subtree(subtree) : settings_load();
         return ErrorConverter::Convert(err);
     }
 

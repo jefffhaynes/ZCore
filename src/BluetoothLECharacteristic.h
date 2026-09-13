@@ -59,6 +59,14 @@ protected:
 
         if(_attribute == nullptr)
         {
+            // No attribute lookup registered means the Bluetooth stack isn't up
+            // (not yet, or not in this build). Nothing to notify; not an error,
+            // so sensors can start pushing before BLE initialises.
+            if (_findAttributeCallback == nullptr)
+            {
+                return ReturnCode::Success;
+            }
+
             _attribute = GetAttribute();
 
             if (_attribute == nullptr)
