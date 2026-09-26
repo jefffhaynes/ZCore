@@ -10,13 +10,7 @@
 
 #include <Debug.h>
 
-// The rotation channel means different things per driver, so the
-// implementation follows the driver:
-//  - nRF (qdec_nrfx): data-ready fires on motion, and the channel is the
-//    rotation since the last read.
-//  - STM32 (qdec_stm32, a timer in encoder mode): there is no trigger, and the
-//    channel is the absolute angle within one revolution, so it is polled and
-//    unwrapped.
+// The rotation channel is a delta on nRF but an absolute angle on STM32.
 #if defined(CONFIG_QDEC_NRFX)
 #include <hal/nrf_qdec.h>
 #elif defined(CONFIG_QDEC_STM32)
@@ -129,8 +123,7 @@ private:
         instance->OnDataReady();
     }
 
-    // The instance's registers, looked up in devicetree: the driver keeps them
-    // in a private config struct whose layout changes between SDK releases.
+    // From devicetree: the driver's config layout changes between SDK releases.
     static NRF_QDEC_Type* GetRegisters(const struct device* device)
     {
 #define ZCORE_QDEC_REGISTERS(node)                                          \
@@ -146,8 +139,7 @@ private:
         return nullptr;
     }
 #else
-    // Short enough that the shaft turns less than half a revolution between
-    // reads; any more and the direction of travel is ambiguous.
+    // The shaft must turn less than half a revolution between reads.
     static constexpr TimeSpan PollInterval = TimeSpan::FromMilliseconds(10);
 
     Timer _pollTimer;
@@ -168,7 +160,6 @@ private:
         auto rc = ReadPosition(position);
         CHECK_RETURN_CODE(rc);
 
-        // Take the shorter way round from the last position.
         auto degrees = (position - _position).ToDegrees();
 
         if (degrees > 180)

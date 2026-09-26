@@ -67,8 +67,7 @@ public:
         CHECK_RETURN_CODE(rc);
 
 #if defined(CONFIG_UART_NRFX_UARTE)
-        // The nRF driver's uart_configure() only takes the standard rates, so
-        // program BAUDRATE directly to allow any rate.
+        // The nRF driver's uart_configure() only takes standard rates.
         auto* device = GetDevice();
         auto* config = static_cast<const struct uarte_nrfx_config2*>(device->config);
         auto* reg = static_cast<NRF_UARTE_Type*>(config->uarte_regs);

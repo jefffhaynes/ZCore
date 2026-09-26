@@ -59,8 +59,7 @@ public:
     
         return rc;
 #else
-        // Elsewhere (STM32 etc.) the clock tree, including any external
-        // crystal, is set in devicetree and running before main().
+        // Elsewhere the clock tree comes from devicetree and is running before main().
         return ReturnCode::Success;
 #endif
     }
