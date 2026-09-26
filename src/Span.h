@@ -413,6 +413,13 @@ public:
         return Span<const uint8_t>(reinterpret_cast<const uint8_t*>(_data), _length * sizeof(T));
     }
 
+    // Whether the span starts and ends on `alignment`-byte boundaries.
+    bool IsAligned(uint32_t alignment) const
+    {
+        return alignment != 0 && reinterpret_cast<uintptr_t>(_data) % alignment == 0
+            && _length * sizeof(T) % alignment == 0;
+    }
+
 private:
     T* _data;
     uint32_t _length;
