@@ -6,12 +6,8 @@
 #include "CallbackContainer.h"
 #include "Debug.h"
 
-class WorkQueueBase;
-
 class Work
 {
-    friend WorkQueueBase;
-
 public:
     constexpr Work() : _container(this), _initialized(false)
     {
