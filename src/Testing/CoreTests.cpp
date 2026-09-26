@@ -10,6 +10,7 @@
 #include "FlagsTests.h"
 #include "RangeTests.h"
 #include "SpanTests.h"
+#include "Span2DTests.h"
 #include "SpanExtensionsTests.h"
 #include "SpanReaderTests.h"
 #include "SpanWriterTests.h"
