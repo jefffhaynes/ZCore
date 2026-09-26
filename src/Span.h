@@ -82,14 +82,6 @@ public:
         return index < _length && _data[index] == value;
     }
 
-    constexpr auto& operator=(const Span& other)
-    {
-        _data = other._data;
-        _length = other._length;
-
-        return *this;
-    }
-
     constexpr auto Take(uint32_t length) const
     {
         return Span(_data, length < _length ? length : _length);

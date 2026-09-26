@@ -108,12 +108,6 @@ public:
         return Set(index, value) == ReturnCode::Success;
     }
 
-    constexpr FixedSpan& operator=(const FixedSpan& rhs)
-    {
-        _data = rhs._data;
-        return *this;
-    }
-    
     template<uint32_t OtherLength>
     constexpr const FixedSpan<const T, OtherLength < Length ? OtherLength : Length> Take() const
     {
