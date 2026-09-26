@@ -6,7 +6,10 @@
 
 #include <zephyr/kernel.h>
 #include <zephyr/drivers/clock_control.h>
+
+#if defined(CONFIG_HAS_NRFX)
 #include <zephyr/drivers/clock_control/nrf_clock_control.h>
+#endif
 
 class Clock
 {
@@ -25,6 +28,7 @@ public:
 
     static ReturnCode EnableExternalOscillator()
     {
+#if defined(CONFIG_HAS_NRFX)
         auto* clk_mgr = z_nrf_clock_control_get_onoff(CLOCK_CONTROL_NRF_SUBSYS_HF);
 
         if (clk_mgr == nullptr) 
@@ -54,5 +58,10 @@ public:
         } while (rc == ReturnCode::Busy);
     
         return rc;
+#else
+        // Elsewhere (STM32 etc.) the clock tree, including any external
+        // crystal, is set in devicetree and running before main().
+        return ReturnCode::Success;
+#endif
     }
 };

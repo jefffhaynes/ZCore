@@ -2,7 +2,10 @@
 
 #include "ReturnCode.h"
 #include "errno.h"
+
+#if defined(CONFIG_HAS_NRFX)
 #include <nrfx.h>
+#endif
 
 class ErrorConverter
 {
@@ -26,6 +29,7 @@ public:
         }
     }
 
+#if defined(CONFIG_HAS_NRFX)
     static ReturnCode Convert(nrfx_err_t err)
     {
         switch (err)
@@ -42,4 +46,5 @@ public:
             default: return ReturnCode::InvalidOperation;
         }
     }
+#endif
 };

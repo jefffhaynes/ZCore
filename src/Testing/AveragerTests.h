@@ -10,25 +10,28 @@ static_assert([]{
     return value == 5;
 }(), "Averager failed");
 
+// A step from 0 to 1 settles to 1 - e^(-dt/tau). Compare with CoreMath::Abs:
+// an unqualified abs() can resolve to C's int abs(int), which truncates the
+// difference to 0 and passes any value within 1.
 static_assert([]{
     Averager<float> averager;
     averager.Update(0, TimeSpan::FromMilliseconds(0));
     auto value = averager.Update(1, TimeSpan::FromMilliseconds(100));
-    return abs(value - 0.367879441f) < 0.001f;
+    return AreAlmostEqual(value, 0.095162582f, 0.001f);
 }(), "Averager failed");
 
 static_assert([]{
     Averager<float> averager;
     averager.Update(0, TimeSpan::FromMilliseconds(0));
     auto value = averager.Update(1, TimeSpan::FromMilliseconds(200));
-    return abs(value - 0.550671036f) < 0.001f;
+    return AreAlmostEqual(value, 0.181269247f, 0.001f);
 }(), "Averager failed");
 
 static_assert([]{
     Averager<float> averager(TimeSpan::FromSeconds(10));
     averager.Update(0, TimeSpan::FromMilliseconds(0));
     auto value = averager.Update(1, TimeSpan::FromMilliseconds(200));
-    return abs(value - 0.019801327f) < 0.001;
+    return AreAlmostEqual(value, 0.019801327f, 0.001f);
 }(), "Averager failed");
 
 static_assert([]{
@@ -46,7 +49,7 @@ constexpr auto delta = []{
     return value - 0.276431829f;
 }();
 
-static_assert(delta < 0.00001f, "Averager failed");
+static_assert(CoreMath::Abs(delta) < 0.00001f, "Averager failed");
 
 constexpr auto delta2 = []{
     Averager<float> averager(TimeSpan::FromMilliseconds(10));
