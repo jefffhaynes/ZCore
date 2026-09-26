@@ -2,25 +2,26 @@
 
 #include "OutputStream.h"
 #include "MemoryMarshal.h"
+#include "BinaryPrimitives.h"
 
+// Writes values to a stream. Numbers and enums are written in the writer's
+// byte order, little-endian unless given; structs are copied as raw bytes.
 class StreamWriter
 {
 public:
-    constexpr StreamWriter(OutputStream& stream) : _stream(stream)
+    constexpr StreamWriter(OutputStream& stream, Endianness endianness = Endianness::LittleEndian)
+        : _stream(stream), _endianness(endianness)
     {
     }
 
     template <Arithmetic T>
     constexpr ReturnCode Write(T value)
     {
-        for (uint32_t i = 0; i < sizeof(T); i++)
-        {
-            auto byte = static_cast<uint8_t>(value >> (i * 8));
-            auto rc = _stream.Write(Span(&byte, 1));
-            CHECK_RETURN_CODE(rc);
-        }
+        uint8_t bytes[sizeof(T)] = {};
+        auto rc = BinaryPrimitives::Write(Span<uint8_t>(bytes), value, _endianness);
+        CHECK_RETURN_CODE(rc);
 
-        return ReturnCode::Success;
+        return _stream.Write(Span<const uint8_t>(bytes));
     }
 
     template <Enum T>
@@ -44,4 +45,5 @@ public:
 
 private:
     OutputStream& _stream;
+    Endianness _endianness;
 };

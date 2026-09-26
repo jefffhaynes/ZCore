@@ -2,17 +2,23 @@
 
 #include "Array.h"
 #include "MemoryMarshal.h"
+#include "BinaryPrimitives.h"
 
+// Writes a span in sequence. Numbers and enums are written in the writer's
+// byte order, little-endian unless given; spans, arrays and strings are
+// copied as they are.
 template<typename T>
 class SpanWriter
 {
 public:
-    constexpr SpanWriter(Span<T> span) : _span(span), _offset(0)
+    constexpr SpanWriter(Span<T> span, Endianness endianness = Endianness::LittleEndian)
+        : _span(span), _offset(0), _endianness(endianness)
     {
     }
 
     template<uint32_t N>
-    constexpr SpanWriter(Array<T, N>& array) : SpanWriter(array.AsSpan())
+    constexpr SpanWriter(Array<T, N>& array, Endianness endianness = Endianness::LittleEndian)
+        : SpanWriter(array.AsSpan(), endianness)
     {
     }
 
@@ -29,16 +35,10 @@ public:
     template <typename U = T, Arithmetic TValue>
     constexpr std::enable_if_t<std::is_same_v<U, uint8_t>, ReturnCode> Write(TValue value)
     {
-        if (_offset + sizeof(TValue) > _span.GetLength())
-        {
-            return ReturnCode::InvalidLength;
-        }
+        auto rc = BinaryPrimitives::Write(_span.Skip(_offset), value, _endianness);
+        CHECK_RETURN_CODE(rc);
 
-        // do it this way instead of using MemoryMarshal so it can be constexpr
-        for (uint32_t i = 0; i < sizeof(TValue); i++)
-        {
-            _span.Set(_offset++, static_cast<uint8_t>(value >> (i * 8)));
-        }
+        _offset += sizeof(TValue);
 
         return ReturnCode::Success;
     }
@@ -98,4 +98,5 @@ public:
 private:
     Span<T> _span;
     uint32_t _offset;
+    Endianness _endianness;
 };

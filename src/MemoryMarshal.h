@@ -2,15 +2,10 @@
 
 #include "Span.h"
 #include "CoreString.h"
+#include "Concepts.h"
 
 #include "pfr/pfr.hpp"
 
-
-template<typename T>
-concept Arithmetic = std::is_arithmetic_v<T>;
-
-template<typename T>
-concept Enum = std::is_enum_v<T>;
 
 template <typename T>
 constexpr bool all_fields_are_safe()

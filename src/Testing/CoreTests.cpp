@@ -14,6 +14,8 @@
 #include "SpanExtensionsTests.h"
 #include "SpanReaderTests.h"
 #include "SpanWriterTests.h"
+#include "BinaryPrimitivesTests.h"
+#include "StreamWriterTests.h"
 #include "StringTests.h"
 #include "StringFormatterTests.h"
 #include "TimeSpanTests.h"
