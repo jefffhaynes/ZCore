@@ -1,5 +1,9 @@
 #pragma once
 
+#if !defined(CONFIG_HAS_NRFX)
+#error "Oscillator.h exposes an nRF TIMER event for (D)PPI; this SoC has no equivalent"
+#endif
+
 #include "EventHandler.h"
 #include "ErrorConverter.h"
 #include "Clock.h"

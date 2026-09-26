@@ -1,5 +1,9 @@
 #pragma once
 
+#if !defined(CONFIG_HAS_NRFX)
+#error "Interconnect.h routes events to tasks over Nordic's (D)PPI; this SoC has no equivalent"
+#endif
+
 #include <ErrorConverter.h>
 #include <EventAddress.h>
 #include <TaskAddress.h>

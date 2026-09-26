@@ -1,5 +1,9 @@
 #pragma once
 
+#if !defined(CONFIG_HAS_NRFX)
+#error "DelayLine.h exposes nRF TIMER tasks and events for (D)PPI; this SoC has no equivalent"
+#endif
+
 #include "EventHandler.h"
 #include "ErrorConverter.h"
 #include "Debug.h"
@@ -7,6 +11,7 @@
 #include "EventAddress.h"
 #include "TaskAddress.h"
 #include "TimeSpan.h"
+#include "Flags.h"
 #include <nrfx_timer.h>
 
 

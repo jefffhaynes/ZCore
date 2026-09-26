@@ -2,6 +2,14 @@
 
 #include <stdint.h>
 
+#if defined(CONFIG_HAS_NRFX)
+#include <nrfx.h>
+#endif
+
+#if !defined(NRF_UICR_S)
+#error "UserRegisters.h needs the nRF UICR OTP words (nRF53/nRF91); this SoC has no equivalent"
+#endif
+
 class UserRegisters
 {
 public:

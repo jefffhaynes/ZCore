@@ -11,6 +11,7 @@
 
 #include <zephyr/drivers/uart.h>
 
+#if defined(CONFIG_UART_NRFX_UARTE)
 // used to set the baud rate
 struct uarte_nrfx_config2 {
 	NRF_UARTE_Type *uarte_regs; /* Instance address */
@@ -21,6 +22,7 @@ struct uarte_nrfx_config2 {
 	nrfx_timer_t timer;
 #endif
 };
+#endif
 
 // #pragma GCC push_options
 // #pragma GCC optimize ("O0")
@@ -59,11 +61,14 @@ public:
         return ReturnCode::Success;
     }
 
-    ReturnCode SetBaudRate(uint32_t baudRate)
+    virtual ReturnCode SetBaudRate(uint32_t baudRate)
     {
         auto rc = Initialize();
         CHECK_RETURN_CODE(rc);
-        
+
+#if defined(CONFIG_UART_NRFX_UARTE)
+        // The nRF driver's uart_configure() only takes the standard rates, so
+        // program BAUDRATE directly to allow any rate.
         auto* device = GetDevice();
         auto* config = static_cast<const struct uarte_nrfx_config2*>(device->config);
         auto* reg = static_cast<NRF_UARTE_Type*>(config->uarte_regs);
@@ -76,6 +81,16 @@ public:
         reg->BAUDRATE = roundedValue;
 
         return ReturnCode::Success;
+#else
+        uart_config config;
+        auto err = uart_config_get(GetDevice(), &config);
+        rc = ErrorConverter::Convert(err);
+        CHECK_RETURN_CODE(rc);
+
+        config.baudrate = baudRate;
+        err = uart_configure(GetDevice(), &config);
+        return ErrorConverter::Convert(err);
+#endif
     }
 
     ReturnCode Read(Span<uint8_t> data, uint32_t& read) override

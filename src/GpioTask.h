@@ -1,5 +1,9 @@
 #pragma once
 
+#if !defined(CONFIG_HAS_NRFX)
+#error "GpioTask.h drives pins from (D)PPI through Nordic's GPIOTE; this SoC has no equivalent"
+#endif
+
 #include "ErrorConverter.h"
 #include "TaskAddress.h"
 #include <nrfx_gpiote.h>

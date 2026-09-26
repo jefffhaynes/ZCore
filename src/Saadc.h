@@ -1,5 +1,9 @@
 #pragma once
 
+#if !defined(CONFIG_HAS_NRFX)
+#error "Saadc.h drives Nordic's SAADC from (D)PPI; use Adc.h on this SoC"
+#endif
+
 #include "TaskAddress.h"
 #include "ErrorConverter.h"
 #include "EventHandler.h"

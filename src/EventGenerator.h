@@ -1,5 +1,9 @@
 #pragma once
 
+#if !defined(CONFIG_HAS_NRFX)
+#error "EventGenerator.h uses Nordic's EGU; this SoC has no equivalent"
+#endif
+
 #include "ErrorConverter.h"
 #include "TaskAddress.h"
 #include "EventAddress.h"
