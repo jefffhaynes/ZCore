@@ -4,8 +4,6 @@
 #include "MemoryMarshal.h"
 #include "BinaryPrimitives.h"
 
-// Writes values to a stream. Numbers and enums are written in the writer's
-// byte order, little-endian unless given; structs are copied as raw bytes.
 class StreamWriter
 {
 public:
@@ -29,13 +27,6 @@ public:
     {
         auto underlying = static_cast<std::underlying_type_t<T>>(value);
         return Write(underlying);
-    }
-
-    template <ComplexSafe T>
-    constexpr ReturnCode Write(T& value)
-    {
-        auto span = MemoryMarshal::AsConstBytes(value);
-        return _stream.Write(span);
     }
 
     constexpr ReturnCode Write(Span<const uint8_t> data)

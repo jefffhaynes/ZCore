@@ -5,20 +5,18 @@
 #include "BinaryPrimitives.h"
 #include "NullOutputStream.h"
 
-// Reads values from a stream. Numbers and enums are read in the reader's byte
-// order, little-endian unless given; structs are copied as raw bytes.
 class StreamReader
 {
 public:
-    StreamReader(InputStream& stream, Endianness endianness = Endianness::LittleEndian)
+    constexpr StreamReader(InputStream& stream, Endianness endianness = Endianness::LittleEndian)
         : _stream(stream), _endianness(endianness)
     {
     }
 
     template <Arithmetic T>
-    ReturnCode Read(T& value, TimeSpan timeout)
+    constexpr ReturnCode Read(T& value, TimeSpan timeout)
     {
-        uint8_t bytes[sizeof(T)];
+        uint8_t bytes[sizeof(T)] = {};
         auto rc = Read(Span<uint8_t>(bytes), timeout);
         CHECK_RETURN_CODE(rc);
 
@@ -26,9 +24,9 @@ public:
     }
 
     template <Arithmetic T>
-    ReturnCode Read(T& value)
+    constexpr ReturnCode Read(T& value)
     {
-        uint8_t bytes[sizeof(T)];
+        uint8_t bytes[sizeof(T)] = {};
         auto rc = Read(Span<uint8_t>(bytes));
         CHECK_RETURN_CODE(rc);
 
@@ -36,7 +34,7 @@ public:
     }
 
     template <Enum T>
-    ReturnCode Read(T& value, TimeSpan timeout)
+    constexpr ReturnCode Read(T& value, TimeSpan timeout)
     {
         std::underlying_type_t<T> underlying;
         auto rc = Read(underlying, timeout);
@@ -47,7 +45,7 @@ public:
     }
 
     template <Enum T>
-    ReturnCode Read(T& value)
+    constexpr ReturnCode Read(T& value)
     {
         std::underlying_type_t<T> underlying;
         auto rc = Read(underlying);
@@ -57,45 +55,48 @@ public:
         return ReturnCode::Success;
     }
 
-    template <ComplexSafe T>
-    ReturnCode Read(T& value, TimeSpan timeout)
-    {
-        auto data = MemoryMarshal::AsBytes(value);
-        return Read(data, timeout);
-    }
-
-    template <ComplexSafe T>
-    ReturnCode Read(T& value)
-    {
-        auto data = MemoryMarshal::AsBytes(value);
-        return Read(data);
-    }
-
-    ReturnCode Read(Span<uint8_t> data, TimeSpan timeout)
+    constexpr ReturnCode Read(Span<uint8_t> data, TimeSpan timeout)
     {
         return _stream.Read(data, timeout);
     }
 
-    ReturnCode Read(Span<uint8_t> data)
+    constexpr ReturnCode Read(Span<uint8_t> data)
     {
         return _stream.Read(data);
     }
 
+    // A string too long for `data` is still consumed through its terminator.
     ReturnCode ReadString(Span<char> data, TimeSpan timeout)
     {
-        for (uint32_t i = 0; i < data.GetLength(); i++)
+        auto deadline = Clock::GetUptime() + timeout;
+        uint32_t length = 0;
+
+        while (true)
         {
-            uint8_t c;
-            auto rc = Read(c, timeout);
+            auto now = Clock::GetUptime();
+            auto remaining = now < deadline ? deadline - now : TimeSpan::Zero();
+
+            uint8_t c = 0;
+            auto rc = Read(c, remaining);
             CHECK_RETURN_CODE(rc);
 
-            rc = data.Set(i, (char) c);
-            CHECK_RETURN_CODE(rc);
+            if (length < data.GetLength())
+            {
+                data.Set(length, static_cast<char>(c));
+            }
+
+            length++;
 
             if (c == 0)
             {
                 break;
             }
+        }
+
+        if (length > data.GetLength())
+        {
+            data.Set(data.GetLength() - 1, 0);
+            return ReturnCode::InvalidLength;
         }
 
         return ReturnCode::Success;

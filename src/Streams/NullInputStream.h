@@ -5,9 +5,16 @@
 class NullInputStream : public InputStream
 {
 public:
-    ReturnCode Read(Span<uint8_t> data, uint32_t& read) override
+    constexpr ReturnCode Read(Span<uint8_t> data, uint32_t& read) override
     {
         read = 0;
         return ReturnCode::Success;
+    }
+
+    using InputStream::Read;
+
+    constexpr bool IsEndOfStream() override
+    {
+        return true;
     }
 };

@@ -18,7 +18,12 @@ public:
 
     constexpr ReturnCode Write(Span<const uint8_t> data) override
     {
-        auto offset = 0;
+        if (_buffer.IsEmpty())
+        {
+            return _stream.Write(data);
+        }
+
+        uint32_t offset = 0;
         auto remaining = data.GetLength();
 
         while (remaining > 0)

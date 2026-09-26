@@ -83,7 +83,6 @@ static_assert([]() constexpr
     return written.SequenceEquals(Span<uint8_t>(expected));
 }());
 
-// big-endian by construction, as in network byte order
 static_assert([]() constexpr
 {
     Array<uint8_t, 8> data;
@@ -115,7 +114,6 @@ static_assert([]() constexpr
     return rc == ReturnCode::Success && writer.GetWrittenSpan().SequenceEquals(Span<uint8_t>(expected));
 }());
 
-// a value that doesn't fit is an error and writes nothing
 static_assert([]() constexpr
 {
     Array<uint8_t, 3> data;

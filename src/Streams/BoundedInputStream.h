@@ -5,11 +5,11 @@
 class BoundedInputStream : public InputStream
 {
 public:
-    BoundedInputStream(InputStream& stream, uint32_t length) : _stream(stream), _length(length), _read(0)
+    constexpr BoundedInputStream(InputStream& stream, uint32_t length) : _stream(stream), _length(length), _read(0)
     {
     }
 
-    ReturnCode Read(Span<uint8_t> data, uint32_t& read) override
+    constexpr ReturnCode Read(Span<uint8_t> data, uint32_t& read) override
     {
         auto remaining = GetAvailable();
         auto readLength = std::min(remaining, data.GetLength());
@@ -23,9 +23,16 @@ public:
         return ReturnCode::Success;
     }
 
+    using InputStream::Read;
+
     constexpr uint32_t GetAvailable()
     {
         return _length - _read;
+    }
+
+    constexpr bool IsEndOfStream() override
+    {
+        return GetAvailable() == 0 || _stream.IsEndOfStream();
     }
 
 private:

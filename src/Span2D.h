@@ -5,8 +5,7 @@
 #include "Span.h"
 #include "ReturnCode.h"
 
-// Iterates the rows of a Span2D, each as a Span. Rows are addressed by index
-// so no pointer is ever formed past the last row.
+// Rows are counted, not pointed at, so no pointer is formed past the last row.
 template<typename T>
 class RowIterator
 {
@@ -44,9 +43,7 @@ private:
     uint32_t _row;
 };
 
-// A non-owning view of a 2D block of T stored row by row, e.g. an image frame.
-// Rows are `stride` elements apart (stride >= width), so a view can describe
-// padded rows or a region of a larger image. x is the column, y the row.
+// Stride is in elements, not bytes.
 template<typename T>
 struct Span2D
 {
@@ -70,8 +67,6 @@ public:
     {
     }
 
-    // Views `span` as `height` rows of `width` elements, `stride` apart. The
-    // last row needs only `width` elements, not a whole stride.
     static constexpr ReturnCode FromSpan(Span<T> span, uint32_t width, uint32_t height,
         uint32_t stride, Span2D& result)
     {
@@ -111,7 +106,6 @@ public:
     constexpr auto begin() const { return RowIterator<const T>(_data, _width, _stride, 0); }
     constexpr auto end() const { return RowIterator<const T>(_data, _width, _stride, GetRowCount()); }
 
-    // Row y, or an empty span past the last row.
     constexpr Span<T> GetRow(uint32_t y)
     {
         return y < _height ? Span<T>(_data + y * _stride, _width) : Span<T>();
@@ -159,8 +153,6 @@ public:
         return x < _width && y < _height && _data[y * _stride + x] == value;
     }
 
-    // The width x height region starting at column x, row y, clipped to this
-    // view. Shares this view's stride.
     constexpr auto Slice(uint32_t x, uint32_t y, uint32_t width, uint32_t height) const
     {
         x = x < _width ? x : _width;
@@ -176,8 +168,6 @@ public:
         return Span2D(_data + y * _stride + x, width, height, _stride);
     }
 
-    // Copies this view into the top-left of `other`, a row at a time. Rows
-    // must not overlap (see Span::CopyTo).
     constexpr ReturnCode CopyTo(Span2D<std::remove_const_t<T>> other) const
     {
         if(other.GetWidth() < _width || other.GetHeight() < _height)
@@ -226,13 +216,11 @@ private:
     uint32_t _height;
     uint32_t _stride;
 
-    // Rows to visit: none when the rows themselves are empty.
     constexpr uint32_t GetRowCount() const
     {
         return IsEmpty() ? 0 : _height;
     }
 
-    // Elements spanned from the first to the last element.
     static constexpr uint64_t GetExtent(uint32_t width, uint32_t height, uint32_t stride)
     {
         if(width == 0 || height == 0)

@@ -10,6 +10,12 @@ class InputStream
 public:
     virtual ReturnCode Read(Span<uint8_t> data, uint32_t& read) = 0;
 
+    // A live source such as a UART never ends: nothing read means nothing yet.
+    virtual constexpr bool IsEndOfStream()
+    {
+        return false;
+    }
+
     ReturnCode CopyTo(OutputStream& stream)
     {
         ReturnCode rc;
@@ -50,17 +56,17 @@ public:
         return rc;
     }
 
-    ReturnCode Read(Span<uint8_t> data, TimeSpan timeout = DefaultTimeout)
+    constexpr ReturnCode Read(Span<uint8_t> data, TimeSpan timeout = DefaultTimeout)
     {
-        auto start = Clock::GetUptime();
-
         uint32_t totalRead = 0;
+        bool waiting = false;
+        auto start = TimeSpan::Zero();
 
         while (totalRead < data.GetLength())
         {
             auto remainder = data.Skip(totalRead);
 
-            uint32_t read;
+            uint32_t read = 0;
             auto rc = Read(remainder, read);
             CHECK_RETURN_CODE(rc);
 
@@ -68,13 +74,22 @@ public:
 
             if (totalRead < data.GetLength())
             {
-                auto elapsed = Clock::GetUptime() - start;
-    
-                if (elapsed > timeout)
+                if (IsEndOfStream())
+                {
+                    return ReturnCode::InvalidLength;
+                }
+
+                // The clock is read only when waiting, so reads that don't wait stay constexpr.
+                if (!waiting)
+                {
+                    start = Clock::GetUptime();
+                    waiting = true;
+                }
+                else if (Clock::GetUptime() - start > timeout)
                 {
                     return ReturnCode::Timeout;
                 }
-    
+
                 Clock::Sleep(TimeSpan::FromMicroseconds(10));
             }
         }

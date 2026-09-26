@@ -4,12 +4,13 @@
 
 namespace Span2DTests
 {
-    // 3 x 3 values in rows of stride 4; the last column (-1) is padding.
+    constexpr int Padding = -1;
+
     constexpr int padded[12] =
     {
-         1,  2,  3, -1,
-         4,  5,  6, -1,
-         7,  8,  9, -1,
+        1, 2, 3, Padding,
+        4, 5, 6, Padding,
+        7, 8, 9, Padding,
     };
 
     constexpr Span2D<const int> view(padded, 3, 3, 4);
@@ -22,12 +23,11 @@ namespace Span2DTests
     static_assert(emptyView.IsEmpty(), "IsEmpty method failed for empty view");
     static_assert(Span2D<const int>(padded, 0, 3).IsEmpty(), "IsEmpty method failed for zero width");
 
-    // packed rows: stride defaults to width
     static_assert(Span2D<const int>(padded, 4, 3).GetStride() == 4, "Packed constructor failed");
 
     static_assert(view.TryCompare(0, 0, 1) && view.TryCompare(2, 0, 3), "TryCompare method failed");
     static_assert(view.TryCompare(0, 1, 4) && view.TryCompare(2, 2, 9), "Stride addressing failed");
-    static_assert(!view.TryCompare(3, 0, -1), "TryCompare read the padding");
+    static_assert(!view.TryCompare(3, 0, Padding), "TryCompare read the padding");
     static_assert(!view.TryCompare(0, 3, 0), "TryCompare read past the last row");
 
     static_assert([]{
@@ -55,7 +55,6 @@ namespace Span2DTests
         && view.GetRow(1).TryCompare(2, 6), "GetRow method failed");
     static_assert(view.GetRow(3).IsEmpty(), "GetRow method failed past the last row");
 
-    // iteration visits each row once and never the padding
     static_assert([]{
         int sum = 0;
         uint32_t rows = 0;
@@ -99,7 +98,6 @@ namespace Span2DTests
         Span2D<int> span(values, 3, 3, 4);
         span.Slice(1, 1, 2, 2).Fill(5);
 
-        // the slice is filled; the rest of the view and the padding are not
         return values[5] == 5 && values[6] == 5 && values[9] == 5 && values[10] == 5
             && values[4] == 0 && values[7] == 0 && values[11] == 0 && values[1] == 0;
     }(), "Fill method failed");
@@ -131,7 +129,6 @@ namespace Span2DTests
     }(), "FromSpan method failed");
 
     static_assert([]{
-        // the last row needs only its width, not a whole stride
         Span2D<const int> result;
         return Span2D<const int>::FromSpan(Span<const int>(padded, 11), 3, 3, 4, result) == ReturnCode::Success
             && Span2D<const int>::FromSpan(Span<const int>(padded, 10), 3, 3, 4, result) == ReturnCode::InvalidLength

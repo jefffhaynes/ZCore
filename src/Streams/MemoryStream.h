@@ -32,6 +32,13 @@ public:
         return ReturnCode::Success;
     }
 
+    using InputStream::Read;
+
+    constexpr bool IsEndOfStream() override
+    {
+        return GetRemaining().IsEmpty();
+    }
+
 private:
     Span<uint8_t> _span;
     uint32_t _offset;

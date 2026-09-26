@@ -67,7 +67,6 @@ static_assert([]() constexpr
     return rc == ReturnCode::Success && value[0] == 0x01 && value[1] == 0x02 && value[2] == 0x03 && value[3] == 0x04;
 }());
 
-// big-endian by construction, as in network byte order
 static_assert([]() constexpr
 {
     uint8_t data[] = { 0x8E, 0xA1, 0x00, 0x0C, 0x12, 0x34, 0x56, 0x78 };
@@ -82,7 +81,6 @@ static_assert([]() constexpr
         && first == 0x8E && second == 0xA1 && length == 12 && value == 0x12345678;
 }());
 
-// values can be read from const bytes
 static_assert([]() constexpr
 {
     constexpr uint8_t data[] = { 0x00, 0x00, 0x00, 0x02 };
@@ -101,7 +99,6 @@ static_assert([]() constexpr
     return rc == ReturnCode::Success && value == 1.0f;
 }());
 
-// a value past the end is an error and leaves the position alone
 static_assert([]() constexpr
 {
     uint8_t data[] = { 1, 2, 3 };
@@ -112,7 +109,6 @@ static_assert([]() constexpr
         && reader.Read(value) == ReturnCode::Success && value == 0x0201;
 }());
 
-// a span past the end is an error and leaves the position alone
 static_assert([]() constexpr
 {
     uint8_t data[] = { 1, 2, 3 };
@@ -121,4 +117,29 @@ static_assert([]() constexpr
     uint16_t value = 0;
     return reader.Read(tooBig.AsSpan()) == ReturnCode::InvalidLength
         && reader.Read(value) == ReturnCode::Success && value == 0x0201;
+}());
+
+static_assert([]() constexpr
+{
+    uint8_t data[] = { 'h', 'i', 0, 'x', 0, 'n', 'o' };
+    SpanReader<uint8_t> reader(data);
+    char first[3] = {};
+    char tooSmall[1] = { 'z' };
+    char second[4] = {};
+    char unterminated[8] = { 'z' };
+    uint8_t next = 0;
+
+    return reader.ReadString(Span<char>(first)) == ReturnCode::Success && first[0] == 'h' && first[2] == 0
+        && reader.ReadString(Span<char>(tooSmall)) == ReturnCode::InvalidLength && tooSmall[0] == 'z'
+        && reader.ReadString(Span<char>(second)) == ReturnCode::Success && second[0] == 'x' && second[1] == 0
+        && reader.ReadString(Span<char>(unterminated)) == ReturnCode::InvalidLength && unterminated[0] == 'z'
+        && reader.Read(next) == ReturnCode::Success && next == 'n';
+}());
+
+static_assert([]() constexpr
+{
+    uint8_t data[] = { 1, 2 };
+    SpanReader<uint8_t> reader(data);
+    Array<uint8_t, 2> value;
+    return reader.Read(value) == ReturnCode::Success && value[0] == 1 && value[1] == 2;
 }());

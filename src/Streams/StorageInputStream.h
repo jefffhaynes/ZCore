@@ -22,6 +22,18 @@ public:
 
         read = result;
 
+        _endOfStream = read == 0 && !data.IsEmpty();
+
         return ReturnCode::Success;
     }
+
+    using InputStream::Read;
+
+    bool IsEndOfStream() override
+    {
+        return _endOfStream;
+    }
+
+private:
+    bool _endOfStream = false;
 };

@@ -10,14 +10,12 @@ namespace BinaryPrimitivesTests
     static_assert(BinaryPrimitives::ReverseEndianness(uint64_t{0x0102030405060708}) == 0x0807060504030201, "ReverseEndianness failed for 64 bits");
     static_assert(BinaryPrimitives::ReverseEndianness(int16_t{-2}) == int16_t{-257}, "ReverseEndianness failed for a signed value");
 
-    // integers only, as in .NET: reversing a bool or a float means nothing
     template<typename T>
     concept Reversible = requires(T value) { BinaryPrimitives::ReverseEndianness(value); };
 
     static_assert(Reversible<uint32_t> && Reversible<int8_t> && !Reversible<bool> && !Reversible<float>,
         "ReverseEndianness accepts the wrong types");
 
-    // Writing `value` in `endianness` produces exactly `expected`.
     template<typename T, uint32_t N>
     constexpr bool Writes(T value, Endianness endianness, const uint8_t (&expected)[N])
     {
@@ -26,7 +24,6 @@ namespace BinaryPrimitivesTests
             && Span<const uint8_t>(bytes).SequenceEquals(Span<const uint8_t>(expected));
     }
 
-    // Reading `bytes` in `endianness` produces exactly `expected`.
     template<typename T, uint32_t N>
     constexpr bool Reads(const uint8_t (&bytes)[N], Endianness endianness, T expected)
     {
@@ -58,7 +55,6 @@ namespace BinaryPrimitivesTests
     static_assert(Writes(int16_t{-2}, Endianness::LittleEndian, LittleMinusTwo16)
         && Reads(LittleMinusTwo16, Endianness::LittleEndian, int16_t{-2}), "Signed 16-bit round trip failed");
 
-    // floating point goes through its IEEE 754 bit pattern
     constexpr uint8_t BigOne[] = { 0x3F, 0x80, 0x00, 0x00 };
     constexpr uint8_t BigMinusTwoPointFive[] = { 0xC0, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
     static_assert(Writes(1.0f, Endianness::BigEndian, BigOne) && Reads(BigOne, Endianness::BigEndian, 1.0f),
@@ -72,7 +68,6 @@ namespace BinaryPrimitivesTests
     static_assert(Writes(true, Endianness::BigEndian, One) && Reads(Two, Endianness::BigEndian, true)
         && Reads(Zero, Endianness::BigEndian, false), "bool failed");
 
-    // the named forms, after .NET
     static_assert([]{
         uint8_t bytes[4] = {};
         uint32_t value = 0;
@@ -84,7 +79,6 @@ namespace BinaryPrimitivesTests
             && BinaryPrimitives::TryReadBigEndian(Span<const uint8_t>(bytes), value) && value == 0x78563412;
     }(), "Named forms failed");
 
-    // too short: an error, and neither side is touched
     static_assert([]{
         uint8_t bytes[3] = { 0xAA, 0xBB, 0xCC };
         uint32_t value = 7;
@@ -96,6 +90,5 @@ namespace BinaryPrimitivesTests
             && !BinaryPrimitives::TryWriteLittleEndian(Span<uint8_t>(bytes), value);
     }(), "Short buffers failed");
 
-    // only the first sizeof(T) bytes are used
     static_assert(Reads(Big64, Endianness::BigEndian, uint16_t{0x0102}), "Read failed from a longer span");
 }

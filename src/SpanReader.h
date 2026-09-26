@@ -3,9 +3,6 @@
 #include "MemoryMarshal.h"
 #include "BinaryPrimitives.h"
 
-// Reads a span in sequence. Numbers and enums are read in the reader's byte
-// order, little-endian unless given; structs are copied as raw bytes. Values
-// can be read from bytes, const or not.
 template<typename T>
 class SpanReader
 {
@@ -47,14 +44,6 @@ public:
         return ReturnCode::Success;
     }
 
-    template <typename U = T, ComplexSafe TValue>
-    std::enable_if_t<IsBytes<U>, ReturnCode> Read(TValue& value)
-    {
-        auto data = MemoryMarshal::AsBytes(value);
-        return Read(data);
-    }
-
-    // Fills `data`, or fails without moving if fewer bytes remain.
     constexpr ReturnCode Read(Span<uint8_t> data)
     {
         auto length = data.GetLength();
@@ -73,22 +62,24 @@ public:
         return ReturnCode::Success;
     }
 
-    ReturnCode ReadString(Span<char> data)
+    constexpr ReturnCode ReadString(Span<char> data)
     {
-        for (uint32_t i = 0; i < data.GetLength(); i++)
+        auto remaining = GetRemaining();
+        auto terminator = remaining.IndexOf(0);
+
+        if (terminator < 0 || static_cast<uint32_t>(terminator) >= data.GetLength())
         {
-            uint8_t c;
-            auto rc = Read(c);
-            CHECK_RETURN_CODE(rc);
-
-            rc = data.Set(i, (char) c);
-            CHECK_RETURN_CODE(rc);
-
-            if (c == 0)
-            {
-                break;
-            }
+            return ReturnCode::InvalidLength;
         }
+
+        auto length = static_cast<uint32_t>(terminator) + 1;
+
+        for (uint32_t i = 0; i < length; i++)
+        {
+            data.Set(i, static_cast<char>(remaining.GetData()[i]));
+        }
+
+        _offset += length;
 
         return ReturnCode::Success;
     }

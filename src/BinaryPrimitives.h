@@ -8,22 +8,16 @@
 #include "Span.h"
 #include "ReturnCode.h"
 
-// The order a multi-byte value's bytes are stored or sent in.
 enum class Endianness
 {
     LittleEndian,
     BigEndian
 };
 
-// Reads and writes numbers as bytes in a given byte order, whatever the CPU's
-// own, after .NET's System.Buffers.Binary.BinaryPrimitives. Where .NET names
-// the type (ReadUInt32BigEndian), this is a template (ReadBigEndian<uint32_t>).
-// Floating-point values go through their bit patterns. Usable in constant
-// evaluation.
+// After .NET's System.Buffers.Binary.BinaryPrimitives.
 class BinaryPrimitives
 {
 public:
-    // The value with its bytes in the opposite order.
     template<std::integral T> requires (!std::same_as<T, bool>)
     static constexpr T ReverseEndianness(T value)
     {
@@ -38,7 +32,6 @@ public:
         return static_cast<T>(reversed);
     }
 
-    // Reads the first sizeof(T) bytes of `source`.
     template<Arithmetic T>
     static constexpr ReturnCode Read(Span<const uint8_t> source, T& value, Endianness endianness)
     {
@@ -62,7 +55,6 @@ public:
         return ReturnCode::Success;
     }
 
-    // Writes the value to the first sizeof(T) bytes of `destination`.
     template<Arithmetic T>
     static constexpr ReturnCode Write(Span<uint8_t> destination, T value, Endianness endianness)
     {
@@ -132,17 +124,15 @@ public:
     }
 
 private:
-    // The unsigned integer the size of T, which holds its bit pattern.
     template<typename T>
     using Bits = std::conditional_t<sizeof(T) == 1, uint8_t,
                  std::conditional_t<sizeof(T) == 2, uint16_t,
                  std::conditional_t<sizeof(T) == 4, uint32_t, uint64_t>>>;
 
-    // Where the byte of significance `i` (0 = least) sits.
     template<typename T>
-    static constexpr uint32_t GetByteIndex(uint32_t i, Endianness endianness)
+    static constexpr uint32_t GetByteIndex(uint32_t significance, Endianness endianness)
     {
-        return endianness == Endianness::LittleEndian ? i : sizeof(T) - 1 - i;
+        return endianness == Endianness::LittleEndian ? significance : sizeof(T) - 1 - significance;
     }
 
     template<typename T>
@@ -158,7 +148,7 @@ private:
         }
     }
 
-    // Any nonzero byte reads as true; a bool has no other valid bit patterns.
+    // bit_cast to bool is undefined for anything but 0 and 1.
     template<typename T>
     static constexpr T FromBits(Bits<T> bits)
     {

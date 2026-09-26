@@ -17,6 +17,13 @@ public:
         return rc;
     }
 
+    using InputStream::Read;
+
+    constexpr bool IsEndOfStream() override
+    {
+        return _stream.IsEndOfStream();
+    }
+
 private:
     InputStream& _stream;
     ICrc& _crc;

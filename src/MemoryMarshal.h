@@ -4,34 +4,8 @@
 #include "CoreString.h"
 #include "Concepts.h"
 
-#include "pfr/pfr.hpp"
-
-
-template <typename T>
-constexpr bool all_fields_are_safe()
-{
-    bool result = true;
-
-    pfr::for_each_field(T{}, [&](const auto& field)
-    {
-        using FieldType = std::decay_t<decltype(field)>;
-        result = result && (Arithmetic<FieldType> 
-            || Enum<FieldType> 
-            || all_fields_are_safe<FieldType>());
-    });
-
-    return result;
-}
-
-
 template<typename T>
-concept ComplexSafe = all_fields_are_safe<T>() && !Arithmetic<T> && !Enum<T>;
-
-template<typename T>
-concept Safe = Arithmetic<T> || Enum<T> || ComplexSafe<T>;
-
-template<typename T>
-concept Unsafe = !Safe<T>;
+concept Safe = Arithmetic<T> || Enum<T>;
 
 class MemoryMarshal
 {

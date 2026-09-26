@@ -4,9 +4,6 @@
 #include "MemoryMarshal.h"
 #include "BinaryPrimitives.h"
 
-// Writes a span in sequence. Numbers and enums are written in the writer's
-// byte order, little-endian unless given; spans, arrays and strings are
-// copied as they are.
 template<typename T>
 class SpanWriter
 {
