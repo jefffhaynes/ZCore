@@ -404,3 +404,12 @@ namespace UdlTests
     static_assert(Temperature::FromFahrenheit(1.0) == 1.0_degF, "User-defined literal for degF failed");
     static_assert(Temperature::FromKelvin(1.0) == 1.0_degK, "User-defined literal for degK failed");
 }
+
+namespace UnitComparisonTests
+{
+    static_assert(Temperature::FromKelvin(1) != Temperature::FromKelvin(2), "Inequality failed");
+    static_assert(Temperature::FromKelvin(1) < Temperature::FromKelvin(2), "Less than failed");
+    static_assert(Temperature::FromKelvin(2) > Temperature::FromKelvin(1), "Greater than failed");
+    static_assert(Distance::FromMeters(1) <= Distance::FromMillimeters(1000), "Less than or equal failed");
+    static_assert(Distance::FromMeters(1) >= Distance::FromMillimeters(1000), "Greater than or equal failed");
+}

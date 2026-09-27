@@ -41,8 +41,8 @@ public:
     constexpr Derived& operator/=(ValueType k) { _value /= k; return self(); }
 
     /* comparisons */
-    constexpr bool operator==(const Derived& rhs) const { return _value == rhs._value; }
-    constexpr auto operator<=>(const Derived& rhs) const { return _value <=> rhs._value; }
+    friend constexpr bool operator==(const Derived& lhs, const Derived& rhs) { return lhs._value == rhs._value; }
+    friend constexpr auto operator<=>(const Derived& lhs, const Derived& rhs) { return lhs._value <=> rhs._value; }
 
     /* scalar on the left */
     friend constexpr Derived operator*(ValueType k, const Derived& u)

@@ -2,6 +2,8 @@
 
 #include <Units/Angle.h>
 #include <cmath>
+#include <concepts>
+#include "VectorScalar.h"
 
 template<typename T>
 struct Vector3
@@ -33,25 +35,24 @@ struct Vector3
         return { X - other.X, Y - other.Y, Z - other.Z };
     }
 
-    constexpr Vector3 operator*(float value) const
+    using Scalar = typename VectorScalar<T>::Type;
+
+    constexpr Vector3 operator*(Scalar value) const
     {
         return { X * value, Y * value, Z * value };
     }
 
-    constexpr Vector3 operator*(int value) const
-    {
-        return { X * value, Y * value, Z * value };
-    }
-
-    constexpr Vector3 operator/(float value) const
+    constexpr Vector3 operator/(Scalar value) const
     {
         return { X / value, Y / value, Z / value };
     }
 
-    constexpr Vector3 operator/(int value) const
-    {
-        return { X / value, Y / value, Z / value };
-    }
+    // Integer vectors don't scale by fractions.
+    template<std::floating_point S> requires std::integral<T>
+    Vector3 operator*(S value) const = delete;
+
+    template<std::floating_point S> requires std::integral<T>
+    Vector3 operator/(S value) const = delete;
 
     constexpr T Dot(const Vector3& other) const
     {
@@ -61,6 +62,60 @@ struct Vector3
     constexpr Vector3 Cross(const Vector3& other) const
     {
         return { Y * other.Z - Z * other.Y, Z * other.X - X * other.Z, X * other.Y - Y * other.X };
+    }
+
+    constexpr T LengthSquared() const
+    {
+        return Dot(*this);
+    }
+
+    constexpr T Length() const
+    {
+        return std::sqrt(LengthSquared());
+    }
+
+    // A zero vector stays zero.
+    constexpr Vector3 Normalize() const
+    {
+        const auto length = Length();
+        return length > T(0) ? *this / length : *this;
+    }
+
+    // The part perpendicular to unit `normal`.
+    constexpr Vector3 ProjectOntoPlane(const Vector3& normal) const
+    {
+        return *this - normal * Dot(normal);
+    }
+
+    // The shortest rotation from unit this to unit `to`, as a rotation vector (axis times
+    // radians). Zero if parallel; undefined if opposite.
+    constexpr Vector3 RotationTo(const Vector3& to) const
+    {
+        const auto axis = Cross(to);
+        const auto sine = axis.Length();
+
+        if(sine < T(1e-12))
+        {
+            return {};
+        }
+
+        return axis * (std::atan2(sine, Dot(to)) / sine);
+    }
+
+    // About `rotation`'s axis by its length in radians (a rotation vector).
+    constexpr Vector3 Rotate(const Vector3& rotation) const
+    {
+        const auto angle = rotation.Length();
+
+        if(angle < T(1e-12))
+        {
+            return *this + rotation.Cross(*this);
+        }
+
+        const auto axis = rotation / angle;
+        const auto cosine = std::cos(angle);
+
+        return *this * cosine + axis.Cross(*this) * std::sin(angle) + axis * (axis.Dot(*this) * (T(1) - cosine));
     }
 
     constexpr Vector3 Rotate(const Angle& angle, const Vector3& axis) const

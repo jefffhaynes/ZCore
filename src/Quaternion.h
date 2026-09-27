@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cmath>
 #include <Vector2.h>
 #include <Vector3.h>
 
@@ -14,6 +15,19 @@ public:
     constexpr Quaternion()
     {
     }
+
+    // About `rotation`'s axis by its length in radians (a rotation vector).
+    static constexpr Quaternion FromRotationVector(const Vector3<T>& rotation)
+    {
+        const auto angle = rotation.Length();
+
+        // sin(angle / 2) / angle tends to 1/2.
+        const auto scale = angle > T(1e-6) ? std::sin(angle / 2) / angle : T(0.5);
+
+        return { rotation.X * scale, rotation.Y * scale, rotation.Z * scale, std::cos(angle / 2) };
+    }
+
+    static const Quaternion Identity;
 
     T X = { };
     T Y = { };
@@ -86,3 +100,6 @@ public:
         return { q.X, q.Y };
     }
 };
+
+template<typename T>
+constexpr Quaternion<T> Quaternion<T>::Identity = Quaternion<T>(0, 0, 0, 1);

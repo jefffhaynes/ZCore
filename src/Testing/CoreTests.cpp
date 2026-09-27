@@ -28,6 +28,7 @@
 #include "UnitsTests.h"
 #include "Vector2Tests.h"
 #include "Vector3Tests.h"
+#include "QuaternionTests.h"
 #include "BufferedOutputStreamTests.h"
 #include "CoreMathTests.h"
 #include "CrcTests.h"
