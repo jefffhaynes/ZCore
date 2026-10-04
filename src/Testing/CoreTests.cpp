@@ -37,3 +37,4 @@
 #include "PoolTests.h"
 #include "ReturnCodeTests.h"
 #include "PidControllerTests.h"
+#include "Rgb565Tests.h"
