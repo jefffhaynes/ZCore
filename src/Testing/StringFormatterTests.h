@@ -245,9 +245,122 @@ namespace StringFormatterTests
 
     // Buffer size exactly equal to required size
     static_assert([]{
-        Array<char, 14> buffer;
+        Array<char, 13> buffer;
         auto formatted = StringFormatter::Format(buffer, "Hello, World!");
         return formatted == String("Hello, World!");
+    }(), "Format method failed");
+
+    // Text one character too long
+    static_assert([]{
+        Array<char, 12> buffer;
+        auto formatted = StringFormatter::Format(buffer, "Hello, World!");
+        return formatted.IsEmpty();
+    }(), "Format method failed");
+
+    // Numbers filling the buffer exactly
+    static_assert([]{
+        Array<char, 12> buffer;
+        auto formatted = StringFormatter::Format(buffer, "%d.%d.%d.%d", 192, 168, 1, 10);
+        return formatted == String("192.168.1.10");
+    }(), "Format method failed");
+
+    // Last number one character too long
+    static_assert([]{
+        Array<char, 11> buffer;
+        auto formatted = StringFormatter::Format(buffer, "%d.%d.%d.%d", 192, 168, 1, 10);
+        return formatted.IsEmpty();
+    }(), "Format method failed");
+
+    // Buffer full with text and arguments left
+    static_assert([]{
+        Array<char, 8> buffer;
+        auto formatted = StringFormatter::Format(buffer, "%d.%d.%d.%d", 192, 168, 1, 10);
+        return formatted.IsEmpty();
+    }(), "Format method failed");
+
+    // Padding that doesn't fit
+    static_assert([]{
+        Array<char, 4> buffer;
+        auto formatted = StringFormatter::Format(buffer, "%5d", 42);
+        return formatted.IsEmpty();
+    }(), "Format method failed");
+
+    // Float filling the buffer exactly
+    static_assert([]{
+        Array<char, 5> buffer;
+        auto formatted = StringFormatter::Format(buffer, "%.2f", -1.5f);
+        return formatted == String("-1.50");
+    }(), "Format method failed");
+
+    // Float one character too long
+    static_assert([]{
+        Array<char, 4> buffer;
+        auto formatted = StringFormatter::Format(buffer, "%.2f", -1.5f);
+        return formatted.IsEmpty();
+    }(), "Format method failed");
+
+    // String argument that doesn't fit
+    static_assert([]{
+        Array<char, 8> buffer;
+        auto formatted = StringFormatter::Format(buffer, "Name: %s", "test");
+        return formatted.IsEmpty();
+    }(), "Format method failed");
+
+    // Character argument that doesn't fit
+    static_assert([]{
+        Array<char, 6> buffer;
+        auto formatted = StringFormatter::Format(buffer, "Char: %c", 'A');
+        return formatted.IsEmpty();
+    }(), "Format method failed");
+
+    // Escaped percent that doesn't fit
+    static_assert([]{
+        Array<char, 3> buffer;
+        auto formatted = StringFormatter::Format(buffer, "100%%");
+        return formatted.IsEmpty();
+    }(), "Format method failed");
+
+    // Nothing written past the text
+    static_assert([]{
+        Array<char, 8> buffer;
+        buffer.Fill('#');
+        auto formatted = StringFormatter::Format(buffer, "%d", 42);
+        return formatted == String("42") && String(buffer.Skip(2)) == String("######");
+    }(), "Format method failed");
+
+    // Format that isn't null-terminated
+    static_assert([]{
+        Array<char, 16> buffer;
+        auto formatted = StringFormatter::Format(buffer, String("%d apples").Take(2), 3);
+        return formatted == String("3");
+    }(), "Format method failed");
+
+    // Most negative integer
+    static_assert([]{
+        Array<char, 16> buffer;
+        auto formatted = StringFormatter::Format(buffer, "%d", -2147483647 - 1);
+        return formatted == String("-2147483648");
+    }(), "Format method failed");
+
+    // Zero
+    static_assert([]{
+        Array<char, 16> buffer;
+        auto formatted = StringFormatter::Format(buffer, "%d %x", 0, 0);
+        return formatted == String("0 0");
+    }(), "Format method failed");
+
+    // Widest hex, and the short modifier
+    static_assert([]{
+        Array<char, 16> buffer;
+        auto formatted = StringFormatter::Format(buffer, "%x %hx", -1, -1);
+        return formatted == String("ffffffff ffff");
+    }(), "Format method failed");
+
+    // Float too large for its whole part
+    static_assert([]{
+        Array<char, 24> buffer;
+        auto formatted = StringFormatter::Format(buffer, "%.1f", 1e10f);
+        return formatted.IsEmpty();
     }(), "Format method failed");
 
     // Non-ASCII characters
