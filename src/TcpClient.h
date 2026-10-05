@@ -52,6 +52,17 @@ public:
         return ReturnCode::Success;
     }
 
+    // With delay, the stack holds a short write back until everything before it is acknowledged, which a
+    // peer may put off for tens of milliseconds.
+    ReturnCode SetNoDelay(bool noDelay)
+    {
+        int value = noDelay ? 1 : 0;
+        auto err = zsock_setsockopt(GetDescriptor(), IPPROTO_TCP, TCP_NODELAY, &value, sizeof(value));
+
+        // This option's failure comes back as the error itself, not through errno.
+        return err == -1 ? GetLastError() : ErrorConverter::Convert(err);
+    }
+
     // Timeout if nothing arrives in time. The peer closing counts as arriving.
     ReturnCode WaitForData(TimeSpan timeout) const
     {

@@ -40,3 +40,6 @@
 #include "Rgb565Tests.h"
 #include "IPAddressTests.h"
 #include "StringParserTests.h"
+#include "Sha1Tests.h"
+#include "Base64Tests.h"
+#include "WebSocketFrameTests.h"
