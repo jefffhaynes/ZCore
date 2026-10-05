@@ -18,6 +18,12 @@
 
 class Debug
 {
+    // Above Write, which needs its deduced return type.
+    template <typename Tuple, std::size_t... I>
+    static auto forward_except_last(std::index_sequence<I...>, Tuple&& tuple) {
+        return std::forward_as_tuple(std::get<I>(std::forward<Tuple>(tuple))...);
+    }
+
 public:
     template<typename... Args>
     static constexpr ReturnCode Write(String message, Args... args)
@@ -200,11 +206,6 @@ private:
 #endif
 
         return StringLiteral();
-    }
-    
-    template <typename Tuple, std::size_t... I>
-    static auto forward_except_last(std::index_sequence<I...>, Tuple&& tuple) {
-        return std::forward_as_tuple(std::get<I>(std::forward<Tuple>(tuple))...);
     }
 };
 
