@@ -185,12 +185,12 @@ namespace StringFormatterTests
     //     return formatted == String("Octal: 52");
     // }(), "Format method failed");
 
-    // // Unsigned integers
-    // static_assert([]{
-    //     Array<char, 24> buffer;
-    //     auto formatted = StringFormatter::Format(buffer, "Unsigned: %u", 42u);
-    //     return formatted == String("Unsigned: 42");
-    // }(), "Format method failed");
+    // Unsigned integers
+    static_assert([]{
+        Array<char, 24> buffer;
+        auto formatted = StringFormatter::Format(buffer, "Unsigned: %u", 42u);
+        return formatted == String("Unsigned: 42");
+    }(), "Format method failed");
 
     // Combining multiple format specifiers
     static_assert([]{
@@ -206,21 +206,21 @@ namespace StringFormatterTests
     //     return formatted == String("Scientific: 1.234568e+04");
     // }(), "Format method failed");
 
-    // // Short integers
-    // static_assert([]{
-    //     Array<char, 24> buffer;
-    //     short int value = 42;
-    //     auto formatted = StringFormatter::Format(buffer, "Short: %hd", value);
-    //     return formatted == String("Short: 42");
-    // }(), "Format method failed");
+    // Short integers
+    static_assert([]{
+        Array<char, 24> buffer;
+        short int value = 42;
+        auto formatted = StringFormatter::Format(buffer, "Short: %hd", value);
+        return formatted == String("Short: 42");
+    }(), "Format method failed");
 
-    // // Long integers
-    // static_assert([]{
-    //     Array<char, 32> buffer;
-    //     long int value = 1234567890;
-    //     auto formatted = StringFormatter::Format(buffer, "Long: %ld", value);
-    //     return formatted == String("Long: 1234567890");
-    // }(), "Format method failed");
+    // Long integers
+    static_assert([]{
+        Array<char, 32> buffer;
+        long int value = 1234567890;
+        auto formatted = StringFormatter::Format(buffer, "Long: %ld", value);
+        return formatted == String("Long: 1234567890");
+    }(), "Format method failed");
 
     // Adjacent format specifiers
     static_assert([]{
@@ -457,6 +457,108 @@ namespace StringFormatterTests
     //     auto formatted = StringFormatter::Format(buffer, "Inf: %f", inf_value);
     //     return formatted == String("Inf: inf");
     // }(), "Format method failed");
+
+    // Zero padding goes after the sign, and spaces before it
+    static_assert([]{
+        Array<char, 24> buffer;
+        auto formatted = StringFormatter::Format(buffer, "%05d %+05d %5d", -42, 42, -42);
+        return formatted == String("-0042 +0042   -42");
+    }(), "Format method failed");
+
+    // Unsigned values past the signed range
+    static_assert([]{
+        Array<char, 24> buffer;
+        auto formatted = StringFormatter::Format(buffer, "%u %d", 4000000000u, 4000000000u);
+        return formatted == String("4000000000 4000000000");
+    }(), "Format method failed");
+
+    // Negative integer as unsigned
+    static_assert([]{
+        Array<char, 16> buffer;
+        auto formatted = StringFormatter::Format(buffer, "%u", -1);
+        return formatted == String("4294967295");
+    }(), "Format method failed");
+
+    // 64-bit integers
+    static_assert([]{
+        Array<char, 64> buffer;
+        auto formatted = StringFormatter::Format(buffer, "%lld %llu %llx",
+            -9223372036854775807LL - 1, 18446744073709551615ULL, 0x123456789abcdefLL);
+        return formatted == String("-9223372036854775808 18446744073709551615 123456789abcdef");
+    }(), "Format method failed");
+
+    // Enum with a 64-bit underlying type
+    enum class Wide : uint64_t { Value = 5000000000 };
+    static_assert([]{
+        Array<char, 16> buffer;
+        auto formatted = StringFormatter::Format(buffer, "%u", Wide::Value);
+        return formatted == String("5000000000");
+    }(), "Format method failed");
+
+    // size_t
+    static_assert([]{
+        Array<char, 16> buffer;
+        auto formatted = StringFormatter::Format(buffer, "%zu bytes", sizeof(uint32_t));
+        return formatted == String("4 bytes");
+    }(), "Format method failed");
+
+    // bool
+    static_assert([]{
+        Array<char, 16> buffer;
+        auto formatted = StringFormatter::Format(buffer, "%d %d", true, false);
+        return formatted == String("1 0");
+    }(), "Format method failed");
+
+    // No decimal point without a fraction
+    static_assert([]{
+        Array<char, 16> buffer;
+        auto formatted = StringFormatter::Format(buffer, "%.0f %.0f", 42.0f, 1.6f);
+        return formatted == String("42 2");
+    }(), "Format method failed");
+
+    // Float width, zero padding and sign
+    static_assert([]{
+        Array<char, 24> buffer;
+        auto formatted = StringFormatter::Format(buffer, "%8.3f|%08.3f|%+.1f", 3.14159f, -3.14159f, 2.5f);
+        return formatted == String("   3.142|-003.142|+2.5");
+    }(), "Format method failed");
+
+    // Padded float that doesn't fit
+    static_assert([]{
+        Array<char, 7> buffer;
+        auto formatted = StringFormatter::Format(buffer, "%8.3f", 3.14159f);
+        return formatted.IsEmpty();
+    }(), "Format method failed");
+
+    // String and StringLiteral arguments
+    static_assert([]{
+        Array<char, 16> buffer;
+        auto formatted = StringFormatter::Format(buffer, "%s, %s!", String("Hello"), StringLiteral("World"));
+        return formatted == String("Hello, World!");
+    }(), "Format method failed");
+
+    // String argument that isn't null-terminated
+    static_assert([]{
+        Array<char, 16> buffer;
+        auto formatted = StringFormatter::Format(buffer, "%s", String("Hello, World!").Take(5));
+        return formatted == String("Hello");
+    }(), "Format method failed");
+
+    // Mutable C string
+    static_assert([]{
+        Array<char, 16> buffer;
+        char name[] = "test";
+        auto formatted = StringFormatter::Format(buffer, "String: %s", name);
+        return formatted == String("String: test");
+    }(), "Format method failed");
+
+    // Null C string
+    static_assert([]{
+        Array<char, 16> buffer;
+        const char* missing = nullptr;
+        auto formatted = StringFormatter::Format(buffer, "%s", missing);
+        return formatted.IsEmpty();
+    }(), "Format method failed");
 
     // string literal
     static_assert([]{

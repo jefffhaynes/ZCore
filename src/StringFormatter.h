@@ -31,8 +31,13 @@ private:
     // The most fraction digits that fit 32 bits.
     static constexpr uint32_t MaxPrecision = 9;
 
-    template<typename T, typename... Types>
-    static constexpr bool IsAnyOf = (std::is_same_v<T, Types> || ...);
+    // What opens a number's specifier: %[+][0][width]
+    struct Layout
+    {
+        bool AlwaysSign;
+        bool ZeroPad;
+        uint32_t Width;
+    };
 
     static constexpr ReturnCode WriteArguments(SpanWriter<char>& writer, Span<const char> format)
     {
@@ -96,20 +101,30 @@ private:
         {
             return WriteArgument(writer, format, static_cast<std::underlying_type_t<T>>(value));
         }
-        else if constexpr (IsAnyOf<T, int, unsigned int, int8_t, uint8_t, int16_t, uint16_t>)
-        {
-            return WriteInteger(writer, format, static_cast<int>(value));
-        }
-        else if constexpr (IsAnyOf<T, float, double>)
-        {
-            return WriteFloat(writer, format, static_cast<float>(value));
-        }
         else if constexpr (std::is_same_v<T, char>)
         {
             return TrySkip(format, 'c') ? writer.Write(value) : ReturnCode::NotSupported;
         }
-        else if constexpr (std::is_same_v<T, const char*>)
+        else if constexpr (std::is_integral_v<T>)
         {
+            using Bits = std::conditional_t<(sizeof(T) > sizeof(uint32_t)), uint64_t, uint32_t>;
+            return WriteInteger(writer, format, static_cast<Bits>(value), std::is_signed_v<T>);
+        }
+        else if constexpr (std::is_floating_point_v<T>)
+        {
+            return WriteFloat(writer, format, static_cast<float>(value));
+        }
+        else if constexpr (std::is_base_of_v<Span<const char>, T>)
+        {
+            return TrySkip(format, 's') ? writer.Write(value) : ReturnCode::NotSupported;
+        }
+        else if constexpr (std::is_same_v<T, const char*> || std::is_same_v<T, char*>)
+        {
+            if (value == nullptr)
+            {
+                return ReturnCode::NullArgument;
+            }
+
             return TrySkip(format, 's') ? writer.Write(String::FromNullTerminated(value)) : ReturnCode::NotSupported;
         }
         else
@@ -118,37 +133,45 @@ private:
         }
     }
 
-    // %[+][0][width][h] then d, i, u or x
-    static constexpr ReturnCode WriteInteger(SpanWriter<char>& writer, Span<const char>& format, int value)
+    // %[+][0][width][h, l, ll or z] then d, i, u or x. `bits` is the argument, sign-extended:
+    // d and i print its value, u and x its bits, and hx its low 16.
+    template<typename TBits>
+    static constexpr ReturnCode WriteInteger(SpanWriter<char>& writer, Span<const char>& format,
+        TBits bits, bool isSigned)
     {
-        auto alwaysSign = TrySkip(format, '+');
-        auto padding = TrySkip(format, '0') ? '0' : ' ';
-        auto width = ReadNumber(format);
+        auto layout = ReadLayout(format);
         auto isShort = TrySkip(format, 'h');
-        auto bits = static_cast<uint32_t>(value);
 
-        if (TrySkip(format, 'd') || TrySkip(format, 'i') || TrySkip(format, 'u'))
+        // The argument's type gives its size, so these change nothing.
+        while (TrySkip(format, 'l') || TrySkip(format, 'z'))
         {
-            if (value < 0)
-            {
-                return WriteNumber(writer, 0 - bits, 10, width, padding, '-');
-            }
+        }
 
-            return WriteNumber(writer, bits, 10, width, padding, alwaysSign ? '+' : '\0');
+        if (TrySkip(format, 'd') || TrySkip(format, 'i'))
+        {
+            auto isNegative = isSigned && static_cast<std::make_signed_t<TBits>>(bits) < 0;
+            auto magnitude = isNegative ? static_cast<TBits>(0 - bits) : bits;
+
+            return WriteNumber(writer, layout, GetSign(layout, isNegative), magnitude, 10);
+        }
+
+        if (TrySkip(format, 'u'))
+        {
+            return WriteNumber(writer, layout, '\0', bits, 10);
         }
 
         if (TrySkip(format, 'x'))
         {
-            return WriteNumber(writer, isShort ? bits & 0xFFFF : bits, 16, width, padding);
+            return WriteNumber(writer, layout, '\0', isShort ? static_cast<TBits>(bits & 0xFFFF) : bits, 16);
         }
 
         return ReturnCode::NotSupported;
     }
 
-    // %[width][.precision]f, where the width is ignored
+    // %[+][0][width][.precision]f
     static constexpr ReturnCode WriteFloat(SpanWriter<char>& writer, Span<const char>& format, float value)
     {
-        ReadNumber(format);
+        auto layout = ReadLayout(format);
         auto precision = TrySkip(format, '.') ? ReadNumber(format) : DefaultPrecision;
 
         if (!TrySkip(format, 'f') || precision > MaxPrecision)
@@ -184,49 +207,121 @@ private:
             scaled = 0;
         }
 
-        auto rc = WriteNumber(writer, whole, 10, 0, ' ', isNegative ? '-' : '\0');
+        auto wholeDigits = CountDigits(whole, 10);
+        auto pointAndFraction = precision == 0 ? 0 : 1 + precision;
+
+        auto rc = WriteLead(writer, layout, GetSign(layout, isNegative), wholeDigits + pointAndFraction);
         CHECK_RETURN_CODE(rc);
+
+        rc = WriteDigits(writer, whole, 10, wholeDigits);
+        CHECK_RETURN_CODE(rc);
+
+        if (precision == 0)
+        {
+            return ReturnCode::Success;
+        }
 
         rc = writer.Write('.');
         CHECK_RETURN_CODE(rc);
 
-        return precision == 0 ? ReturnCode::Success : WriteNumber(writer, scaled, 10, precision, '0');
+        return WriteDigits(writer, scaled, 10, precision);
     }
 
-    // Pads on the left to `width`, then writes the sign, if any, and the digits.
-    static constexpr ReturnCode WriteNumber(SpanWriter<char>& writer, uint32_t value, uint32_t base,
-        uint32_t width = 0, char padding = ' ', char sign = '\0')
+    template<typename TBits>
+    static constexpr ReturnCode WriteNumber(SpanWriter<char>& writer, const Layout& layout, char sign,
+        TBits value, uint32_t base)
     {
-        // The leading digit's place value, and how many characters the number takes.
-        uint32_t place = 1;
-        uint32_t length = sign == '\0' ? 1 : 2;
+        auto digits = CountDigits(value, base);
 
-        while (value / place >= base)
+        auto rc = WriteLead(writer, layout, sign, digits);
+        CHECK_RETURN_CODE(rc);
+
+        return WriteDigits(writer, value, base, digits);
+    }
+
+    // Writes the sign, if any, and the padding that brings it and `length` more characters up to
+    // the width. Zeros go after the sign, and spaces before it.
+    static constexpr ReturnCode WriteLead(SpanWriter<char>& writer, const Layout& layout, char sign, uint32_t length)
+    {
+        auto hasSign = sign != '\0';
+        auto used = length + (hasSign ? 1 : 0);
+        auto padding = used < layout.Width ? layout.Width - used : 0;
+
+        auto rc = WriteRepeated(writer, ' ', layout.ZeroPad ? 0 : padding);
+        CHECK_RETURN_CODE(rc);
+
+        if (hasSign)
+        {
+            rc = writer.Write(sign);
+            CHECK_RETURN_CODE(rc);
+        }
+
+        return WriteRepeated(writer, '0', layout.ZeroPad ? padding : 0);
+    }
+
+    static constexpr ReturnCode WriteRepeated(SpanWriter<char>& writer, char character, uint32_t count)
+    {
+        for (uint32_t i = 0; i < count; i++)
+        {
+            auto rc = writer.Write(character);
+            CHECK_RETURN_CODE(rc);
+        }
+
+        return ReturnCode::Success;
+    }
+
+    // Writes `value` as `digits` digits, with leading zeros if it has fewer.
+    template<typename TBits>
+    static constexpr ReturnCode WriteDigits(SpanWriter<char>& writer, TBits value, uint32_t base, uint32_t digits)
+    {
+        // The first digit's place value.
+        TBits place = 1;
+
+        for (uint32_t i = 1; i < digits; i++)
         {
             place *= base;
-            length++;
-        }
-
-        for (; length < width; length++)
-        {
-            auto rc = writer.Write(padding);
-            CHECK_RETURN_CODE(rc);
-        }
-
-        if (sign != '\0')
-        {
-            auto rc = writer.Write(sign);
-            CHECK_RETURN_CODE(rc);
         }
 
         for (; place > 0; place /= base)
         {
-            auto digit = value / place % base;
+            auto digit = static_cast<uint32_t>(value / place % base);
             auto rc = writer.Write(static_cast<char>(digit < 10 ? '0' + digit : 'a' + digit - 10));
             CHECK_RETURN_CODE(rc);
         }
 
         return ReturnCode::Success;
+    }
+
+    template<typename TBits>
+    static constexpr uint32_t CountDigits(TBits value, uint32_t base)
+    {
+        uint32_t digits = 1;
+
+        for (; value >= base; value /= base)
+        {
+            digits++;
+        }
+
+        return digits;
+    }
+
+    static constexpr char GetSign(const Layout& layout, bool isNegative)
+    {
+        if (isNegative)
+        {
+            return '-';
+        }
+
+        return layout.AlwaysSign ? '+' : '\0';
+    }
+
+    static constexpr Layout ReadLayout(Span<const char>& format)
+    {
+        auto alwaysSign = TrySkip(format, '+');
+        auto zeroPad = TrySkip(format, '0');
+        auto width = ReadNumber(format);
+
+        return { alwaysSign, zeroPad, width };
     }
 
     // Consumes `character` if the format starts with it.
