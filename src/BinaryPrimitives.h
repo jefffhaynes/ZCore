@@ -43,11 +43,12 @@ public:
         }
 
         Bits<T> bits = 0;
+        uint32_t index = 0;
 
-        for (uint32_t i = 0; i < sizeof(T); i++)
+        for (auto byte : source.Take(sizeof(T)))
         {
-            auto byte = source.GetData()[GetByteIndex<T>(i, endianness)];
-            bits = static_cast<Bits<T>>(bits | (static_cast<Bits<T>>(byte) << (i * 8)));
+            auto shift = GetSignificance<T>(index++, endianness) * 8;
+            bits = static_cast<Bits<T>>(bits | (static_cast<Bits<T>>(byte) << shift));
         }
 
         value = FromBits<T>(bits);
@@ -66,10 +67,11 @@ public:
         }
 
         auto bits = ToBits(value);
+        uint32_t index = 0;
 
-        for (uint32_t i = 0; i < sizeof(T); i++)
+        for (auto& byte : destination.Take(sizeof(T)))
         {
-            destination.GetData()[GetByteIndex<T>(i, endianness)] = static_cast<uint8_t>(bits >> (i * 8));
+            byte = static_cast<uint8_t>(bits >> (GetSignificance<T>(index++, endianness) * 8));
         }
 
         return ReturnCode::Success;
@@ -129,10 +131,11 @@ private:
                  std::conditional_t<sizeof(T) == 2, uint16_t,
                  std::conditional_t<sizeof(T) == 4, uint32_t, uint64_t>>>;
 
+    // How many bytes up from the least significant the byte at `index` is.
     template<typename T>
-    static constexpr uint32_t GetByteIndex(uint32_t significance, Endianness endianness)
+    static constexpr uint32_t GetSignificance(uint32_t index, Endianness endianness)
     {
-        return endianness == Endianness::LittleEndian ? significance : sizeof(T) - 1 - significance;
+        return endianness == Endianness::LittleEndian ? index : sizeof(T) - 1 - index;
     }
 
     template<typename T>

@@ -74,10 +74,9 @@ public:
 
         auto length = static_cast<uint32_t>(terminator) + 1;
 
-        for (uint32_t i = 0; i < length; i++)
-        {
-            data.Set(i, static_cast<char>(remaining.GetData()[i]));
-        }
+        auto rc = remaining.Take(length).template CopyTo<char>(data,
+            [](std::remove_const_t<T> value) { return static_cast<char>(value); });
+        CHECK_RETURN_CODE(rc);
 
         _offset += length;
 

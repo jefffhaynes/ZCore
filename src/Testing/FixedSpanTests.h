@@ -1,6 +1,7 @@
 #pragma once
 
 #include "FixedSpan.h"
+#include "Array.h"
 
 namespace FixedSpanTests
 {
@@ -58,4 +59,71 @@ namespace FixedSpanTests
 
         return destinationData[0] == 1 && destinationData[3] == 4;
     }(), "CopyTo failed");
+
+    static_assert([]{
+        int destinationData[] = { 0, 0, 0, 0 };
+        auto destination = FixedSpan<int, 4>::FromArray(destinationData);
+
+        return testSpan.CopyTo(destination) == ReturnCode::Success && testSpan.AsSpan().SequenceEquals(destinationData);
+    }(), "CopyTo from a const span failed");
+
+    static_assert([]{
+        int sum = 0;
+
+        for(auto value : testSpan)
+        {
+            sum += value;
+        }
+
+        return sum == 10;
+    }(), "Iterating a const span failed");
+
+    static_assert([]{
+        int data[] = { 1, 2, 3, 4 };
+        int doubled[] = { 2, 4, 6, 8 };
+        auto span = FixedSpan<int, 4>::FromArray(data);
+
+        for(auto& value : span)
+        {
+            value *= 2;
+        }
+
+        return span.SequenceEquals(doubled);
+    }(), "Iterating didn't reach the elements themselves");
+
+    static_assert([]{
+        uint32_t count = 0;
+
+        for(auto value : offsetSpan)
+        {
+            count += value == 2 || value == 3 ? 1 : 0;
+        }
+
+        return count == 2;
+    }(), "Iterating ran outside the span");
+
+    constexpr int sameData[] = { 1, 2, 3, 4 };
+    constexpr int otherData[] = { 1, 2, 3, 5 };
+    constexpr int longerData[] = { 1, 2, 3, 4, 5 };
+
+    static_assert(testSpan.SequenceEquals(sameData) && !testSpan.SequenceEquals(otherData),
+        "SequenceEquals failed against an array");
+    static_assert(!testSpan.SequenceEquals(longerData) && !testSpan.SequenceEquals(Span<const int>()),
+        "SequenceEquals matched a different length");
+    static_assert(testSpan.SequenceEquals(Span<const int>(sameData))
+        && !testSpan.SequenceEquals(Span<const int>(sameData).Take(3)), "SequenceEquals failed against a Span");
+    static_assert(testSpan.SequenceEquals(FixedSpan<const int, 4>::FromArray(sameData))
+        && !testSpan.SequenceEquals(FixedSpan<const int, 4>::FromArray(otherData))
+        && !testSpan.SequenceEquals(FixedSpan<const int, 3>::FromArray(sameData))
+        && testSpan.Take<2>().SequenceEquals(FixedSpan<const int, 2>::FromArray(longerData)),
+        "SequenceEquals failed against a FixedSpan");
+
+    static_assert([]{
+        int data[] = { 1, 2, 3, 4 };
+        Array<int, 4> array(1, 2, 3, 4);
+        auto span = FixedSpan<int, 4>::FromArray(data);
+
+        return span.SequenceEquals(testSpan) && testSpan.SequenceEquals(span) && span.SequenceEquals(array)
+            && span.SequenceEquals(data);
+    }(), "SequenceEquals failed between const and mutable spans");
 }

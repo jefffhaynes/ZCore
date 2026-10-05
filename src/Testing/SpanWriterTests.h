@@ -122,3 +122,28 @@ static_assert([]() constexpr
     auto rc = writer.Write(uint32_t{0x12345678});
     return rc == ReturnCode::InvalidLength && writer.GetWritten() == 0 && data[0] == 0xAA && data[2] == 0xAA;
 }());
+
+static_assert([]() constexpr
+{
+    int data[2] = { 0 };
+    int expected[] = { 300, -2 };
+    SpanWriter<int> writer(data);
+
+    auto rc = writer.Write(300);
+    rc = rc == ReturnCode::Success ? writer.Write(-2) : rc;
+
+    return rc == ReturnCode::Success && writer.GetWrittenSpan().SequenceEquals(expected)
+        && writer.Write(1) == ReturnCode::InvalidLength && writer.GetWritten() == 2;
+}(), "A single value went through a byte");
+
+static_assert([]() constexpr
+{
+    Array<char, 2> data;
+    SpanWriter<char> writer(data);
+
+    auto rc = writer.Write('o');
+    rc = rc == ReturnCode::Success ? writer.Write('k') : rc;
+
+    return rc == ReturnCode::Success && String(writer.GetWrittenSpan()) == String("ok")
+        && writer.Write('!') == ReturnCode::InvalidLength;
+}(), "Writing characters failed");

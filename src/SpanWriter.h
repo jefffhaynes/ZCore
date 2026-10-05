@@ -54,7 +54,7 @@ public:
         return Write(span);
     }
 
-    constexpr ReturnCode Write(uint8_t value)
+    constexpr ReturnCode Write(T value)
     {
         if (_span.TrySet(_offset, value))
         {

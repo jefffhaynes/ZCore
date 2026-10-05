@@ -43,7 +43,12 @@ public:
     constexpr const T* GetData() const { return _data; }
     constexpr uint32_t GetLength() const { return Length; }
 
-    constexpr const T& operator[](uint32_t index) const 
+    constexpr auto begin() { return AsSpan().begin(); }
+    constexpr auto end() { return AsSpan().end(); }
+    constexpr auto begin() const { return AsSpan().begin(); }
+    constexpr auto end() const { return AsSpan().end(); }
+
+    constexpr const T& operator[](uint32_t index) const
     { 
         assert(index < GetLength());
         return _data[index]; 
@@ -120,9 +125,21 @@ public:
         return FixedSpan<T, OtherLength < Length ? OtherLength : Length>(_data);
     }
 
-    constexpr ReturnCode CopyTo(FixedSpan<T, Length> destination) const
+    constexpr ReturnCode CopyTo(FixedSpan<std::remove_const_t<T>, Length> destination) const
     {
         return AsSpan().CopyTo(destination.AsSpan());
+    }
+
+    constexpr bool SequenceEquals(Span<const T> other) const
+    {
+        return AsSpan().SequenceEquals(other);
+    }
+
+    // Spans of different lengths are never equal.
+    template<typename TOther, uint32_t OtherLength>
+    constexpr bool SequenceEquals(FixedSpan<TOther, OtherLength> other) const
+    {
+        return SequenceEquals(other.AsSpan());
     }
     
 private:
