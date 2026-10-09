@@ -58,10 +58,8 @@ public:
             return ReturnCode::InvalidLength;
         }
 
-        key.CopyTo(_key);
         _keyLength = key.GetLength();
-
-        return ReturnCode::Success;
+        return key.CopyTo(_key);
     }
 
     void ClearKey()
@@ -172,7 +170,7 @@ private:
         context.mode_params.gcm_info.tag_len = TagLength;
 
         auto err = cipher_begin_session(GetDevice(), &context, CRYPTO_CIPHER_ALGO_AES, CRYPTO_CIPHER_MODE_GCM, operation);
-        rc = Convert(err);
+        rc = ErrorConverter::Convert(err);
         CHECK_RETURN_CODE(rc);
 
         // Zephyr's packets aren't const-correct. The driver only reads the input, associated data and
@@ -196,14 +194,9 @@ private:
         {
             // Not every driver clears what it decrypted before finding the tag wrong.
             output.Fill(0);
-            return err == -EFAULT ? ReturnCode::InvalidData : Convert(err);
+            return err == -EFAULT ? ReturnCode::InvalidData : ErrorConverter::Convert(err);
         }
 
-        return Convert(err);
-    }
-
-    static ReturnCode Convert(int err)
-    {
-        return err == -ENOTSUP ? ReturnCode::NotSupported : ErrorConverter::Convert(err);
+        return ErrorConverter::Convert(err);
     }
 };

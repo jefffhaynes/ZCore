@@ -25,6 +25,7 @@ public:
             case -EALREADY:
             case -EAGAIN: return ReturnCode::Busy;
             case -ENOMEM: return ReturnCode::OutOfMemory;
+            case -ENOTSUP: return ReturnCode::NotSupported;
             default: return ReturnCode::InvalidOperation;
         }
     }
