@@ -2,6 +2,21 @@
 
 ZCore is a generic C++20 layer over Zephyr. Several apps share it as a git submodule.
 
+## Wrap Zephyr's APIs
+
+ZCore wraps Zephyr's APIs, as far as they go. Write a class against a Zephyr driver or
+subsystem API, not a peripheral's registers or a vendor's HAL. It then works on any SoC
+Zephyr has a driver for, and can be tested on native_sim.
+
+- Where Zephyr has no driver for some hardware an app needs, write one out of tree, in
+  the app's own Zephyr module, against the API the ZCore class wraps. `AesGcm` wraps
+  Zephyr's crypto API, for instance, and the STM32N6's CRYP has its driver in the app
+  that needed it.
+- Only where Zephyr has no API at all should ZCore reach past it. Keep that part as small
+  as possible, and `#error` on SoCs it doesn't support.
+
+Some older code here reaches past Zephyr; don't take it as the pattern.
+
 ## Favor safe memory operations
 
 Changes here should heavily favor operations that are checked, or that can't go out of
