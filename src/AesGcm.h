@@ -148,6 +148,10 @@ private:
     // The CRYP counts blocks from 2, keeping 1 for the tag (SP 800-38D's J0).
     static constexpr uint32_t FirstCounter = 2;
 
+    // A block takes the CRYP a few hundred cycles, and a status read a few dozen, while reading the clock
+    // costs more than a block. So a wait polls this many times before it starts the clock.
+    static constexpr uint32_t Polls = 1000;
+
     // Each wait is for one block, a few hundred cycles at most; this much longer means it's stuck.
     static constexpr TimeSpan Timeout = TimeSpan::FromMilliseconds(10);
 
@@ -370,10 +374,16 @@ private:
     // Up to a block, zero-padded.
     static void WriteBlock(CRYP_TypeDef& cryp, Span<const uint8_t> data)
     {
-        Array<uint8_t, BlockLength> block;
-        data.Take(BlockLength).CopyTo(block);
+        Array<uint8_t, BlockLength> padded;
 
-        SpanReader<const uint8_t> reader(block.AsSpan(), Endianness::BigEndian);
+        // Only a short block is copied, to pad it.
+        if(data.GetLength() < BlockLength)
+        {
+            data.CopyTo(padded);
+            data = padded;
+        }
+
+        SpanReader<const uint8_t> reader(data.Take(BlockLength), Endianness::BigEndian);
 
         for(uint32_t i = 0; i < BlockLength / sizeof(uint32_t); i++)
         {
@@ -383,11 +393,13 @@ private:
         }
     }
 
-    // A whole block comes out; `destination` gets as much of it as it holds.
+    // A whole block comes out; `destination` gets as much of it as it holds. Only a short block goes
+    // through a copy.
     static void ReadBlock(CRYP_TypeDef& cryp, Span<uint8_t> destination)
     {
         Array<uint8_t, BlockLength> block;
-        SpanWriter<uint8_t> writer(block, Endianness::BigEndian);
+        bool whole = destination.GetLength() >= BlockLength;
+        SpanWriter<uint8_t> writer(whole ? destination : block.AsSpan(), Endianness::BigEndian);
 
         for(uint32_t i = 0; i < BlockLength / sizeof(uint32_t); i++)
         {
@@ -395,16 +407,21 @@ private:
             writer.Write(word);
         }
 
-        block.Take(destination.GetLength()).CopyTo(destination);
+        if(!whole)
+        {
+            block.Take(destination.GetLength()).CopyTo(destination);
+        }
     }
 
     template<typename TCondition>
     static ReturnCode WaitFor(TCondition condition)
     {
-        // Usually it's done before we look.
-        if(condition())
+        for(uint32_t i = 0; i < Polls; i++)
         {
-            return ReturnCode::Success;
+            if(condition())
+            {
+                return ReturnCode::Success;
+            }
         }
 
         auto deadline = Clock::GetUptime() + Timeout;
