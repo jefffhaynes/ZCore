@@ -276,30 +276,8 @@ private:
         rc = Begin(cryp, control | Phase::Payload);
         CHECK_RETURN_CODE(rc);
 
-        auto destination = output;
-
-        for(auto remaining = input; !remaining.IsEmpty(); remaining = remaining.Skip(BlockLength))
-        {
-            auto block = remaining.Take(BlockLength);
-
-            // Padding that's encrypted would be hashed as ciphertext unless the CRYP is told it's there.
-            // Decrypting, the padding is the ciphertext, and zeros hash as they should.
-            if(block.GetLength() < BlockLength && direction == Direction::Encrypt)
-            {
-                control |= (BlockLength - block.GetLength()) << CRYP_CR_NPBLB_Pos;
-
-                rc = Begin(cryp, control | Phase::Payload);
-                CHECK_RETURN_CODE(rc);
-            }
-
-            WriteBlock(cryp, block);
-
-            rc = WaitFor([&cryp] { return (cryp.SR & CRYP_SR_OFNE) != 0; });
-            CHECK_RETURN_CODE(rc);
-
-            ReadBlock(cryp, destination.Take(block.GetLength()));
-            destination = destination.Skip(block.GetLength());
-        }
+        rc = ProcessPayload(cryp, control, direction, input, output);
+        CHECK_RETURN_CODE(rc);
 
         // The final phase only encrypts, whichever way the payload went.
         rc = Begin(cryp, (control & ~static_cast<uint32_t>(CRYP_CR_ALGODIR)) | Phase::Final);
@@ -318,6 +296,41 @@ private:
         ReadBlock(cryp, tag);
 
         return WaitFor([&cryp] { return (cryp.SR & CRYP_SR_BUSY) == 0; });
+    }
+
+    // The payload, a block at a time; `control` gains NPBLB if the last block is short. This loop is where
+    // the time goes. Left to itself, the compiler inlines more or less of the span helpers under it
+    // depending on the rest of the program: on the N6 a block took from 630 to 1,330 cycles, against the
+    // CRYP's 380. Flattened, it inlines them all.
+    [[gnu::flatten]] static ReturnCode ProcessPayload(CRYP_TypeDef& cryp, uint32_t& control, Direction direction,
+        Span<const uint8_t> input, Span<uint8_t> output)
+    {
+        auto destination = output;
+
+        for(auto remaining = input; !remaining.IsEmpty(); remaining = remaining.Skip(BlockLength))
+        {
+            auto block = remaining.Take(BlockLength);
+
+            // Padding that's encrypted would be hashed as ciphertext unless the CRYP is told it's there.
+            // Decrypting, the padding is the ciphertext, and zeros hash as they should.
+            if(block.GetLength() < BlockLength && direction == Direction::Encrypt)
+            {
+                control |= (BlockLength - block.GetLength()) << CRYP_CR_NPBLB_Pos;
+
+                auto rc = Begin(cryp, control | Phase::Payload);
+                CHECK_RETURN_CODE(rc);
+            }
+
+            WriteBlock(cryp, block);
+
+            auto rc = WaitFor([&cryp] { return (cryp.SR & CRYP_SR_OFNE) != 0; });
+            CHECK_RETURN_CODE(rc);
+
+            ReadBlock(cryp, destination.Take(block.GetLength()));
+            destination = destination.Skip(block.GetLength());
+        }
+
+        return ReturnCode::Success;
     }
 
     static void Reset(CRYP_TypeDef& cryp)
