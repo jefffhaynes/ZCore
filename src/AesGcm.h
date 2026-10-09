@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include "Array.h"
 #include "Clock.h"
+#include "CriticalSection.h"
 #include "ErrorConverter.h"
 #include "FixedSpan.h"
 #include "Lock.h"
@@ -99,7 +100,7 @@ public:
     // `associatedData`. `ciphertext` may be `plaintext` itself, to seal in place.
     // - InvalidState without a key.
     // - InvalidLength if `ciphertext` is shorter than `plaintext`, or `tag` isn't TagLength.
-    // - InvalidArgument if `ciphertext` overlaps `plaintext` without starting where it does.
+    // - InvalidArgument if `ciphertext` overlaps `plaintext` without starting where it does, or overlaps `tag`.
     // - Timeout if the hardware stops answering.
     ReturnCode Seal(Nonce nonce, Span<const uint8_t> associatedData, Span<const uint8_t> plaintext,
         Span<uint8_t> ciphertext, Span<uint8_t> tag) const
@@ -189,6 +190,13 @@ private:
         output = output.Take(input.GetLength());
 
         if(input.Overlaps(output) && !input.Take(1).Overlaps(output.Take(1)))
+        {
+            return ReturnCode::InvalidArgument;
+        }
+
+        // Sealing, the tag would be written over ciphertext; opening, plaintext would be written over the
+        // tag before it's compared. (An empty span overlaps anything it starts inside.)
+        if(!output.IsEmpty() && tag.Overlaps(output))
         {
             return ReturnCode::InvalidArgument;
         }
@@ -418,6 +426,10 @@ private:
         stm32_pclken clock = {};
         clock.bus = STM32_CLOCK_BUS_AHB3;
         clock.enr = RCC_AHB3ENR_CRYPEN;
+
+        // Zephyr sets the bit with a read-modify-write of AHB3ENR, which the RNG's clock shares, and the
+        // RNG driver turns that on and off as it runs. Nothing may come between our read and our write.
+        CriticalSection criticalSection;
 
         auto err = clock_control_on(DEVICE_DT_GET(STM32_CLOCK_CONTROL_NODE), static_cast<clock_control_subsys_t>(&clock));
         return ErrorConverter::Convert(err);
