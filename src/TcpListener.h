@@ -10,10 +10,26 @@ public:
     {
     }
 
+#if defined(CONFIG_NET_SOCKETS_SOCKOPT_TLS)
+    // Over TLS 1.2, where `tls` names the certificate and key the server presents. Accept then makes
+    // each connection's handshake, and fails if the client turns the server down.
+    constexpr TcpListener(uint16_t port, TlsOptions tls, uint32_t backlog = 1) : _port(port), _backlog(backlog), _tls(tls)
+    {
+    }
+#endif
+
     ReturnCode Start()
     {
-        auto rc = Open(SOCK_STREAM, IPPROTO_TCP);
+        auto rc = Open(SOCK_STREAM, GetProtocol());
         CHECK_RETURN_CODE(rc);
+
+        rc = Secure();
+
+        if(rc != ReturnCode::Success)
+        {
+            Close();
+            return rc;
+        }
 
         // Lets it restart on its port while connections it accepted are still open or closing.
         int reuse = 1;
@@ -55,4 +71,28 @@ public:
 private:
     uint16_t _port;
     uint32_t _backlog;
+
+#if defined(CONFIG_NET_SOCKETS_SOCKOPT_TLS)
+    TlsOptions _tls;
+
+    constexpr int GetProtocol() const
+    {
+        return _tls.IsEnabled() ? static_cast<int>(IPPROTO_TLS_1_2) : static_cast<int>(IPPROTO_TCP);
+    }
+
+    ReturnCode Secure() const
+    {
+        return _tls.IsEnabled() ? _tls.Apply(GetDescriptor()) : ReturnCode::Success;
+    }
+#else
+    static constexpr int GetProtocol()
+    {
+        return IPPROTO_TCP;
+    }
+
+    static constexpr ReturnCode Secure()
+    {
+        return ReturnCode::Success;
+    }
+#endif
 };

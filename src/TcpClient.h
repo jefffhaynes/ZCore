@@ -9,6 +9,10 @@
 #error "TcpClient needs CONFIG_NET_TCP"
 #endif
 
+#if defined(CONFIG_NET_SOCKETS_SOCKOPT_TLS)
+#include "Tls.h"
+#endif
+
 class TcpClient : public Socket, public InputStream, public OutputStream
 {
 public:
@@ -17,11 +21,29 @@ public:
     {
     }
 
-    // Gives up after the stack's CONFIG_NET_SOCKETS_CONNECT_TIMEOUT.
+#if defined(CONFIG_NET_SOCKETS_SOCKOPT_TLS)
+    // Over TLS 1.2 where `tls` names credentials: Connect then fails unless the server proves itself
+    // against them.
+    constexpr explicit TcpClient(TlsOptions tls, TimeSpan writeTimeout = TimeSpan::FromSeconds(10))
+        : _writeTimeout(writeTimeout), _tls(tls)
+    {
+    }
+#endif
+
+    // Gives up after the stack's CONFIG_NET_SOCKETS_CONNECT_TIMEOUT. Over TLS it also makes the
+    // handshake, which has no timeout of its own.
     ReturnCode Connect(IPEndPoint remoteEndPoint)
     {
-        auto rc = Open(SOCK_STREAM, IPPROTO_TCP);
+        auto rc = Open(SOCK_STREAM, GetProtocol());
         CHECK_RETURN_CODE(rc);
+
+        rc = Secure();
+
+        if(rc != ReturnCode::Success)
+        {
+            Close();
+            return rc;
+        }
 
         auto address = NetworkHelper::ToNative(remoteEndPoint);
 
@@ -172,6 +194,30 @@ private:
 
     TimeSpan _writeTimeout;
     bool _isEndOfStream = false;
+
+#if defined(CONFIG_NET_SOCKETS_SOCKOPT_TLS)
+    TlsOptions _tls;
+
+    constexpr int GetProtocol() const
+    {
+        return _tls.IsEnabled() ? static_cast<int>(IPPROTO_TLS_1_2) : static_cast<int>(IPPROTO_TCP);
+    }
+
+    ReturnCode Secure() const
+    {
+        return _tls.IsEnabled() ? _tls.Apply(GetDescriptor()) : ReturnCode::Success;
+    }
+#else
+    static constexpr int GetProtocol()
+    {
+        return IPPROTO_TCP;
+    }
+
+    static constexpr ReturnCode Secure()
+    {
+        return ReturnCode::Success;
+    }
+#endif
 
     void Attach(int descriptor)
     {

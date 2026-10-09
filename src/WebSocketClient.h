@@ -27,6 +27,14 @@ public:
     {
     }
 
+#if defined(CONFIG_NET_SOCKETS_SOCKOPT_TLS)
+    // Over TLS (wss) where `tls` names credentials.
+    explicit WebSocketClient(TlsOptions tls, TimeSpan timeout = TimeSpan::FromSeconds(10))
+        : _tcp(tls, timeout), _timeout(timeout)
+    {
+    }
+#endif
+
     // False once the connection has failed or the server has closed it, until the next Connect.
     bool IsOpen() const
     {
