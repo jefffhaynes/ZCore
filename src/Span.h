@@ -176,6 +176,12 @@ public:
     template<typename TOther>
     constexpr bool Overlaps(Span<TOther> other) const
     {
+        // An empty span overlaps nothing, wherever it points.
+        if(_length == 0 || other.GetLength() == 0)
+        {
+            return false;
+        }
+
         std::less<const void*> before;
         return before(_data, other.GetData() + other.GetLength())
             && before(other.GetData(), _data + _length);

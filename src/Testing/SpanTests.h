@@ -36,6 +36,9 @@ namespace SpanTests
     static_assert(testSpan.Take(3).Overlaps(testSpan.Skip(2)), "Overlaps method failed");
     static_assert(!testSpan.Take(2).Overlaps(testSpan.Skip(3)), "Overlaps method failed");
     static_assert(!testSpan.Take(0).Overlaps(testSpan), "Overlaps method failed for empty span");
+    static_assert(!testSpan.Skip(2).Take(0).Overlaps(testSpan), "Overlaps method failed for an empty span inside");
+    static_assert(!testSpan.Overlaps(testSpan.Skip(2).Take(0)), "Overlaps method failed for an empty span inside");
+    static_assert(!testSpan.Skip(testSpan.GetLength()).Overlaps(testSpan), "Overlaps method failed for an empty span at the end");
 
     static_assert([]{
         int values[5] = {1, 2, 3, 4, 5};
