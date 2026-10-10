@@ -3,61 +3,152 @@
 #include <stdint.h>
 #include <bit>
 #include "Array.h"
+#include "IHash.h"
+#include "ReturnCode.h"
 #include "Span.h"
 #include "SpanReader.h"
 #include "SpanWriter.h"
 
-// SHA-1 (RFC 3174). Too weak to sign with, but the WebSocket handshake is built on it.
-class Sha1
+// SHA-1 (RFC 3174), in software and constexpr. Too weak to sign with, but the WebSocket handshake is
+// built on it. An instance is a computation in parts; Compute(data) is the whole in one call.
+class Sha1 : public IHash
 {
 public:
     static constexpr uint32_t HashLength = 20;
+    static constexpr uint32_t BlockLength = 64;
 
-    static constexpr Array<uint8_t, HashLength> Compute(Span<const uint8_t> data)
+    constexpr Sha1()
     {
-        State state(0x67452301u, 0xEFCDAB89u, 0x98BADCFEu, 0x10325476u, 0xC3D2E1F0u);
-        auto remaining = data;
+        Reset();
+    }
 
-        for(; remaining.GetLength() >= BlockLength; remaining = remaining.Skip(BlockLength))
+    // User-provided: GCC synthesizes a defaulted virtual destructor too late for Compute's constant
+    // expression to use it.
+    constexpr ~Sha1() override
+    {
+    }
+
+    using IHash::Compute;
+
+    // The whole of data in one call. Defined below the class: in a constant expression it destroys a
+    // Sha1, which the class has to be complete for.
+    static constexpr Array<uint8_t, HashLength> Compute(Span<const uint8_t> data);
+
+    constexpr uint32_t GetDigestLength() const override
+    {
+        return HashLength;
+    }
+
+    constexpr uint32_t GetBlockLength() const override
+    {
+        return BlockLength;
+    }
+
+    constexpr ReturnCode Begin() override
+    {
+        Reset();
+        _begun = true;
+
+        return ReturnCode::Success;
+    }
+
+    constexpr ReturnCode Update(Span<const uint8_t> data) override
+    {
+        if(!_begun)
         {
-            Update(state, remaining.Take(BlockLength));
+            return ReturnCode::InvalidState;
         }
 
-        // What's left, a one bit, zeros, and the message's length in bits to end a block.
-        Array<uint8_t, 2 * BlockLength> ending;
-        auto endingLength = remaining.GetLength() + 1 + sizeof(uint64_t) <= BlockLength ? BlockLength : 2 * BlockLength;
+        _length += data.GetLength();
 
+        // Fill the block that was left part way, if one was.
+        if(_pendingLength > 0)
+        {
+            auto filling = data.Take(BlockLength - _pendingLength);
+            filling.CopyTo(_pending.Skip(_pendingLength));
+            _pendingLength += filling.GetLength();
+            data = data.Skip(filling.GetLength());
+
+            if(_pendingLength < BlockLength)
+            {
+                return ReturnCode::Success;
+            }
+
+            Transform(_pending);
+            _pendingLength = 0;
+        }
+
+        for(; data.GetLength() >= BlockLength; data = data.Skip(BlockLength))
+        {
+            Transform(data.Take(BlockLength));
+        }
+
+        data.CopyTo(_pending.AsSpan());
+        _pendingLength = data.GetLength();
+
+        return ReturnCode::Success;
+    }
+
+    constexpr ReturnCode Finish(Span<uint8_t> digest) override
+    {
+        if(!_begun)
+        {
+            return ReturnCode::InvalidState;
+        }
+
+        if(digest.GetLength() != HashLength)
+        {
+            return ReturnCode::InvalidLength;
+        }
+
+        // What's pending, a one bit, zeros, and the message's length in bits to end a block.
+        Array<uint8_t, 2 * BlockLength> ending;
+        auto endingLength = _pendingLength + 1 + sizeof(uint64_t) <= BlockLength ? BlockLength : 2 * BlockLength;
         SpanWriter<uint8_t> writer(ending.Take(endingLength), Endianness::BigEndian);
-        writer.Write(remaining);
+        writer.Write(_pending.Take(_pendingLength));
         writer.Write(static_cast<uint8_t>(0x80));
 
         SpanWriter<uint8_t> lengthWriter(ending.Take(endingLength).Skip(endingLength - sizeof(uint64_t)), Endianness::BigEndian);
-        lengthWriter.Write(static_cast<uint64_t>(data.GetLength()) * 8);
+        lengthWriter.Write(_length * 8);
 
         for(Span<const uint8_t> blocks = ending.Take(endingLength); !blocks.IsEmpty(); blocks = blocks.Skip(BlockLength))
         {
-            Update(state, blocks.Take(BlockLength));
+            Transform(blocks.Take(BlockLength));
         }
 
-        Array<uint8_t, HashLength> hash;
-        SpanWriter<uint8_t> hashWriter(hash, Endianness::BigEndian);
+        SpanWriter<uint8_t> hashWriter(digest, Endianness::BigEndian);
 
-        for(auto word : state)
+        for(auto word : _state)
         {
             hashWriter.Write(word);
         }
 
-        return hash;
+        Reset();
+        return ReturnCode::Success;
     }
 
 private:
-    static constexpr uint32_t BlockLength = 64;
     static constexpr uint32_t BlockWords = BlockLength / sizeof(uint32_t);
     static constexpr uint32_t Rounds = 80;
 
     using State = Array<uint32_t, HashLength / sizeof(uint32_t)>;
 
-    static constexpr void Update(State& state, Span<const uint8_t> block)
+    State _state;
+    Array<uint8_t, BlockLength> _pending;
+    uint32_t _pendingLength = 0;
+    uint64_t _length = 0;
+    bool _begun = false;
+
+    constexpr void Reset()
+    {
+        _state = State(0x67452301u, 0xEFCDAB89u, 0x98BADCFEu, 0x10325476u, 0xC3D2E1F0u);
+        _pending.Fill(0);
+        _pendingLength = 0;
+        _length = 0;
+        _begun = false;
+    }
+
+    constexpr void Transform(Span<const uint8_t> block)
     {
         Array<uint32_t, Rounds> schedule;
         SpanReader<const uint8_t> reader(block, Endianness::BigEndian);
@@ -67,7 +158,6 @@ private:
         {
             uint32_t word = 0;
             schedule.TryGet(index, word);
-
             return word;
         };
 
@@ -87,12 +177,11 @@ private:
             expanded.Write(word);
         }
 
-        auto a = state.Get<0>();
-        auto b = state.Get<1>();
-        auto c = state.Get<2>();
-        auto d = state.Get<3>();
-        auto e = state.Get<4>();
-
+        auto a = _state.Get<0>();
+        auto b = _state.Get<1>();
+        auto c = _state.Get<2>();
+        auto d = _state.Get<3>();
+        auto e = _state.Get<4>();
         uint32_t round = 0;
 
         for(auto word : schedule)
@@ -122,7 +211,6 @@ private:
             }
 
             auto next = std::rotl(a, 5) + mix + e + constant + word;
-
             e = d;
             d = c;
             c = std::rotl(b, 30);
@@ -131,10 +219,20 @@ private:
             round++;
         }
 
-        state.Get<0>() += a;
-        state.Get<1>() += b;
-        state.Get<2>() += c;
-        state.Get<3>() += d;
-        state.Get<4>() += e;
+        _state.Get<0>() += a;
+        _state.Get<1>() += b;
+        _state.Get<2>() += c;
+        _state.Get<3>() += d;
+        _state.Get<4>() += e;
     }
 };
+
+constexpr Array<uint8_t, Sha1::HashLength> Sha1::Compute(Span<const uint8_t> data)
+{
+    Sha1 sha1;
+    Array<uint8_t, HashLength> hash;
+
+    sha1.IHash::Compute(data, hash);
+
+    return hash;
+}
