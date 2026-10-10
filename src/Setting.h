@@ -4,6 +4,7 @@
 #include <Range.h>
 #include <Nullable.h>
 #include "CoreString.h"
+#include "MemoryMarshal.h"
 #include "UnitHelper.h"
 
 // A persisted value. An optional Range is enforced at every boundary the value
