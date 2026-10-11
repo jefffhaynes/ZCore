@@ -44,3 +44,4 @@
 #include "HmacTests.h"
 #include "Base64Tests.h"
 #include "WebSocketFrameTests.h"
+#include "SntpPacketTests.h"
