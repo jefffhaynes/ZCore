@@ -18,6 +18,16 @@ public:
         return _key;
     }
 
+    // True once the value is known to be in storage: one was loaded from there
+    // whole, or this one was saved there. False while it's only the default,
+    // as when storage holds nothing for the key, or holds something of another
+    // size, or couldn't be read. A value that must never start over from its
+    // default, such as a counter, is checked with this before it's used.
+    bool IsStored() const
+    {
+        return _stored;
+    }
+
 protected:
     constexpr SettingBase(StringLiteral key, bool throttle) : _key(key), _throttle(throttle)
     {
@@ -37,6 +47,7 @@ protected:
         CHECK_RETURN_CODE(rc);
 
         _dirty = false;
+        _stored = false;
 
         return ReturnCode::Success;
     }
@@ -69,6 +80,45 @@ private:
     Span<const uint8_t> _valueSpan;
     bool _throttle;
     bool _dirty = false;
+    bool _stored = false;
+
+    // Takes the stored value, read through Zephyr's callback. It's read aside
+    // first and taken only if all of it came, so that a read that fails or
+    // falls short leaves the value as it was, whole, and no longer known to
+    // be in storage. Zephyr's error, or 0.
+    int Load(settings_read_cb read, void* argument)
+    {
+        _stored = false;
+
+        auto length = GetValueLength();
+        Span<uint8_t> value(static_cast<uint8_t*>(GetValuePointer()), length);
+        Array<uint8_t, MaxValueLength> buffer;
+        auto aside = buffer.Take(length);
+
+        // A value too long to read aside is read where it lies, as it always was.
+        auto destination = aside.GetLength() == length ? aside : value;
+        auto count = read(argument, destination.GetData(), length);
+
+        if(count < 0)
+        {
+            return static_cast<int>(count);
+        }
+
+        if(static_cast<uint32_t>(count) != length)
+        {
+            return 0;
+        }
+
+        if(aside.GetLength() == length && aside.CopyTo(value) != ReturnCode::Success)
+        {
+            return 0;
+        }
+
+        Sanitize();
+        _stored = true;
+
+        return 0;
+    }
 
     ReturnCode Flush()
     {
@@ -88,6 +138,11 @@ private:
     ReturnCode SaveImpl(Span<const uint8_t> value)
     {
         auto err = settings_save_one(_key.GetData(), value.GetData(), value.GetLength());
-        return ErrorConverter::Convert(err);
+        auto rc = ErrorConverter::Convert(err);
+        CHECK_RETURN_CODE(rc);
+
+        _stored = true;
+
+        return ReturnCode::Success;
     }
 };

@@ -45,17 +45,8 @@ public:
                     return 0;
                 }
 
-                auto read = read_cb(cb_arg, setting->GetValuePointer(), setting->GetValueLength());
-
-                if(read < 0)
-                {
-                    return read;
-                }
-
-                setting->Sanitize();
-
-                // Zephyr takes anything but 0 as a failure, and logs it, though the value is in.
-                return 0;
+                // Zephyr takes anything but 0 as a failure, and logs it.
+                return setting->Load(read_cb, cb_arg);
             }
         }
 
