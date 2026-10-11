@@ -19,6 +19,13 @@ public:
         CHECK_RETURN_CODE(rc);
 
         auto err = sensor_sample_fetch_chan(GetDevice(), SENSOR_CHAN_ACCEL_XYZ);
+
+        // Some drivers only fetch everything they have at once.
+        if(err == -ENOTSUP)
+        {
+            err = sensor_sample_fetch(GetDevice());
+        }
+
         rc = ErrorConverter::Convert(err);
         CHECK_RETURN_CODE(rc);
 
