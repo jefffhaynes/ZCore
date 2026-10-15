@@ -14,7 +14,10 @@ class Thread
 typedef ReturnCode (*ThreadEntryPoint)(Args... args);
 
 public:
-    Thread(ThreadEntryPoint entryPoint) : _entryPoint(entryPoint)
+    static constexpr int DefaultPriority = K_PRIO_PREEMPT(7);
+
+    // Zephyr's priority: the lower runs first, and below 0 is cooperative.
+    Thread(ThreadEntryPoint entryPoint, int priority = DefaultPriority) : _entryPoint(entryPoint), _priority(priority)
     {
     }
 
@@ -25,7 +28,7 @@ public:
         auto id = k_thread_create(&_thread, 
             _stack.Value, K_THREAD_STACK_SIZEOF(_stack.Value), 
             EntryPoint, this, nullptr, nullptr, 
-            K_PRIO_PREEMPT(7), 0, TimeHelper::NoWait());
+            _priority, 0, TimeHelper::NoWait());
 
         return id == nullptr ? ReturnCode::InvalidOperation : ReturnCode::Success;
     }
@@ -49,6 +52,7 @@ private:
     Aligned<z_thread_stack_element[Z_KERNEL_STACK_SIZE_ADJUST(StackSize)], Z_KERNEL_STACK_OBJ_ALIGN> _stack;
 
     ThreadEntryPoint _entryPoint;
+    int _priority;
     std::tuple<Args...> _args;
 
     struct k_thread _thread;
