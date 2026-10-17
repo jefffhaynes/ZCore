@@ -25,10 +25,23 @@ class Debug
     }
 
 public:
+    // An app that defines ZCORE_DEBUG_SILENT (a shipping build, say) gets no
+    // debug output at all: every write returns before any formatting. RTT
+    // itself is untouched, so RealTimeTransfer keeps working.
+#if defined(ZCORE_DEBUG_SILENT)
+    static constexpr bool IsSilent = true;
+#else
+    static constexpr bool IsSilent = false;
+#endif
+
     template<typename... Args>
     static constexpr ReturnCode Write(String message, Args... args)
     {
-        if constexpr (sizeof...(args) == 0)
+        if constexpr (IsSilent)
+        {
+            return ReturnCode::Success;
+        }
+        else if constexpr (sizeof...(args) == 0)
         {
             return WriteImpl(message);
         }
