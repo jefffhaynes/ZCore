@@ -82,7 +82,10 @@ protected:
 
         for(auto* connection : BluetoothLEConnections)
         {
-            if(connection == originator || !bt_gatt_is_subscribed(connection, _attribute, BT_GATT_CCC_NOTIFY))
+            // The array iterates its empty slots too. bt_gatt_is_subscribed() only
+            // asserts its connection isn't null and then dereferences it.
+            if(connection == nullptr || connection == originator
+                || !bt_gatt_is_subscribed(connection, _attribute, BT_GATT_CCC_NOTIFY))
             {
                 continue;
             }
