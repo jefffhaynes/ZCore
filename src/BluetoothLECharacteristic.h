@@ -50,7 +50,7 @@ protected:
         return ReturnCode::Success;
     }
 
-    ReturnCode Notify(Span<const uint8_t> data, void* originator)
+    ReturnCode Notify(Span<const uint8_t> data, void* originator, bool force = false)
     {
         if (ImageManager::IsUpdating())
         {
@@ -75,7 +75,9 @@ protected:
             }
         }
 
-        if(_lastUpdate + _updateCooldown > Clock::GetUptime())
+        // A forced notification goes even inside the cooldown, for a value that mustn't be dropped
+        // (the end of a fade): an unchanged value isn't sent again.
+        if(!force && _lastUpdate + _updateCooldown > Clock::GetUptime())
         {
             return ReturnCode::Success;
         }
@@ -203,64 +205,64 @@ protected:
     }
 
 
-    ReturnCode Notify(float value, void* connection)
+    ReturnCode Notify(float value, void* connection, bool force = false)
     {
         auto data = MemoryMarshal::AsConstBytes(value);
-        return BluetoothLECharacteristicBase::Notify(data, connection);
+        return BluetoothLECharacteristicBase::Notify(data, connection, force);
     }
 
-    ReturnCode Notify(bool value, void* connection)
+    ReturnCode Notify(bool value, void* connection, bool force = false)
     {
         auto data = MemoryMarshal::AsConstBytes(value);
-        return BluetoothLECharacteristicBase::Notify(data, connection);
+        return BluetoothLECharacteristicBase::Notify(data, connection, force);
     }
 
-    ReturnCode Notify(uint32_t value, void* connection)
+    ReturnCode Notify(uint32_t value, void* connection, bool force = false)
     {
         auto data = MemoryMarshal::AsConstBytes(value);
-        return BluetoothLECharacteristicBase::Notify(data, connection);
+        return BluetoothLECharacteristicBase::Notify(data, connection, force);
     }
 
-    ReturnCode Notify(Power value, void* connection)
+    ReturnCode Notify(Power value, void* connection, bool force = false)
     {
         auto watts = (TPower) value.ToWatts();
         auto data = MemoryMarshal::AsConstBytes(watts);
-        return BluetoothLECharacteristicBase::Notify(data, connection);
+        return BluetoothLECharacteristicBase::Notify(data, connection, force);
     }
 
-    ReturnCode Notify(TimeSpan value, void* connection)
+    ReturnCode Notify(TimeSpan value, void* connection, bool force = false)
     {
 	    auto seconds = (TTime) value.ToSeconds();
         auto data = MemoryMarshal::AsConstBytes(seconds);
-        return BluetoothLECharacteristicBase::Notify(data, connection);
+        return BluetoothLECharacteristicBase::Notify(data, connection, force);
     }
 
-    ReturnCode Notify(Angle value, void* connection)
+    ReturnCode Notify(Angle value, void* connection, bool force = false)
     {
         auto degrees = value.ToDegrees();
         auto data = MemoryMarshal::AsConstBytes(degrees);
-        return BluetoothLECharacteristicBase::Notify(data, connection);
+        return BluetoothLECharacteristicBase::Notify(data, connection, force);
     }
 
-    ReturnCode Notify(Temperature value, void* connection)
+    ReturnCode Notify(Temperature value, void* connection, bool force = false)
     {
         auto celcius = (TTemperature) value.ToCelsius();
         auto data = MemoryMarshal::AsConstBytes(celcius);
-        return BluetoothLECharacteristicBase::Notify(data, connection);
+        return BluetoothLECharacteristicBase::Notify(data, connection, force);
     }
     
-    ReturnCode Notify(SignalStrength value, void* connection)
+    ReturnCode Notify(SignalStrength value, void* connection, bool force = false)
     {
         auto db = (TSignalStrength) value.ToDecibels();
         auto data = MemoryMarshal::AsConstBytes(db);
-        return BluetoothLECharacteristicBase::Notify(data, connection);
+        return BluetoothLECharacteristicBase::Notify(data, connection, force);
     }
 
-    ReturnCode Notify(Illuminance value, void* connection)
+    ReturnCode Notify(Illuminance value, void* connection, bool force = false)
     {
         auto lux = (TIlluminance) value.ToLux();
         auto data = MemoryMarshal::AsConstBytes(lux);
-        return BluetoothLECharacteristicBase::Notify(data, connection);
+        return BluetoothLECharacteristicBase::Notify(data, connection, force);
     }
 
     static constexpr ReturnCode Convert(Span<const uint8_t> data, float& value)
@@ -424,14 +426,16 @@ public:
     {
     }
 
-    ReturnCode Update(TValue value, void* originator = nullptr)
+    // A forced update is sent even if it's unchanged or inside the cooldown: a value the cooldown
+    // dropped is still stored, so it wouldn't be sent again otherwise.
+    ReturnCode Update(TValue value, void* originator = nullptr, bool force = false)
     {
         Nullable<TValue> current;
         auto rc = GetValue(current);
         CHECK_RETURN_CODE(rc);
 
         TValue currentValue;
-        if (current.TryGetValue(currentValue))
+        if (!force && current.TryGetValue(currentValue))
         {
             if constexpr(std::is_same_v<TValue, bool>)
             {
@@ -446,7 +450,7 @@ public:
             }
         }
 
-        rc = BluetoothLEValueCharacteristic<TValue>::Notify(value, originator);
+        rc = BluetoothLEValueCharacteristic<TValue>::Notify(value, originator, force);
         CHECK_RETURN_CODE(rc);
 
         return SetValue(value);
