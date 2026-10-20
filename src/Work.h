@@ -42,6 +42,19 @@ public:
         return ErrorConverter::Convert(err);
     }
 
+    // Takes the work off the queue if it's waiting there. Unlike CancelSync it doesn't wait for a
+    // run that has started, so the work queue itself can call it.
+    ReturnCode Cancel()
+    {
+        if(!_initialized)
+        {
+            return ReturnCode::Success;
+        }
+
+        k_work_cancel(&_container.CallbackContext);
+        return ReturnCode::Success;
+    }
+
     ReturnCode CancelSync()
     {
         if(!_initialized)

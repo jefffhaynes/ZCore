@@ -80,6 +80,11 @@ public:
 
         k_timer_stop(&_timer);
 
+        // A scheduled timer's ISR may already have queued an expiry, which would still run after
+        // the stop, and a handler that restarts the timer (a blinker) would keep it going.
+        rc = _work.Cancel();
+        CHECK_RETURN_CODE(rc);
+
         _running = false;
 
         return ReturnCode::Success;
