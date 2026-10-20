@@ -80,16 +80,10 @@ public:
 
         k_timer_stop(&_timer);
 
-        if(IsScheduled())
-        {
-            // An expiry the ISR already queued would still run after the stop, and a handler
-            // that restarts the timer (a blinker) would keep it going.
-            rc = _work.Cancel();
-            CHECK_RETURN_CODE(rc);
-
-            // Drops one the work queue had already taken, which Cancel can't reach.
-            atomic_clear(&_expiryQueued);
-        }
+        // A scheduled timer's ISR may already have queued an expiry, which would still run after
+        // the stop, and a handler that restarts the timer (a blinker) would keep it going.
+        rc = _work.Cancel();
+        CHECK_RETURN_CODE(rc);
 
         _running = false;
 
@@ -108,7 +102,6 @@ private:
     k_timer _timer = {};
     bool _running;
     Work _work;
-    atomic_t _expiryQueued = ATOMIC_INIT(0);
 
     constexpr bool IsScheduled()
     {
@@ -117,23 +110,11 @@ private:
 
     constexpr ReturnCode OnExpiration()
     {
-        if(!IsScheduled())
-        {
-            return Expire();
-        }
-
-        atomic_set(&_expiryQueued, 1);
-        return _work.Run();
+        return IsScheduled() ? _work.Run() : Expire();
     }
 
-    ReturnCode OnWork()
+    constexpr ReturnCode OnWork()
     {
-        if(atomic_clear(&_expiryQueued) == 0)
-        {
-            // stopped since this expiry was queued
-            return ReturnCode::Success;
-        }
-
         return Expire();
     }
 
