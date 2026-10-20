@@ -13,6 +13,7 @@
 #include "Angle.h"
 #include "Nullable.h"
 #include "ImageManager.h"
+#include "Timer.h"
 
 #include <zephyr/bluetooth/bluetooth.h>
 #include <zephyr/bluetooth/uuid.h>
@@ -26,13 +27,35 @@ public:
     static constexpr TimeSpan DefaultUpdateCooldown = TimeSpan::FromMilliseconds(50);
 
     BluetoothLECharacteristicBase(bt_uuid_128& uuid, TimeSpan updateCooldown = DefaultUpdateCooldown) : 
-        _uuid(uuid), _updateCooldown(updateCooldown), _attribute(nullptr)
+        _uuid(uuid), _updateCooldown(updateCooldown), _attribute(nullptr), _next(_first)
     {
+        // Every characteristic is listed, so the shared timer can find the ones holding a value back.
+        _first = this;
+    }
+
+    BluetoothLECharacteristicBase(const BluetoothLECharacteristicBase&) = delete;
+    BluetoothLECharacteristicBase& operator=(const BluetoothLECharacteristicBase&) = delete;
+
+    ~BluetoothLECharacteristicBase()
+    {
+        for(auto** link = &_first; *link != nullptr; link = &(*link)->_next)
+        {
+            if(*link == this)
+            {
+                *link = _next;
+                break;
+            }
+        }
     }
 
     static void SetFindAttributeCallback(FindAttributeCallback callback)
     {
         _findAttributeCallback = callback;
+
+        // Nothing can be held back before this, since Notify() sends nothing until the stack is
+        // up, and this runs once, from Bluetooth start-up, so no other thread starts the timer yet.
+        auto rc = InitializePendingTimer();
+        Debug::WriteIfError(rc);
     }
 
     virtual ReturnCode Read(Span<uint8_t> data, uint32_t& read, uint16_t offset) = 0;
@@ -75,10 +98,19 @@ protected:
             }
         }
 
-        if(_lastUpdate + _updateCooldown > Clock::GetUptime())
+        auto now = Clock::GetUptime();
+        auto cooldownEnd = _lastUpdate + _updateCooldown;
+
+        if(cooldownEnd > now)
         {
-            return ReturnCode::Success;
+            // Too soon after the last one. The latest value goes when the cooldown ends instead:
+            // dropping it would leave clients with a stale value whenever a burst of changes stops,
+            // such as at the end of a fade, since an unchanged value isn't sent again.
+            return NotifyLater(cooldownEnd - now, originator);
         }
+
+        // This carries the latest value, so nothing is held back any more.
+        _pending = false;
 
         for(auto* connection : BluetoothLEConnections)
         {
@@ -99,13 +131,84 @@ protected:
         return ReturnCode::Success;
     }
 
+    // Notifies the characteristic's current value, for a change the cooldown held back. One that
+    // can't read its value back doesn't send it.
+    virtual ReturnCode NotifyLatest(void*)
+    {
+        return ReturnCode::Success;
+    }
+
 private:
     static FindAttributeCallback _findAttributeCallback;
+    static BluetoothLECharacteristicBase* _first;
+    static Timer _pendingTimer;
+    static TimeSpan _pendingTimerDue;
+    static bool _pendingTimerInitialized;
 
     bt_uuid_128& _uuid;
     TimeSpan _updateCooldown;
     TimeSpan _lastUpdate;
     bt_gatt_attr* _attribute;
+    BluetoothLECharacteristicBase* _next;
+    void* _pendingOriginator = nullptr;
+    bool _pending = false;
+
+    static ReturnCode InitializePendingTimer()
+    {
+        if(_pendingTimerInitialized)
+        {
+            return ReturnCode::Success;
+        }
+
+        auto rc = _pendingTimer.Initialize();
+        CHECK_RETURN_CODE(rc);
+
+        rc = _pendingTimer.Expired.Subscribe(OnPendingTimerExpired);
+        CHECK_RETURN_CODE(rc);
+
+        _pendingTimerInitialized = true;
+
+        return ReturnCode::Success;
+    }
+
+    ReturnCode NotifyLater(TimeSpan delay, void* originator)
+    {
+        // The latest change's writer already has it, whoever wrote the ones before.
+        _pendingOriginator = originator;
+        _pending = true;
+
+        // One timer serves every characteristic, set for the earliest one due. A later one is
+        // held back again when it fires and goes on the next run.
+        auto due = Clock::GetUptime() + delay;
+
+        if(_pendingTimer.IsRunning() && _pendingTimerDue <= due)
+        {
+            return ReturnCode::Success;
+        }
+
+        _pendingTimerDue = due;
+
+        return _pendingTimer.Start(delay);
+    }
+
+    static ReturnCode OnPendingTimerExpired(void*)
+    {
+        for(auto* characteristic = _first; characteristic != nullptr; characteristic = characteristic->_next)
+        {
+            if(!characteristic->_pending)
+            {
+                continue;
+            }
+
+            // Through Notify(), so it still skips the writer and clients that aren't subscribed,
+            // and one whose cooldown hasn't ended yet is held back again.
+            characteristic->_pending = false;
+            auto rc = characteristic->NotifyLatest(characteristic->_pendingOriginator);
+            Debug::WriteIfError(rc);
+        }
+
+        return ReturnCode::Success;
+    }
 
     bt_gatt_attr* GetAttribute()
     {
@@ -136,6 +239,10 @@ private:
 };
 
 inline BluetoothLECharacteristicBase::FindAttributeCallback BluetoothLECharacteristicBase::_findAttributeCallback = nullptr;
+inline BluetoothLECharacteristicBase* BluetoothLECharacteristicBase::_first = nullptr;
+inline Timer BluetoothLECharacteristicBase::_pendingTimer(TimerOptions::Scheduled);
+inline TimeSpan BluetoothLECharacteristicBase::_pendingTimerDue;
+inline bool BluetoothLECharacteristicBase::_pendingTimerInitialized = false;
 
 template<typename TValue>
 class BluetoothLEValueCharacteristic : public BluetoothLECharacteristicBase
@@ -191,6 +298,21 @@ public:
 protected:
     virtual ReturnCode GetValue(Nullable<TValue>& value) = 0;
     virtual ReturnCode SetValue(TValue value) = 0;
+
+    ReturnCode NotifyLatest(void* originator) override
+    {
+        Nullable<TValue> value;
+        auto rc = GetValue(value);
+        CHECK_RETURN_CODE(rc);
+
+        TValue latest;
+        if(!value.TryGetValue(latest))
+        {
+            return ReturnCode::Success;
+        }
+
+        return Notify(latest, originator);
+    }
 
     static constexpr ReturnCode CopyExact(Span<const uint8_t> data, Span<uint8_t> valueData)
     {
@@ -446,10 +568,11 @@ public:
             }
         }
 
-        rc = BluetoothLEValueCharacteristic<TValue>::Notify(value, originator);
+        // Stored first, so a notification the cooldown holds back sends this value or a later one.
+        rc = SetValue(value);
         CHECK_RETURN_CODE(rc);
 
-        return SetValue(value);
+        return BluetoothLEValueCharacteristic<TValue>::Notify(value, originator);
     }
 
 protected:
@@ -557,6 +680,12 @@ public:
         auto name = String::FromNullTerminated(bt_get_name());
 	    auto nameSpan = name.AsConstBytes();
 	    return ReadData(nameSpan, data, read, offset);
+    }
+
+protected:
+    ReturnCode NotifyLatest(void* originator) override
+    {
+        return TriggerUpdate(originator);
     }
 
 private:
