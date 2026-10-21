@@ -16,6 +16,11 @@ public:
     {
     }
 
+    // Scheduled on the given queue instead of the system work queue.
+    constexpr explicit Timer(WorkQueueBase& queue) : _options(TimerOptions::Scheduled), _running(false), _work(&queue)
+    {
+    }
+
     ~Timer()
     {
         auto rc = Stop();

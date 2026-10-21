@@ -5,11 +5,17 @@
 #include "ErrorConverter.h"
 #include "CallbackContainer.h"
 #include "Debug.h"
+#include "WorkQueue.h"
 
 class Work
 {
 public:
-    constexpr Work() : _container(this), _initialized(false)
+    constexpr Work() : Work(nullptr)
+    {
+    }
+
+    // Without a queue the work runs on the system work queue.
+    constexpr explicit Work(WorkQueueBase* queue) : _container(this), _queue(queue), _initialized(false)
     {
     }
 
@@ -37,7 +43,12 @@ public:
     {
         auto rc = Initialize();
         CHECK_RETURN_CODE(rc);
-        
+
+        if(_queue != nullptr)
+        {
+            return _queue->Submit(_container.CallbackContext);
+        }
+
         auto err = k_work_submit(&_container.CallbackContext);
         return ErrorConverter::Convert(err);
     }
@@ -66,10 +77,25 @@ public:
         return ReturnCode::Success;
     }
 
+    // Waits until the work has run, if it's waiting or running. Not from the queue it runs on.
+    ReturnCode Flush()
+    {
+        if(!_initialized)
+        {
+            return ReturnCode::Success;
+        }
+
+        // Its own, so a flush can't share one with a CancelSync on another thread.
+        k_work_sync sync = {};
+        k_work_flush(&_container.CallbackContext, &sync);
+        return ReturnCode::Success;
+    }
+
     EventHandler<> Worker;
 
 private:
     CallbackContainer<k_work> _container;
+    WorkQueueBase* _queue;
     k_work_sync _sync = {};
     bool _initialized;
 

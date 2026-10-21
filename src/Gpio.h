@@ -25,6 +25,12 @@ public:
     {
     }
 
+    // Scheduled on the given queue instead of the system work queue.
+    Gpio(const gpio_dt_spec& spec, WorkQueueBase& queue) : _spec(spec),
+        _scheduled(true), _container(this), _work(&queue), _configured(false)
+    {
+    }
+
     ReturnCode Configure(GpioDirection direction)
     {
         if(_configured)
