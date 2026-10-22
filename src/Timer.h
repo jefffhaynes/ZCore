@@ -16,6 +16,11 @@ public:
     {
     }
 
+    // Scheduled on the given queue instead of the system work queue.
+    constexpr explicit Timer(WorkQueueBase& queue) : _options(TimerOptions::Scheduled), _running(false), _work(&queue)
+    {
+    }
+
     ~Timer()
     {
         auto rc = Stop();
@@ -81,10 +86,10 @@ public:
         k_timer_stop(&_timer);
 
         // A scheduled timer's ISR may already have queued an expiry, which would still run after
-        // the stop, and a handler that restarts the timer (a blinker) would keep it going.
-        rc = _work.Cancel();
-        CHECK_RETURN_CODE(rc);
-
+        // the stop, and a handler that restarts the timer (a blinker) would keep it going. It's
+        // left to run and do nothing: cancelling it from inside its own handler would make the
+        // kernel refuse every submit, and so the next expiry, until the handler returned.
+        _generation++;
         _running = false;
 
         return ReturnCode::Success;
@@ -102,6 +107,8 @@ private:
     k_timer _timer = {};
     bool _running;
     Work _work;
+    uint32_t _generation = 0;
+    uint32_t _expiredGeneration = 0;
 
     constexpr bool IsScheduled()
     {
@@ -110,11 +117,23 @@ private:
 
     constexpr ReturnCode OnExpiration()
     {
-        return IsScheduled() ? _work.Run() : Expire();
+        if(!IsScheduled())
+        {
+            return Expire();
+        }
+
+        _expiredGeneration = _generation;
+        return _work.Run();
     }
 
     constexpr ReturnCode OnWork()
     {
+        // Stopped or restarted since this expiry was queued.
+        if(_expiredGeneration != _generation)
+        {
+            return ReturnCode::Success;
+        }
+
         return Expire();
     }
 
