@@ -19,6 +19,7 @@
 #include "StreamReaderTests.h"
 #include "InputStreamTests.h"
 #include "MemoryMarshalTests.h"
+#include "MessageQueueTests.h"
 #include "StringTests.h"
 #include "StringFormatterTests.h"
 #include "TimeSpanTests.h"
