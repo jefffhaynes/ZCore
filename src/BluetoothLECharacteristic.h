@@ -279,8 +279,16 @@ protected:
     
     static constexpr ReturnCode Convert(Span<const uint8_t> data, bool& value)
     {
-        auto valueData = MemoryMarshal::AsBytes(value);
-        return CopyExact(data, valueData);
+        // Read the byte as a byte: copied straight into a bool, a client's 0x02 would be
+        // stored as a bool that's neither true nor false. Any nonzero byte is true.
+        uint8_t byte = 0;
+        auto valueData = MemoryMarshal::AsBytes(byte);
+        auto rc = CopyExact(data, valueData);
+        CHECK_RETURN_CODE(rc);
+
+        value = byte != 0;
+
+        return ReturnCode::Success;
     }
 
     static constexpr ReturnCode Convert(Span<const uint8_t> data, Power& value)
